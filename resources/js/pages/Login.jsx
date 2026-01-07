@@ -23,10 +23,13 @@ export default function Login() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // 1. CHECK URL STATUS (Galing sa Email Link)
+    // 1. CHECK URL STATUS (Galing sa Email Link o Reset Password)
     useEffect(() => {
         const status = searchParams.get("status");
+        const verificationNeeded = searchParams.get("needs_verification");
+        const emailParam = searchParams.get("email");
 
+        // Logic A: Email Verification Status
         if (status === "verified") {
             Toast.fire({
                 icon: "success",
@@ -44,6 +47,12 @@ export default function Login() {
                 title: "Invalid or expired verification link.",
             });
         }
+
+        // Logic B: Galing sa Reset Password pero Unverified pa
+        if (verificationNeeded === "1" && emailParam) {
+            setEmail(emailParam);
+            setNeedsVerification(true); // Buksan agad ang Verification UI
+        }
     }, [searchParams]);
 
     // 2. LOGIN LOGIC
@@ -60,16 +69,32 @@ export default function Login() {
             });
 
             if (response.status === 200) {
+                // 1. Save Token & User
+                localStorage.setItem("token", response.data.access_token);
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(response.data.user)
+                );
+
                 Toast.fire({ icon: "success", title: "Login successful!" });
 
                 const role = response.data.role;
 
+                // 2. DELAY & REDIRECT (Updated Logic)
                 setTimeout(() => {
-                    if (role === "admin") navigate("/admin/dashboard");
-                    else navigate("/student/dashboard");
+                    // Check kung Admin OR Staff (parehas silang pupunta sa Admin Dashboard sa ngayon)
+                    if (role === "admin" || role === "staff") {
+                        // ⚠️ Gagamit tayo ng window.location.href para ma-force reload
+                        // at kumagat ang Token sa bootstrap.js
+                        window.location.href = "/admin/dashboard";
+                    } else {
+                        // Students (Wala pa tayong route nito, pero ready na)
+                        window.location.href = "/student/dashboard";
+                    }
                 }, 1000);
             }
         } catch (error) {
+            // 🛑 CATCH: Account exists but NOT Verified
             if (
                 error.response &&
                 error.response.status === 403 &&
