@@ -12,8 +12,9 @@ import {
     LineElement,
 } from "chart.js";
 import { Doughnut, Pie, Bar, Line } from "react-chartjs-2";
-import Toast from "../../utils/toast"; // Optional: Para sa notifications
+import Toast from "../../utils/toast";
 
+// Register ChartJS Components
 ChartJS.register(
     ArcElement,
     Tooltip,
@@ -29,14 +30,14 @@ export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // 🆕 STATE PARA SA SCHOOL YEAR
-    const [schoolYear, setSchoolYear] = useState(""); // E.g., "2025-2026"
+    // State para sa Filter Input
+    const [schoolYear, setSchoolYear] = useState("");
 
-    // 🆕 FETCH FUNCTION (Tumatanggap ng year)
+    // Fetch Function with Filter
     const fetchData = async (yearFilter = "") => {
         setLoading(true);
         try {
-            // Ipapasa natin ang year sa URL query params
+            // Ipapasa ang ?year=XXXX sa backend
             const res = await axios.get(
                 `/api/admin/analytics?year=${yearFilter}`
             );
@@ -45,40 +46,54 @@ export default function Dashboard() {
             if (yearFilter) {
                 Toast.fire({
                     icon: "info",
-                    title: `Filtered by SY: ${yearFilter}`,
+                    title: `Data loaded for SY: ${yearFilter}`,
                 });
             }
         } catch (error) {
             console.error("Error fetching analytics:", error);
+            Toast.fire({ icon: "error", title: "Failed to load analytics" });
         } finally {
             setLoading(false);
         }
     };
 
-    // Initial Load
+    // Initial Load (Current Year)
     useEffect(() => {
         fetchData();
     }, []);
 
-    // 🆕 HANDLE ENTER KEY
+    // Handle Enter Key sa Input Box
     const handleFilterSubmit = (e) => {
         if (e.key === "Enter") {
             fetchData(schoolYear);
         }
     };
 
+    // Loading State
     if (loading)
         return (
-            <div className="p-5 text-center">
-                <i className="bi bi-arrow-repeat spin fs-1 text-primary"></i>{" "}
-                <p>Loading Analytics...</p>
+            <div
+                className="d-flex flex-column align-items-center justify-content-center"
+                style={{ height: "60vh" }}
+            >
+                <div
+                    className="spinner-border text-primary mb-3"
+                    role="status"
+                ></div>
+                <span className="text-muted fw-bold">Loading Analytics...</span>
             </div>
         );
-    if (!data) return <div className="p-5 text-center">No Data Available</div>;
+
+    // Empty State
+    if (!data)
+        return (
+            <div className="p-5 text-center text-muted">No Data Available</div>
+        );
 
     const { cards, charts } = data;
 
-    // --- CHART CONFIGURATIONS (SAME AS BEFORE) ---
+    // --- CHART CONFIGURATIONS ---
+
     const strandData = {
         labels: charts.students_per_strand.map((i) => i.label),
         datasets: [
@@ -91,6 +106,8 @@ export default function Dashboard() {
                     "#4BC0C0",
                     "#9966FF",
                 ],
+                borderColor: "#fff",
+                borderWidth: 2,
             },
         ],
     };
@@ -107,6 +124,8 @@ export default function Dashboard() {
                     "#9966FF",
                     "#4BC0C0",
                 ],
+                borderColor: "#fff",
+                borderWidth: 2,
             },
         ],
     };
@@ -118,36 +137,83 @@ export default function Dashboard() {
                 label: "Students Count",
                 data: charts.demographics.map((i) => i.value),
                 backgroundColor: ["#36A2EB", "#FFCE56"],
+                borderRadius: 5,
             },
         ],
     };
 
+    // Multi-Line Chart Configuration
     const trendData = {
-        labels: charts.enrollment_trend.map((i) => i.month_name),
+        labels: charts.enrollment_trend.labels, // Jan, Feb, Mar...
         datasets: [
             {
-                label: "Enrollees",
-                data: charts.enrollment_trend.map((i) => i.count),
-                borderColor: "#4BC0C0",
+                label: "Enrolled",
+                data: charts.enrollment_trend.enrolled,
+                borderColor: "#36A2EB", // Blue
+                backgroundColor: "#36A2EB",
                 tension: 0.3,
-                fill: false,
+            },
+            {
+                label: "Graduates",
+                data: charts.enrollment_trend.graduate,
+                borderColor: "#4BC0C0", // Green
+                backgroundColor: "#4BC0C0",
+                tension: 0.3,
+            },
+            {
+                label: "Dropouts",
+                data: charts.enrollment_trend.dropped,
+                borderColor: "#FF6384", // Red
+                backgroundColor: "#FF6384",
+                tension: 0.3,
+            },
+            {
+                label: "Released",
+                data: charts.enrollment_trend.released,
+                borderColor: "#FF9F40", // Orange
+                backgroundColor: "#FF9F40",
+                tension: 0.3,
             },
         ],
+    };
+
+    // Common options for Doughnut/Pie to make them look cleaner
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: "bottom",
+                labels: {
+                    boxWidth: 15,
+                    padding: 15,
+                    font: {
+                        size: 11,
+                    },
+                },
+            },
+        },
+        layout: {
+            padding: {
+                top: 20,
+                bottom: 10,
+            },
+        },
     };
 
     return (
-        <div className="container-fluid fade-in">
-            {/* 🆕 HEADER ROW WITH FILTER INPUT */}
-            <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div className="container-fluid fade-in mb-5">
+            {/* HEADER ROW WITH FILTER INPUT */}
+            <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 border-bottom pb-3">
                 <h2 className="fw-bold text-dark mb-0">Analytics Dashboard</h2>
 
-                <div className="d-flex align-items-center">
-                    <span className="me-2 fw-bold text-muted small">
-                        FILTER S.Y:
+                <div className="d-flex align-items-center mt-2 mt-md-0">
+                    <span className="me-2 fw-bold text-muted small text-uppercase">
+                        Filter School Year:
                     </span>
-                    <div className="input-group" style={{ maxWidth: "200px" }}>
-                        <span className="input-group-text bg-white border-end-0">
-                            <i className="bi bi-calendar-range text-primary"></i>
+                    <div className="input-group" style={{ maxWidth: "220px" }}>
+                        <span className="input-group-text bg-white border-end-0 text-primary">
+                            <i className="bi bi-calendar-range"></i>
                         </span>
                         <input
                             type="text"
@@ -161,7 +227,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* 1. STATS CARDS ROW */}
+            {/* 1. STATS CARDS ROW (8 Cards) */}
             <div className="row g-3 mb-4">
                 <StatCard
                     title="Total Enrolled"
@@ -218,53 +284,54 @@ export default function Dashboard() {
                 />
             </div>
 
-            {/* 2. CHARTS ROW */}
-            <div className="row g-4">
-                {/* Strand Population */}
+            {/* 2. CHARTS ROW - ✅ UPDATED SIZES */}
+            <div className="row g-4 mb-4">
+                {/* Strand Population (Doughnut) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100">
-                        <div className="card-header bg-white fw-bold">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-header bg-white fw-bold border-bottom py-3">
                             Students per Strand
                         </div>
-                        <div className="card-body d-flex align-items-center justify-content-center">
-                            <div
-                                style={{
-                                    maxHeight: "300px",
-                                    maxWidth: "300px",
-                                }}
-                            >
-                                <Doughnut data={strandData} />
-                            </div>
+                        {/* ✅ Binigyan ng fixed height na 350px at tinanggal ang dating constraints */}
+                        <div
+                            className="card-body p-3"
+                            style={{ height: "350px" }}
+                        >
+                            <Doughnut
+                                data={strandData}
+                                options={chartOptions}
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Section Distribution */}
+                {/* Section Distribution (Pie) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100">
-                        <div className="card-header bg-white fw-bold">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-header bg-white fw-bold border-bottom py-3">
                             Sections per Strand
                         </div>
-                        <div className="card-body d-flex align-items-center justify-content-center">
-                            <div
-                                style={{
-                                    maxHeight: "300px",
-                                    maxWidth: "300px",
-                                }}
-                            >
-                                <Pie data={sectionData} />
-                            </div>
+                        {/* ✅ Binigyan ng fixed height na 350px */}
+                        <div
+                            className="card-body p-3"
+                            style={{ height: "350px" }}
+                        >
+                            <Pie data={sectionData} options={chartOptions} />
                         </div>
                     </div>
                 </div>
 
-                {/* Freshmen vs Old Bar */}
+                {/* Freshmen vs Old (Bar) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100">
-                        <div className="card-header bg-white fw-bold">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-header bg-white fw-bold border-bottom py-3">
                             Freshmen vs Old Students
                         </div>
-                        <div className="card-body">
+                        {/* ✅ Binigyan din ng fixed height na 350px para pantay sila */}
+                        <div
+                            className="card-body p-3"
+                            style={{ height: "350px" }}
+                        >
                             <Bar
                                 data={demoData}
                                 options={{
@@ -275,19 +342,40 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Enrollment Trend */}
+            {/* 3. LINE CHART ROW */}
+            <div className="row">
+                {/* Student Status Trend (Multi-Line Graph) */}
                 <div className="col-md-12">
-                    <div className="card shadow-sm">
-                        <div className="card-header bg-white fw-bold">
-                            Enrollment Trend ({schoolYear || "This Year"})
+                    <div className="card shadow-sm border-0">
+                        <div className="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center py-3">
+                            <span>Student Status Trends</span>
+                            <span className="badge bg-primary bg-opacity-10 text-primary">
+                                {schoolYear
+                                    ? `SY: ${schoolYear}`
+                                    : "Current Year"}
+                            </span>
                         </div>
-                        <div className="card-body" style={{ height: "300px" }}>
+                        <div
+                            className="card-body p-4"
+                            style={{ height: "400px" }}
+                        >
                             <Line
                                 data={trendData}
                                 options={{
                                     responsive: true,
                                     maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { position: "bottom" },
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: { color: "#f0f0f0" },
+                                        },
+                                        x: { grid: { display: false } },
+                                    },
                                 }}
                             />
                         </div>
@@ -303,25 +391,31 @@ function StatCard({ title, value, icon, color, isTextIcon }) {
     return (
         <div className="col-md-3 col-sm-6">
             <div
-                className={`card shadow-sm border-start border-5 border-${color} h-100`}
+                className={`card shadow-sm border-0 border-start border-5 border-${color} h-100 transition-hover`}
             >
-                <div className="card-body d-flex align-items-center justify-content-between">
+                <div className="card-body d-flex align-items-center justify-content-between p-4">
                     <div>
-                        <p className="text-muted mb-0 small fw-bold text-uppercase">
+                        <p
+                            className="text-muted mb-1 small fw-bold text-uppercase"
+                            style={{
+                                letterSpacing: "0.5px",
+                                fontSize: "0.75rem",
+                            }}
+                        >
                             {title}
                         </p>
-                        <h3 className="fw-bold mb-0 text-dark">{value}</h3>
+                        <h2 className="fw-bold mb-0 text-dark">{value}</h2>
                     </div>
                     <div
-                        className={`rounded-circle bg-${color} bg-opacity-10 p-3 d-flex align-items-center justify-content-center`}
-                        style={{ width: "50px", height: "50px" }}
+                        className={`rounded-circle bg-${color} bg-opacity-10 p-3 d-flex align-items-center justify-content-center shadow-sm`}
+                        style={{ width: "60px", height: "60px" }}
                     >
                         {isTextIcon ? (
-                            <span className={`fw-bold text-${color}`}>
+                            <span className={`fw-bold fs-4 text-${color}`}>
                                 {icon}
                             </span>
                         ) : (
-                            <i className={`bi ${icon} fs-4 text-${color}`}></i>
+                            <i className={`bi ${icon} fs-3 text-${color}`}></i>
                         )}
                     </div>
                 </div>

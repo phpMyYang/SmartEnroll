@@ -12,19 +12,20 @@ class AdminController extends Controller
 {
     public function getAnalytics(Request $request)
     {
-        // 1. KUNIN ANG YEAR MULA SA FRONTEND (e.g., "2025-2026" -> nagiging "2025")
+        // 1. FILTER LOGIC
+        // Kunin ang year mula sa request (e.g., "2025-2026" -> "2025")
+        // Kung walang input, gamitin ang current year
         $yearParam = $request->input('year'); 
-        $filterYear = $yearParam ? substr($yearParam, 0, 4) : null; // Kukunin lang ang first 4 digits (Start Year)
+        $filterYear = $yearParam ? substr($yearParam, 0, 4) : date('Y');
 
-        // Helper Function para hindi paulit-ulit ang code
-        // Ito ang magdadagdag ng "WHERE created_at = 2025" kung may filter
+        // Helper para sa basic stats queries
         $applyFilter = function($query) use ($filterYear) {
             if ($filterYear) {
                 $query->whereYear('created_at', $filterYear);
             }
         };
 
-        // 2. BASIC STATS (With Filter)
+        // 2. STATS CARDS DATA
         $totalEnrolled = Student::where('status', 'enrolled')->tap($applyFilter)->count();
         $totalPending = Student::where('status', 'pending')->tap($applyFilter)->count();
         
@@ -37,7 +38,7 @@ class AdminController extends Controller
         $totalMale = Student::where('gender', 'Male')->tap($applyFilter)->count();
         $totalFemale = Student::where('gender', 'Female')->tap($applyFilter)->count();
 
-        // 3. CHARTS (With Relationship Filter)
+        // 3. PIE & DOUGHNUT CHARTS (Strands & Sections)
         $strands = Strand::withCount([
             'students' => function ($query) use ($filterYear) {
                 if ($filterYear) $query->whereYear('created_at', $filterYear);
@@ -50,35 +51,39 @@ class AdminController extends Controller
         $studentsPerStrand = $strands->map(fn($s) => ['label' => $s->code, 'value' => $s->students_count]);
         $sectionsPerStrand = $strands->map(fn($s) => ['label' => $s->code, 'value' => $s->sections_count]);
 
-        // 4. DEMOGRAPHICS
+        // 4. BAR CHART (Demographics)
         $studentDemographics = [
             ['label' => 'Freshmen (G11)', 'value' => $totalFreshmen],
             ['label' => 'Old Students (G12)', 'value' => $totalOldStudents]
         ];
 
-        // 5. TREND LINE (Filtered by Year)
-        $trendQuery = Student::select(
-                DB::raw('COUNT(id) as count'), 
-                DB::raw('MONTHNAME(created_at) as month_name'), 
-                DB::raw('MONTH(created_at) as month_num')
-            )
-            ->where('status', 'enrolled')
-            ->groupByRaw('MONTHNAME(created_at), MONTH(created_at)')
-            ->orderByRaw('MONTH(created_at)');
+        // 5. MULTI-LINE GRAPH (Monthly Trends per Status)
+        
+        // Helper function: Kukuha ng count per month (1-12) at maglalagay ng 0 pag walang data
+        $getMonthlyStats = function($status) use ($filterYear) {
+            $data = Student::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+                ->where('status', $status)
+                ->whereYear('created_at', $filterYear)
+                ->groupBy('month')
+                ->pluck('count', 'month')
+                ->toArray();
 
-        if ($filterYear) {
-            $trendQuery->whereYear('created_at', $filterYear);
-        } else {
-            $trendQuery->whereYear('created_at', date('Y')); // Default to Current Year pag walang filter
-        }
+            $filledData = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $filledData[] = $data[$m] ?? 0;
+            }
+            return $filledData;
+        };
 
-        $enrolleesTrend = $trendQuery->get();
+        $trendData = [
+            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'enrolled' => $getMonthlyStats('enrolled'),
+            'graduate' => $getMonthlyStats('graduate'),
+            'dropped'  => $getMonthlyStats('dropped'), // 'dropped' ang nasa seeder
+            'released' => $getMonthlyStats('released'),
+        ];
 
-        // Empty data handler
-        if ($enrolleesTrend->isEmpty()) {
-            $enrolleesTrend = [['month_name' => 'No Data', 'count' => 0, 'month_num' => 0]];
-        }
-
+        // 6. RETURN DATA
         return response()->json([
             'cards' => [
                 'total_enrolled' => $totalEnrolled,
@@ -94,7 +99,7 @@ class AdminController extends Controller
                 'students_per_strand' => $studentsPerStrand,
                 'sections_per_strand' => $sectionsPerStrand,
                 'demographics' => $studentDemographics,
-                'enrollment_trend' => $enrolleesTrend
+                'enrollment_trend' => $trendData
             ]
         ]);
     }
