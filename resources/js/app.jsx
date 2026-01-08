@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
+import Strands from "./pages/admin/Strands";
 
 // 👇 Placeholder Component
 // Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
@@ -68,9 +69,10 @@ function App() {
                         path="students"
                         element={<Placeholder title="Student Management" />}
                     />
+                    {/* Strand Management */}
                     <Route
                         path="strands"
-                        element={<Placeholder title="Strand Management" />}
+                        element={<Strands title="Strand Management" />}
                     />
                     <Route
                         path="sections"

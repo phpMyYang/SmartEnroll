@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Models\User; // Don't forget imports
+use App\Http\Controllers\StrandController;
 use Illuminate\Auth\Events\Verified;
 
 /*
@@ -36,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ✅ 3. Admin Dashboard Analytics
     Route::get('/admin/analytics', [AdminController::class, 'getAnalytics']);
     Route::resource('users', UserController::class);
+    Route::apiResource('strands', StrandController::class);
 });
 
 // ✅ EMAIL VERIFICATION ROUTE (Updated Logic)
