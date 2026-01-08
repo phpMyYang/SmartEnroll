@@ -10,130 +10,169 @@
 //         'Segoe UI Symbol', 'Noto Color Emoji';
 // }
 
-// Import Bootstrap
+/* 1. IMPORTS */
 @import 'bootstrap/scss/bootstrap';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
-/* Variables based on Project Plan */
+/* 2. ROOT VARIABLES & THEME SETUP */
 :root {
+    /* --- CLIENT'S RETRO PALETTE --- */
     --color-primary: #3F9AAE;   /* Teal Dark */
     --color-secondary: #79C9C5; /* Teal Light */
     --color-bg: #FFE2AF;        /* Yellow/Cream (Backgrounds) */
     --color-danger: #F96E5B;    /* Red/Orange (Alerts/Buttons) */
-    --retro-shadow: 4px 4px 0px #000000; /* Hard Shadow for Retro feel */
-    --retro-border: 2px solid #000000;
+    --color-dark: #2d3436;      /* Almost Black (Text) */
+    --color-white: #ffffff;
+    
+    /* --- RETRO STYLING RULES --- */
+    --retro-shadow: 4px 4px 0px #000000; /* Hard Shadow */
+    --retro-border: 2px solid #000000;   /* Thick Border */
+    --retro-radius: 8px;                 /* Slight curve */
+
+    /* --- BOOTSTRAP OVERRIDES (Para maging Teal ang default Blue) --- */
+    --bs-primary: #3F9AAE;
+    --bs-primary-rgb: 63, 154, 174;
+    --bs-body-bg: var(--color-bg);
+    --bs-body-color: var(--color-dark);
 }
 
+/* 3. GLOBAL BASE STYLES */
 body {
-    font-family: 'Courier New', Courier, monospace; /*  */
-    background-color: #f8f9fa;
-    color: #333;
+    background-color: var(--color-bg) !important;
+    color: var(--color-dark);
+    font-family: 'Courier New', Courier, monospace; /* Retro Typewriter Font */
 }
 
-/* Retro Card Style */
+/* 4. RETRO COMPONENTS */
+
+/* Cards */
 .card-retro {
-    background-color: white;
+    background-color: var(--color-white);
     border: var(--retro-border);
     box-shadow: var(--retro-shadow);
-    border-radius: 0; /* Sharp edges */
+    border-radius: var(--retro-radius);
+    transition: all 0.2s ease-in-out;
 }
 
-/* Retro Button Style */
+.card-retro:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000000;
+}
+
+/* Buttons */
 .btn-retro {
     background-color: var(--color-primary);
     color: white;
     border: var(--retro-border);
-    box-shadow: 2px 2px 0px #000;
+    box-shadow: var(--retro-shadow);
     font-weight: bold;
     text-transform: uppercase;
-    border-radius: 0;
-    transition: all 0.2s;
-
-    &:hover {
-        transform: translate(2px, 2px);
-        box-shadow: 0px 0px 0px #000;
-        background-color: var(--color-secondary);
-        color: #000;
-    }
+    border-radius: var(--retro-radius);
+    transition: all 0.1s;
 }
 
-/* Retro Inputs */
-.form-control {
-    border: var(--retro-border);
-    border-radius: 0;
-    background-color: #fdfdfd;
-    &:focus {
-        box-shadow: none;
-        background-color: var(--color-bg);
-        border-color: #000;
-    }
+.btn-retro:hover {
+    background-color: var(--color-secondary);
+    color: white;
+    transform: translate(2px, 2px); /* Click Effect */
+    box-shadow: 2px 2px 0px #000;
 }
 
-/* Toga Spinner Placeholder */
-.spinner-toga {
-    font-size: 2rem;
-    animation: bounce 1s infinite alternate;
-}
-@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
-
-/* Image Styles */
-.auth-logo {
-    width: 80px; 
-    height: auto;
-    margin-bottom: 1rem;
+.btn-retro:active {
+    background-color: var(--color-dark);
+    box-shadow: 0px 0px 0px #000;
+    transform: translate(4px, 4px);
 }
 
-.auth-illustration {
-    width: 100%;
-    max-width: 200px; /* Liitan para hindi sakop ang buong screen */
-    height: auto;
-    display: block;
-    margin: 0 auto 1.5rem auto;
+/* Override Bootstrap Primary Button globally */
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.btn-primary:hover {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
 }
 
-/* Footer Style */
-.auth-footer {
-    font-size: 0.75rem;
-    color: #333;
-    font-weight: bold;
-    margin-top: 2rem;
-    text-align: center;
+/* Inputs */
+.form-control, .form-select {
+    border: var(--retro-border) !important;
+    border-radius: var(--retro-radius) !important;
+    background-color: #fff;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
 }
 
-/* Enhancing Inputs */
+.form-control:focus, .form-select:focus {
+    box-shadow: var(--retro-shadow) !important;
+    border-color: #000 !important;
+    background-color: #fff;
+}
+
 .form-control::placeholder {
     color: #999;
     font-style: italic;
     font-size: 0.9rem;
 }
 
-/* --- Two-Sided Layout Styles --- */
+/* 5. ADMIN LAYOUT SPECIFIC (Sidebar & Nav) */
+
+/* Retro Sidebar Container */
+.sidebar-retro {
+    background-color: var(--color-primary);
+    border-right: var(--retro-border);
+    box-shadow: 4px 0px 0px rgba(0,0,0,0.1);
+}
+
+/* Sidebar Links */
+.nav-link-retro {
+    color: white !important;
+    border: 2px solid transparent;
+    margin-bottom: 8px;
+    border-radius: var(--retro-radius);
+    transition: all 0.2s;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.nav-link-retro:hover {
+    background-color: rgba(0,0,0,0.1); /* Darken slightly */
+    border: 2px solid #000;
+    transform: translateX(5px);
+}
+
+/* Active Sidebar Link */
+.nav-link-retro.active {
+    background-color: var(--color-bg) !important; /* Cream Background */
+    color: #000 !important; /* Black Text */
+    border: var(--retro-border);
+    box-shadow: 3px 3px 0px #000;
+}
+
+/* 6. LOGIN PAGE / SPLIT LAYOUT */
 .split-layout {
     display: flex;
     min-height: 100vh;
     width: 100%;
-    flex-wrap: wrap; /* Para mag-stack sa mobile */
+    flex-wrap: wrap;
 }
 
-/* Left Panel: Branding & Illustration */
 .split-left {
     flex: 1;
-    background-color: var(--color-primary); /* Teal Dark */
+    background-color: var(--color-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    border-right: var(--retro-border); /* Retro Divider */
+    border-right: var(--retro-border);
     color: white;
     text-align: center;
-    min-width: 300px; /* Minimum width before breaking */
+    min-width: 300px;
 }
 
-/* Right Panel: Form Area */
 .split-right {
     flex: 1;
-    background-color: var(--color-bg); /* Yellow/Cream */
+    background-color: var(--color-bg);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -142,49 +181,74 @@ body {
     position: relative;
 }
 
-/* Form Container limits width on large screens */
 .auth-form-container {
     width: 100%;
     max-width: 450px;
     margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border: var(--retro-border);
+    box-shadow: var(--retro-shadow);
+    border-radius: var(--retro-radius);
 }
+
+/* 7. ANIMATIONS */
+
+/* Toga Spinner (Rotation) */
+@keyframes spin-toga {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.toga-spin {
+    animation: spin-toga 2s linear infinite;
+    display: inline-block;
+    transform-origin: center;
+}
+
+/* Fade In Effect */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 8. ALERTS & TOASTS (SweetAlert Override) */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    background-color: var(--color-bg) !important;
+    color: #000 !important;
+    border: var(--retro-border) !important;
+    box-shadow: var(--retro-shadow) !important;
+    border-radius: var(--retro-radius) !important;
+}
+
+div:where(.swal2-container) button.swal2-confirm {
+    background-color: var(--color-primary) !important;
+    border: var(--retro-border) !important;
+    box-shadow: 2px 2px 0 #000 !important;
+    color: #fff !important;
+}
+
+/* 9. UTILITIES */
+.text-retro-primary { color: var(--color-primary); }
+.text-retro-danger { color: var(--color-danger); }
+.bg-retro-bg { background-color: var(--color-bg); }
 
 /* Responsive Tweaks */
 @media (max-width: 768px) {
-    .split-layout {
-        flex-direction: column;
-    }
-    .split-left {
-        min-height: 250px; /* Mas maliit na banner sa mobile */
-        border-right: none;
-        border-bottom: var(--retro-border);
+    .split-layout { flex-direction: column; }
+    .split-left { 
+        min-height: 200px; 
+        border-right: none; 
+        border-bottom: var(--retro-border); 
         flex: 0 0 auto;
     }
-    .auth-illustration {
-        max-width: 150px; /* Liitan ang image sa mobile */
+    .auth-form-container {
+        box-shadow: none; /* Remove shadow on mobile to save space */
+        border: none;
+        background: transparent;
+        padding: 0;
     }
-}
-
-/* Toga Spinner Animation */
-@keyframes spin-toga {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(-15deg); }
-    50% { transform: rotate(0deg); }
-    75% { transform: rotate(15deg); }
-    100% { transform: rotate(0deg); }
-}
-
-/* Ikot nang ikot (Loading State) */
-.toga-spin {
-    animation: spin-toga 0.5s infinite linear;
-    display: inline-block;
-}
-
-/* Custom Toast Design (Retro) */
-div:where(.swal2-container) div:where(.swal2-popup).swal2-toast {
-    background-color: #FFE2AF !important; /* Retro Cream Background */
-    color: #333 !important;
-    border: 2px solid #000 !important;
-    box-shadow: 4px 4px 0px #000 !important;
-    border-radius: 0 !important;
 }
