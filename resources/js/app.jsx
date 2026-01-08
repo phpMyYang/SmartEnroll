@@ -15,6 +15,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Strands from "./pages/admin/Strands";
+import Sections from "./pages/admin/Sections";
 
 // 👇 Placeholder Component
 // Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
@@ -74,9 +75,10 @@ function App() {
                         path="strands"
                         element={<Strands title="Strand Management" />}
                     />
+                    {/* Sections Management */}
                     <Route
                         path="sections"
-                        element={<Placeholder title="Section Management" />}
+                        element={<Sections title="Section Management" />}
                     />
                     <Route
                         path="subjects"
