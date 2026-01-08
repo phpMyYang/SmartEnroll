@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import Toast from "../utils/toast";
+import Toast from "../utils/toast"; // ✅ Gamitin ang Toast utility
 
 export default function ResetPassword() {
     // 1. GET DATA FROM URL
-    const { token } = useParams(); // Kunin ang token sa path /password-reset/{token}
+    const { token } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -32,42 +32,62 @@ export default function ResetPassword() {
                 password_confirmation: passwordConfirmation,
             });
 
-            if (response.status === 200) {
-                // 👇 KUNIN ANG DATA MULA SA BACKEND UPDATE
-                const isVerified = response.data.verified;
-                const role = response.data.role;
+            // Debugging
+            console.log("BACKEND RESPONSE:", response.data);
 
-                if (isVerified) {
-                    // ✅ CASE A: VERIFIED NA (Go to Dashboard)
+            if (response.status === 200) {
+                const { token, user, role, verified } = response.data;
+
+                if (verified && token) {
+                    // ✅ CASE A: SUCCESS & AUTO-LOGIN
+
+                    // 1. Save Credentials
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("user", JSON.stringify(user));
+
+                    // 2. Set Header Agad
+                    axios.defaults.headers.common[
+                        "Authorization"
+                    ] = `Bearer ${token}`;
+
+                    // 3. Success Alert
                     Toast.fire({
                         icon: "success",
-                        title: "Password updated successfully! Redirecting...",
+                        title: "Password updated! Entering Dashboard...",
+                        timer: 2000,
                     });
 
+                    // 4. 🔥 HARD REDIRECT (UPDATED PATHS)
                     setTimeout(() => {
-                        if (role === "admin") navigate("/admin/dashboard");
-                        else navigate("/student/dashboard");
-                    }, 1500);
+                        let targetPath = "/login"; // Default fallback
+
+                        if (role === "admin") {
+                            targetPath = "/admin/dashboard";
+                        } else if (role === "staff") {
+                            targetPath = "/staff/dashboard"; // ✅ DITO TAYO NAG-CORRECT PARTNER
+                        }
+
+                        // Hard refresh para kumagat ang token
+                        window.location.href = targetPath;
+                    }, 2000);
                 } else {
-                    // 🛑 CASE B: HINDI PA VERIFIED (Go to Verification Page)
+                    // 🛑 CASE B: HINDI PA VERIFIED
                     Toast.fire({
                         icon: "warning",
-                        title: "Password updated. Please verify your email first.",
+                        title: "Password updated. Please verify email first.",
                     });
 
-                    // Redirect sa Login page na may utos na buksan ang "Verification UI"
                     setTimeout(() => {
                         navigate(`/login?email=${email}&needs_verification=1`);
-                    }, 1500);
+                    }, 2000);
                 }
             }
         } catch (error) {
             // ERROR HANDLING
             let errorMessage = "Failed to reset password.";
-
-            if (error.response && error.response.data.message) {
+            if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
-            } else if (error.response && error.response.data.errors) {
+            } else if (error.response?.data?.errors) {
                 errorMessage = Object.values(error.response.data.errors)
                     .flat()
                     .join(" ");
@@ -84,15 +104,17 @@ export default function ResetPassword() {
 
     return (
         <div className="split-layout">
-            {/* LEFT SIDE */}
+            {/* LEFT SIDE (Retro Red Banner) */}
             <div className="split-left" style={{ backgroundColor: "#F96E5B" }}>
                 <h2
-                    className="fw-bold mb-3"
+                    className="fw-bold mb-3 font-monospace"
                     style={{ textShadow: "2px 2px 0 #000" }}
                 >
                     SECURE YOUR ACCOUNT
                 </h2>
-                <p className="lead mb-4">Create a strong password.</p>
+                <p className="lead mb-4 font-monospace">
+                    Create a strong password.
+                </p>
                 <img
                     src="/images/reset.svg"
                     alt="Reset Illustration"
@@ -104,16 +126,16 @@ export default function ResetPassword() {
                 />
             </div>
 
-            {/* RIGHT SIDE */}
+            {/* RIGHT SIDE (Form) */}
             <div className="split-right">
-                <div className="auth-form-container">
-                    {/* ✅ MOBILE LOGO (Visible only on small screens) */}
+                <div className="auth-form-container card-retro p-4 bg-white">
+                    {/* MOBILE LOGO */}
                     <div className="text-center mb-4 d-md-none">
                         <img src="/images/logo.png" alt="Logo" width="60" />
                     </div>
 
                     <div className="mb-4">
-                        {/* ✅ DESKTOP LOGO (Next to Heading) */}
+                        {/* DESKTOP LOGO */}
                         <img
                             src="/images/logo.png"
                             alt="Logo"
@@ -121,19 +143,19 @@ export default function ResetPassword() {
                             className="d-none d-md-inline-block me-2 mb-2"
                         />
                         <h3
-                            className="fw-bold d-inline-block align-middle"
+                            className="fw-bold d-inline-block align-middle font-monospace text-uppercase"
                             style={{ color: "#3F9AAE" }}
                         >
-                            Set New Password
+                            SET NEW PASSWORD
                         </h3>
-                        <p className="text-muted small">
+                        <p className="text-muted small font-monospace">
                             Please enter your new password below.
                         </p>
                     </div>
 
                     <form onSubmit={handleReset}>
                         <div className="mb-3">
-                            <label className="fw-bold small mb-1">
+                            <label className="fw-bold small mb-1 font-monospace">
                                 EMAIL ADDRESS
                             </label>
                             <input
@@ -150,7 +172,7 @@ export default function ResetPassword() {
                         </div>
 
                         <div className="mb-3 position-relative">
-                            <label className="fw-bold small mb-1">
+                            <label className="fw-bold small mb-1 font-monospace">
                                 NEW PASSWORD
                             </label>
                             <input
@@ -186,7 +208,7 @@ export default function ResetPassword() {
                         </div>
 
                         <div className="mb-4 position-relative">
-                            <label className="fw-bold small mb-1">
+                            <label className="fw-bold small mb-1 font-monospace">
                                 CONFIRM PASSWORD
                             </label>
                             <input
@@ -239,7 +261,7 @@ export default function ResetPassword() {
                         </button>
                     </form>
 
-                    <p className="text-center small text-muted mt-4">
+                    <p className="text-center small text-muted mt-4 font-monospace">
                         © {new Date().getFullYear()} SmartEnroll System
                     </p>
                 </div>

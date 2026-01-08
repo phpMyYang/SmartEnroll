@@ -14,7 +14,6 @@ import {
 import { Doughnut, Pie, Bar, Line } from "react-chartjs-2";
 import Toast from "../../utils/toast";
 
-// Register ChartJS Components
 ChartJS.register(
     ArcElement,
     Tooltip,
@@ -29,47 +28,33 @@ ChartJS.register(
 export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    // State para sa Filter Input
     const [schoolYear, setSchoolYear] = useState("");
 
-    // Fetch Function with Filter
     const fetchData = async (yearFilter = "") => {
         setLoading(true);
         try {
-            // Ipapasa ang ?year=XXXX sa backend
             const res = await axios.get(
                 `/api/admin/analytics?year=${yearFilter}`
             );
             setData(res.data);
-
-            if (yearFilter) {
-                Toast.fire({
-                    icon: "info",
-                    title: `Data loaded for SY: ${yearFilter}`,
-                });
-            }
+            if (yearFilter)
+                Toast.fire({ icon: "info", title: `Filtered: ${yearFilter}` });
         } catch (error) {
-            console.error("Error fetching analytics:", error);
+            console.error("Error:", error);
             Toast.fire({ icon: "error", title: "Failed to load analytics" });
         } finally {
             setLoading(false);
         }
     };
 
-    // Initial Load (Current Year)
     useEffect(() => {
         fetchData();
     }, []);
 
-    // Handle Enter Key sa Input Box
     const handleFilterSubmit = (e) => {
-        if (e.key === "Enter") {
-            fetchData(schoolYear);
-        }
+        if (e.key === "Enter") fetchData(schoolYear);
     };
 
-    // Loading State
     if (loading)
         return (
             <div
@@ -77,36 +62,44 @@ export default function Dashboard() {
                 style={{ height: "60vh" }}
             >
                 <div
-                    className="spinner-border text-primary mb-3"
+                    className="spinner-border"
+                    style={{
+                        width: "3rem",
+                        height: "3rem",
+                        borderWidth: "4px",
+                        color: "#000",
+                    }}
                     role="status"
                 ></div>
-                <span className="text-muted fw-bold">Loading Analytics...</span>
+                <span className="mt-3 fw-bold font-monospace">
+                    LOADING DATA...
+                </span>
             </div>
         );
 
-    // Empty State
     if (!data)
-        return (
-            <div className="p-5 text-center text-muted">No Data Available</div>
-        );
+        return <div className="p-5 text-center fw-bold">NO DATA AVAILABLE</div>;
 
     const { cards, charts } = data;
 
-    // --- CHART CONFIGURATIONS ---
+    // 🎨 RETRO CHART PALETTE
+    const retroColors = [
+        "#3F9AAE", // Primary (Teal)
+        "#F96E5B", // Danger (Red/Orange)
+        "#79C9C5", // Secondary (Light Teal)
+        "#F4D03F", // Mustard (Yellow)
+        "#2D3436", // Dark
+    ];
+    const retroBorder = "#000000";
 
+    // --- CHART CONFIGURATIONS ---
     const strandData = {
         labels: charts.students_per_strand.map((i) => i.label),
         datasets: [
             {
                 data: charts.students_per_strand.map((i) => i.value),
-                backgroundColor: [
-                    "#FF6384",
-                    "#36A2EB",
-                    "#FFCE56",
-                    "#4BC0C0",
-                    "#9966FF",
-                ],
-                borderColor: "#fff",
+                backgroundColor: retroColors,
+                borderColor: retroBorder,
                 borderWidth: 2,
             },
         ],
@@ -117,14 +110,8 @@ export default function Dashboard() {
         datasets: [
             {
                 data: charts.sections_per_strand.map((i) => i.value),
-                backgroundColor: [
-                    "#FF9F40",
-                    "#FF6384",
-                    "#36A2EB",
-                    "#9966FF",
-                    "#4BC0C0",
-                ],
-                borderColor: "#fff",
+                backgroundColor: [...retroColors].reverse(),
+                borderColor: retroBorder,
                 borderWidth: 2,
             },
         ],
@@ -136,48 +123,70 @@ export default function Dashboard() {
             {
                 label: "Students Count",
                 data: charts.demographics.map((i) => i.value),
-                backgroundColor: ["#36A2EB", "#FFCE56"],
-                borderRadius: 5,
+                backgroundColor: ["#3F9AAE", "#F4D03F"],
+                borderColor: retroBorder,
+                borderWidth: 2,
+                borderRadius: 0,
             },
         ],
     };
 
-    // Multi-Line Chart Configuration
+    // ✅ FIXED: Added "Released" dataset back & Retro Styling
     const trendData = {
-        labels: charts.enrollment_trend.labels, // Jan, Feb, Mar...
+        labels: charts.enrollment_trend.labels,
         datasets: [
             {
                 label: "Enrolled",
                 data: charts.enrollment_trend.enrolled,
-                borderColor: "#36A2EB", // Blue
-                backgroundColor: "#36A2EB",
-                tension: 0.3,
+                borderColor: "#3F9AAE", // Teal
+                backgroundColor: "#3F9AAE",
+                pointBackgroundColor: "#fff",
+                pointBorderColor: "#000",
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                tension: 0,
+                borderWidth: 3,
             },
             {
                 label: "Graduates",
                 data: charts.enrollment_trend.graduate,
-                borderColor: "#4BC0C0", // Green
-                backgroundColor: "#4BC0C0",
-                tension: 0.3,
+                borderColor: "#79C9C5", // Light Teal
+                backgroundColor: "#79C9C5",
+                pointBackgroundColor: "#fff",
+                pointBorderColor: "#000",
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                tension: 0,
+                borderWidth: 3,
             },
             {
                 label: "Dropouts",
                 data: charts.enrollment_trend.dropped,
-                borderColor: "#FF6384", // Red
-                backgroundColor: "#FF6384",
-                tension: 0.3,
+                borderColor: "#F96E5B", // Red
+                backgroundColor: "#F96E5B",
+                pointBackgroundColor: "#fff",
+                pointBorderColor: "#000",
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                tension: 0,
+                borderWidth: 3,
             },
             {
+                // ✅ ADDED BACK: Released Line (Mustard)
                 label: "Released",
                 data: charts.enrollment_trend.released,
-                borderColor: "#FF9F40", // Orange
-                backgroundColor: "#FF9F40",
-                tension: 0.3,
+                borderColor: "#F4D03F", // Mustard Yellow
+                backgroundColor: "#F4D03F",
+                pointBackgroundColor: "#fff",
+                pointBorderColor: "#000",
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                tension: 0,
+                borderWidth: 3,
             },
         ],
     };
 
-    // Common options for Doughnut/Pie to make them look cleaner
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -185,40 +194,57 @@ export default function Dashboard() {
             legend: {
                 position: "bottom",
                 labels: {
-                    boxWidth: 15,
-                    padding: 15,
-                    font: {
-                        size: 11,
-                    },
+                    font: { family: "'Courier New', monospace", size: 12 },
+                    color: "#000",
                 },
-            },
-        },
-        layout: {
-            padding: {
-                top: 20,
-                bottom: 10,
             },
         },
     };
 
     return (
         <div className="container-fluid fade-in mb-5">
-            {/* HEADER ROW WITH FILTER INPUT */}
-            <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <h2 className="fw-bold text-dark mb-0">Analytics Dashboard</h2>
+            {/* FILTER HEADER */}
+            <div
+                className="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3"
+                style={{ borderBottom: "2px solid black" }}
+            >
+                {/* 🔥 UPDATED HEADER: May Description na sa baba */}
+                <div>
+                    <h2
+                        className="fw-bold mb-0 font-monospace text-uppercase"
+                        style={{ textShadow: "2px 2px 0 #fff" }}
+                    >
+                        ANALYTICS DASHBOARD
+                    </h2>
+                    <p className="text-muted small mb-0 font-monospace">
+                        Overview of enrollment status & trends
+                    </p>
+                </div>
 
+                {/* Filter Input (Walang pagbabago dito) */}
                 <div className="d-flex align-items-center mt-2 mt-md-0">
-                    <span className="me-2 fw-bold text-muted small text-uppercase">
-                        Filter School Year:
-                    </span>
-                    <div className="input-group" style={{ maxWidth: "220px" }}>
-                        <span className="input-group-text bg-white border-end-0 text-primary">
-                            <i className="bi bi-calendar-range"></i>
+                    <div
+                        className="input-group"
+                        style={{
+                            maxWidth: "250px",
+                            boxShadow: "4px 4px 0 #000",
+                        }}
+                    >
+                        <span
+                            className="input-group-text bg-white border-end-0 fw-bold"
+                            style={{ border: "2px solid black" }}
+                        >
+                            SY:
                         </span>
                         <input
                             type="text"
-                            className="form-control border-start-0 ps-0"
-                            placeholder="e.g. 2025-2026"
+                            className="form-control ps-2 font-monospace fw-bold"
+                            style={{
+                                border: "2px solid black",
+                                borderLeft: "none",
+                                borderRadius: 0,
+                            }}
+                            placeholder="e.g. 2025"
                             value={schoolYear}
                             onChange={(e) => setSchoolYear(e.target.value)}
                             onKeyDown={handleFilterSubmit}
@@ -227,31 +253,31 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* 1. STATS CARDS ROW (8 Cards) */}
+            {/* 1. STATS CARDS ROW */}
             <div className="row g-3 mb-4">
                 <StatCard
                     title="Total Enrolled"
                     value={cards.total_enrolled}
                     icon="bi-person-check-fill"
-                    color="primary"
+                    bgColor="#3F9AAE"
                 />
                 <StatCard
-                    title="Pending Applicants"
+                    title="Pending"
                     value={cards.total_pending}
                     icon="bi-hourglass-split"
-                    color="warning"
+                    bgColor="#F4D03F"
                 />
                 <StatCard
                     title="Freshmen (G11)"
                     value={cards.total_freshmen}
                     icon="bi-mortarboard"
-                    color="success"
+                    bgColor="#79C9C5"
                 />
                 <StatCard
                     title="Old Students (G12)"
                     value={cards.total_old}
                     icon="bi-backpack-fill"
-                    color="info"
+                    bgColor="#F96E5B"
                 />
             </div>
 
@@ -261,41 +287,45 @@ export default function Dashboard() {
                     value={cards.total_g11}
                     icon="11"
                     isTextIcon
-                    color="secondary"
+                    bgColor="#ffffff"
+                    textColor="#000"
                 />
                 <StatCard
                     title="Total Grade 12"
                     value={cards.total_g12}
                     icon="12"
                     isTextIcon
-                    color="secondary"
+                    bgColor="#ffffff"
+                    textColor="#000"
                 />
                 <StatCard
                     title="Total Male"
                     value={cards.total_male}
                     icon="bi-gender-male"
-                    color="primary"
+                    bgColor="#3F9AAE"
                 />
                 <StatCard
                     title="Total Female"
                     value={cards.total_female}
                     icon="bi-gender-female"
-                    color="danger"
+                    bgColor="#F96E5B"
                 />
             </div>
 
-            {/* 2. CHARTS ROW - ✅ UPDATED SIZES */}
+            {/* 2. CHARTS ROW */}
             <div className="row g-4 mb-4">
-                {/* Strand Population (Doughnut) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100 border-0">
-                        <div className="card-header bg-white fw-bold border-bottom py-3">
+                    <div className="card-retro h-100">
+                        {/* ✅ FIX: Added 'px-4' for better left padding */}
+                        <div
+                            className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
+                            style={{ borderBottom: "2px solid black" }}
+                        >
                             Students per Strand
                         </div>
-                        {/* ✅ Binigyan ng fixed height na 350px at tinanggal ang dating constraints */}
                         <div
                             className="card-body p-3"
-                            style={{ height: "350px" }}
+                            style={{ height: "300px" }}
                         >
                             <Doughnut
                                 data={strandData}
@@ -305,56 +335,54 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Section Distribution (Pie) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100 border-0">
-                        <div className="card-header bg-white fw-bold border-bottom py-3">
+                    <div className="card-retro h-100">
+                        {/* ✅ FIX: Added 'px-4' */}
+                        <div
+                            className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
+                            style={{ borderBottom: "2px solid black" }}
+                        >
                             Sections per Strand
                         </div>
-                        {/* ✅ Binigyan ng fixed height na 350px */}
                         <div
                             className="card-body p-3"
-                            style={{ height: "350px" }}
+                            style={{ height: "300px" }}
                         >
                             <Pie data={sectionData} options={chartOptions} />
                         </div>
                     </div>
                 </div>
 
-                {/* Freshmen vs Old (Bar) */}
                 <div className="col-md-4">
-                    <div className="card shadow-sm h-100 border-0">
-                        <div className="card-header bg-white fw-bold border-bottom py-3">
-                            Freshmen vs Old Students
+                    <div className="card-retro h-100">
+                        {/* ✅ FIX: Added 'px-4' */}
+                        <div
+                            className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
+                            style={{ borderBottom: "2px solid black" }}
+                        >
+                            Freshmen vs Old
                         </div>
-                        {/* ✅ Binigyan din ng fixed height na 350px para pantay sila */}
                         <div
                             className="card-body p-3"
-                            style={{ height: "350px" }}
+                            style={{ height: "300px" }}
                         >
-                            <Bar
-                                data={demoData}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                }}
-                            />
+                            <Bar data={demoData} options={chartOptions} />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 3. LINE CHART ROW */}
+            {/* 3. TREND CHART */}
             <div className="row">
-                {/* Student Status Trend (Multi-Line Graph) */}
                 <div className="col-md-12">
-                    <div className="card shadow-sm border-0">
-                        <div className="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center py-3">
-                            <span>Student Status Trends</span>
-                            <span className="badge bg-primary bg-opacity-10 text-primary">
-                                {schoolYear
-                                    ? `SY: ${schoolYear}`
-                                    : "Current Year"}
+                    <div className="card-retro">
+                        {/* ✅ FIX: Added 'px-4' */}
+                        <div
+                            className="card-header bg-white fw-bold d-flex justify-content-between align-items-center py-3 px-4"
+                            style={{ borderBottom: "2px solid black" }}
+                        >
+                            <span className="font-monospace">
+                                Enrollment Trend (This Year)
                             </span>
                         </div>
                         <div
@@ -364,17 +392,20 @@ export default function Dashboard() {
                             <Line
                                 data={trendData}
                                 options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: { position: "bottom" },
-                                    },
+                                    ...chartOptions,
                                     scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: { color: "#f0f0f0" },
+                                        x: {
+                                            grid: {
+                                                color: "#000",
+                                                lineWidth: 0.5,
+                                            },
                                         },
-                                        x: { grid: { display: false } },
+                                        y: {
+                                            grid: {
+                                                color: "#000",
+                                                lineWidth: 0.5,
+                                            },
+                                        },
                                     },
                                 }}
                             />
@@ -386,36 +417,55 @@ export default function Dashboard() {
     );
 }
 
-// Reusable Card Component
-function StatCard({ title, value, icon, color, isTextIcon }) {
+// RETRO STAT CARD COMPONENT
+function StatCard({
+    title,
+    value,
+    icon,
+    bgColor,
+    textColor = "#fff",
+    isTextIcon,
+}) {
     return (
         <div className="col-md-3 col-sm-6">
             <div
-                className={`card shadow-sm border-0 border-start border-5 border-${color} h-100 transition-hover`}
+                className="card-retro h-100 p-3"
+                style={{ backgroundColor: "#fff" }}
             >
-                <div className="card-body d-flex align-items-center justify-content-between p-4">
+                <div className="d-flex align-items-center justify-content-between">
                     <div>
                         <p
-                            className="text-muted mb-1 small fw-bold text-uppercase"
-                            style={{
-                                letterSpacing: "0.5px",
-                                fontSize: "0.75rem",
-                            }}
+                            className="mb-1 fw-bold font-monospace text-uppercase"
+                            style={{ fontSize: "0.75rem", color: "#555" }}
                         >
                             {title}
                         </p>
-                        <h2 className="fw-bold mb-0 text-dark">{value}</h2>
+                        <h2
+                            className="fw-bold mb-0"
+                            style={{
+                                color: "#000",
+                                textShadow: "1px 1px 0 #ddd",
+                            }}
+                        >
+                            {value}
+                        </h2>
                     </div>
+
                     <div
-                        className={`rounded-circle bg-${color} bg-opacity-10 p-3 d-flex align-items-center justify-content-center shadow-sm`}
-                        style={{ width: "60px", height: "60px" }}
+                        className="d-flex align-items-center justify-content-center border border-2 border-dark"
+                        style={{
+                            width: "50px",
+                            height: "50px",
+                            backgroundColor: bgColor,
+                            color: textColor,
+                            borderRadius: "8px",
+                            boxShadow: "3px 3px 0 #000",
+                        }}
                     >
                         {isTextIcon ? (
-                            <span className={`fw-bold fs-4 text-${color}`}>
-                                {icon}
-                            </span>
+                            <span className="fw-bold fs-4">{icon}</span>
                         ) : (
-                            <i className={`bi ${icon} fs-3 text-${color}`}></i>
+                            <i className={`bi ${icon} fs-4`}></i>
                         )}
                     </div>
                 </div>

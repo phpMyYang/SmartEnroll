@@ -8,7 +8,6 @@ export default function UserDrawer({
     onSubmit,
     isLoading,
 }) {
-    // Initial State
     const initialForm = {
         name: "",
         email: "",
@@ -22,16 +21,15 @@ export default function UserDrawer({
     };
 
     const [formData, setFormData] = useState(initialForm);
-    const [showPassword, setShowPassword] = useState(false); // 👁️ State para sa mata
+    const [showPassword, setShowPassword] = useState(false);
 
-    // Load data pag "Edit" or "View" mode
     useEffect(() => {
         if ((type === "edit" || type === "view") && selectedUser) {
             setFormData({ ...selectedUser, password: "" });
         } else {
             setFormData(initialForm);
         }
-        setShowPassword(false); // Reset password view
+        setShowPassword(false);
     }, [type, selectedUser, show]);
 
     const handleBirthdayChange = (e) => {
@@ -68,266 +66,261 @@ export default function UserDrawer({
                 ></div>
             )}
 
-            {/* 🔥 WIDER DRAWER using style width */}
+            {/* RETRO DRAWER */}
             <div
                 className={drawerClass}
                 style={{
                     zIndex: 1050,
                     visibility: show ? "visible" : "hidden",
-                    width: "400px",
+                    width: "450px", // Wider
+                    borderLeft: "2px solid black", // Retro Border
                 }}
             >
-                <div className="offcanvas-header bg-primary text-white">
-                    <h5 className="offcanvas-title fw-bold text-uppercase ls-1">
+                {/* HEADER */}
+                <div
+                    className="offcanvas-header text-white"
+                    style={{
+                        backgroundColor: "var(--color-primary)",
+                        borderBottom: "2px solid black",
+                    }}
+                >
+                    <h5 className="offcanvas-title fw-bold font-monospace">
                         {type === "create" && (
                             <>
                                 <i className="bi bi-person-plus-fill me-2"></i>
-                                Create User
+                                CREATE USER
                             </>
                         )}
                         {type === "edit" && (
                             <>
-                                <i className="bi bi-pencil-square me-2"></i>Edit
-                                User
+                                <i className="bi bi-pencil-square me-2"></i>
+                                UPDATE USER
                             </>
                         )}
                         {type === "view" && (
                             <>
-                                <i className="bi bi-person-vcard me-2"></i>User
-                                Details
+                                <i className="bi bi-person-vcard me-2"></i>USER
+                                DETAILS
                             </>
                         )}
                     </h5>
                     <button
                         type="button"
-                        className="btn-close btn-close-white"
+                        className="btn-close btn-close-white opacity-100" // Fully opaque for retro feel
                         onClick={onClose}
                     ></button>
                 </div>
 
-                <div className="offcanvas-body bg-light">
+                <div
+                    className="offcanvas-body"
+                    style={{ backgroundColor: "#fff" }}
+                >
                     <form
                         onSubmit={handleSubmit}
-                        className="d-flex flex-column gap-3"
+                        className="d-flex flex-column gap-4"
                     >
-                        {/* PERSONAL INFO */}
-                        <div className="card shadow-sm border-0">
-                            <div className="card-body">
-                                <h6 className="fw-bold text-primary mb-3 text-uppercase small border-bottom pb-2">
-                                    Personal Information
-                                </h6>
-
-                                <div className="mb-3">
-                                    <label className="form-label small fw-bold text-muted">
-                                        FULL NAME
+                        {/* PERSONAL INFO CARD (RETRO) */}
+                        <div className="card-retro p-3 bg-retro-bg">
+                            {" "}
+                            {/* Cream Background */}
+                            <h6 className="fw-bold mb-3 pb-2 border-bottom border-dark font-monospace">
+                                <i className="bi bi-person-lines-fill me-2"></i>
+                                PERSONAL INFORMATION
+                            </h6>
+                            <div className="mb-3">
+                                <label className="form-label small fw-bold font-monospace">
+                                    FULL NAME
+                                </label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    className="form-control"
+                                    placeholder="e.g. Juan Dela Cruz"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={isReadOnly}
+                                />
+                            </div>
+                            <div className="row">
+                                <div className="col-8">
+                                    <label className="form-label small fw-bold font-monospace">
+                                        BIRTHDAY
                                     </label>
                                     <input
-                                        type="text"
-                                        name="name"
+                                        type="date"
+                                        name="birthday"
                                         className="form-control"
-                                        placeholder="e.g. Juan Dela Cruz"
-                                        value={formData.name}
-                                        onChange={handleChange}
+                                        value={formData.birthday}
+                                        onChange={handleBirthdayChange}
                                         required
                                         disabled={isReadOnly}
                                     />
                                 </div>
-
-                                <div className="row">
-                                    <div className="col-8">
-                                        <label className="form-label small fw-bold text-muted">
-                                            BIRTHDAY
-                                        </label>
-                                        <input
-                                            type="date"
-                                            name="birthday"
-                                            className="form-control"
-                                            value={formData.birthday}
-                                            onChange={handleBirthdayChange}
-                                            required
-                                            disabled={isReadOnly}
-                                        />
-                                    </div>
-                                    <div className="col-4">
-                                        <label className="form-label small fw-bold text-muted">
-                                            AGE
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control bg-white"
-                                            value={formData.age}
-                                            readOnly
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mt-3">
-                                    <label className="form-label small fw-bold text-muted">
-                                        GENDER
+                                <div className="col-4">
+                                    <label className="form-label small fw-bold font-monospace">
+                                        AGE
                                     </label>
-                                    <select
-                                        name="gender"
-                                        className="form-select"
-                                        value={formData.gender}
-                                        onChange={handleChange}
-                                        required
-                                        disabled={isReadOnly}
-                                    >
-                                        <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                    </select>
+                                    <input
+                                        type="text"
+                                        className="form-control bg-white"
+                                        value={formData.age}
+                                        readOnly
+                                        placeholder="0"
+                                        style={{ cursor: "not-allowed" }}
+                                    />
                                 </div>
+                            </div>
+                            <div className="mt-3">
+                                <label className="form-label small fw-bold font-monospace">
+                                    GENDER
+                                </label>
+                                <select
+                                    name="gender"
+                                    className="form-select"
+                                    value={formData.gender}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={isReadOnly}
+                                >
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
                             </div>
                         </div>
 
-                        {/* ACCOUNT INFO */}
-                        <div className="card shadow-sm border-0">
-                            <div className="card-body">
-                                <h6 className="fw-bold text-primary mb-3 text-uppercase small border-bottom pb-2">
-                                    Account Details
-                                </h6>
+                        {/* ACCOUNT INFO CARD (RETRO) */}
+                        <div className="card-retro p-3 bg-white">
+                            <h6 className="fw-bold mb-3 pb-2 border-bottom border-dark font-monospace">
+                                <i className="bi bi-shield-lock-fill me-2"></i>
+                                ACCOUNT DETAILS
+                            </h6>
 
-                                <div className="mb-3">
-                                    <label className="form-label small fw-bold text-muted">
-                                        EMAIL ADDRESS
-                                    </label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        className="form-control"
-                                        placeholder="name@example.com"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        disabled={isReadOnly}
-                                    />
-                                </div>
-
-                                <div className="mb-3">
-                                    <label className="form-label small fw-bold text-muted">
-                                        CONTACT NUMBER
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="contact_number"
-                                        className="form-control"
-                                        placeholder="0912 345 6789"
-                                        value={formData.contact_number}
-                                        onChange={handleChange}
-                                        required
-                                        disabled={isReadOnly}
-                                    />
-                                </div>
-
-                                <div className="row mb-3">
-                                    <div className="col-6">
-                                        <label className="form-label small fw-bold text-muted">
-                                            ROLE
-                                        </label>
-                                        <select
-                                            name="role"
-                                            className="form-select"
-                                            value={formData.role}
-                                            onChange={handleChange}
-                                            disabled={isReadOnly}
-                                        >
-                                            <option value="staff">Staff</option>
-                                            <option value="admin">Admin</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-6">
-                                        <label className="form-label small fw-bold text-muted">
-                                            STATUS
-                                        </label>
-                                        <select
-                                            name="status"
-                                            className={`form-select fw-bold ${
-                                                formData.status === "active"
-                                                    ? "text-success"
-                                                    : "text-danger"
-                                            }`}
-                                            value={formData.status}
-                                            onChange={handleChange}
-                                            disabled={isReadOnly}
-                                        >
-                                            <option
-                                                value="active"
-                                                className="text-success"
-                                            >
-                                                Active
-                                            </option>
-                                            <option
-                                                value="inactive"
-                                                className="text-danger"
-                                            >
-                                                Inactive
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* PASSWORD FIELD WITH EYE ICON */}
-                                {!isReadOnly && (
-                                    <div>
-                                        <label className="form-label small fw-bold text-muted">
-                                            {type === "edit"
-                                                ? "NEW PASSWORD (Optional)"
-                                                : "PASSWORD"}
-                                        </label>
-                                        <div className="input-group">
-                                            <input
-                                                type={
-                                                    showPassword
-                                                        ? "text"
-                                                        : "password"
-                                                }
-                                                name="password"
-                                                className="form-control"
-                                                placeholder={
-                                                    type === "edit"
-                                                        ? "Leave blank to keep current"
-                                                        : "Enter secure password"
-                                                }
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                required={type === "create"}
-                                                minLength="8"
-                                            />
-                                            <button
-                                                className="btn btn-outline-secondary"
-                                                type="button"
-                                                onClick={() =>
-                                                    setShowPassword(
-                                                        !showPassword
-                                                    )
-                                                }
-                                            >
-                                                <i
-                                                    className={`bi bi-eye${
-                                                        showPassword
-                                                            ? "-slash"
-                                                            : ""
-                                                    }`}
-                                                ></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                            <div className="mb-3">
+                                <label className="form-label small fw-bold font-monospace">
+                                    EMAIL ADDRESS
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    className="form-control"
+                                    placeholder="name@example.com"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={isReadOnly}
+                                />
                             </div>
+
+                            <div className="mb-3">
+                                <label className="form-label small fw-bold font-monospace">
+                                    CONTACT NUMBER
+                                </label>
+                                <input
+                                    type="text"
+                                    name="contact_number"
+                                    className="form-control"
+                                    placeholder="0912 345 6789"
+                                    value={formData.contact_number}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={isReadOnly}
+                                />
+                            </div>
+
+                            <div className="row mb-3">
+                                <div className="col-6">
+                                    <label className="form-label small fw-bold font-monospace">
+                                        ROLE
+                                    </label>
+                                    <select
+                                        name="role"
+                                        className="form-select"
+                                        value={formData.role}
+                                        onChange={handleChange}
+                                        disabled={isReadOnly}
+                                    >
+                                        <option value="staff">Staff</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="col-6">
+                                    <label className="form-label small fw-bold font-monospace">
+                                        STATUS
+                                    </label>
+                                    <select
+                                        name="status"
+                                        className={`form-select fw-bold ${
+                                            formData.status === "active"
+                                                ? "text-success"
+                                                : "text-danger"
+                                        }`}
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        disabled={isReadOnly}
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">
+                                            Inactive
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {!isReadOnly && (
+                                <div>
+                                    <label className="form-label small fw-bold font-monospace">
+                                        {type === "edit"
+                                            ? "NEW PASSWORD (Optional)"
+                                            : "PASSWORD"}
+                                    </label>
+                                    <div className="input-group">
+                                        <input
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            name="password"
+                                            className="form-control border-end-0"
+                                            placeholder={
+                                                type === "edit"
+                                                    ? "Leave blank to keep"
+                                                    : "Enter password"
+                                            }
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required={type === "create"}
+                                            minLength="8"
+                                        />
+                                        <button
+                                            className="btn btn-outline-secondary border-2 border-dark border-start-0"
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
+                                        >
+                                            <i
+                                                className={`bi bi-eye${
+                                                    showPassword ? "-slash" : ""
+                                                }`}
+                                            ></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ACTION BUTTONS */}
                         {!isReadOnly && (
                             <button
                                 type="submit"
-                                className="btn btn-primary py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center"
+                                className="btn btn-retro py-3 fw-bold w-100 d-flex align-items-center justify-content-center"
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <>
-                                        {/* 👇 ITO ANG BINAGO PARTNER: Toga Hat Icon na umiikot */}
                                         <i className="bi bi-mortarboard-fill fs-5 me-2 toga-spin"></i>
                                         <span>PROCESSING...</span>
                                     </>
