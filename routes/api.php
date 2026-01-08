@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Models\User; // Don't forget imports
 use App\Http\Controllers\StrandController;
 use App\Http\Controllers\SectionController;
+use App\Http\Controllers\SubjectController;
 use Illuminate\Auth\Events\Verified;
 
 /*
@@ -40,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('users', UserController::class);
     Route::apiResource('strands', StrandController::class);
     Route::apiResource('sections', SectionController::class);
+    Route::apiResource('subjects', SubjectController::class);
 });
 
 // ✅ EMAIL VERIFICATION ROUTE (Updated Logic)
