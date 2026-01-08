@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 // Admin Layout & Pages (Galing sa Step 3)
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
+import Users from "./pages/admin/Users";
 
 // 👇 Placeholder Component
 // Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
@@ -54,14 +55,15 @@ function App() {
                         element={<Navigate to="/admin/dashboard" replace />}
                     />
 
-                    {/* Dashboard (Tapos na sa Step 3) */}
+                    {/* Dashboard */}
                     <Route path="dashboard" element={<Dashboard />} />
 
-                    {/* Modules (Gagawin sa Step 4 - Placeholders muna) */}
+                    {/* User Management */}
                     <Route
                         path="users"
-                        element={<Placeholder title="Users Management" />}
+                        element={<Users title="Users Management" />}
                     />
+
                     <Route
                         path="students"
                         element={<Placeholder title="Student Management" />}
