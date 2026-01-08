@@ -16,6 +16,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Strands from "./pages/admin/Strands";
 import Sections from "./pages/admin/Sections";
+import Subjects from "./pages/admin/Subjects";
 
 // 👇 Placeholder Component
 // Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
@@ -80,9 +81,10 @@ function App() {
                         path="sections"
                         element={<Sections title="Section Management" />}
                     />
+                    {/* Subjects Management */}
                     <Route
                         path="subjects"
-                        element={<Placeholder title="Subject Management" />}
+                        element={<Subjects title="Subject Management" />}
                     />
                     <Route
                         path="settings"
