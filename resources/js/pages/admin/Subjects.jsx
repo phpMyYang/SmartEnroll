@@ -112,7 +112,7 @@ export default function Subjects() {
         });
     };
 
-    // 3. FILTER & PAGINATION LOGIC (Fixed)
+    // 3. FILTER & PAGINATION LOGIC
     const filteredSubjects = subjects.filter(
         (s) =>
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -168,18 +168,17 @@ export default function Subjects() {
                         </span>
                         <select
                             className="form-select form-select-sm border-dark border-2 fw-bold font-monospace"
-                            style={{ width: "80px" }} // Nilakihan ko konti para kasya ang '100'
+                            style={{ width: "80px" }}
                             value={itemsPerPage}
                             onChange={(e) => {
                                 setItemsPerPage(Number(e.target.value));
-                                setCurrentPage(1); // Reset to page 1
+                                setCurrentPage(1);
                             }}
                         >
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>{" "}
-                            {/* ✅ Added 100 */}
+                            <option value="100">100</option>
                         </select>
                     </div>
                     <div className="input-group" style={{ maxWidth: "300px" }}>
@@ -188,12 +187,13 @@ export default function Subjects() {
                         </span>
                         <input
                             type="text"
-                            className="form-control border-dark border-2 border-start-0 ps-0 font-monospace"
+                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search subject..."
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
-                                setCurrentPage(1); // Reset to page 1 on search
+                                setCurrentPage(1);
                             }}
                         />
                     </div>
@@ -210,7 +210,6 @@ export default function Subjects() {
                                 }}
                             >
                                 <tr className="text-uppercase small fw-bold">
-                                    {/* 🔥 FIXED: Added Number Column */}
                                     <th
                                         className="ps-4 py-3 font-monospace text-dark"
                                         width="5%"
@@ -276,7 +275,6 @@ export default function Subjects() {
                                                 borderBottom: "1px solid #000",
                                             }}
                                         >
-                                            {/* 🔥 FIXED: Numbering Logic */}
                                             <td className="ps-4 py-3 fw-bold font-monospace">
                                                 {indexOfFirstItem + index + 1}
                                             </td>
@@ -304,6 +302,7 @@ export default function Subjects() {
                                             </td>
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2">
+                                                    {/* EDIT BUTTON (With Lift Effect) */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -313,15 +312,27 @@ export default function Subjects() {
                                                                 "#F4D03F",
                                                             boxShadow:
                                                                 "2px 2px 0 #000",
+                                                            transition:
+                                                                "transform 0.1s", // ✅ Animation Speed
                                                         }}
                                                         onClick={() =>
                                                             handleOpenEdit(
                                                                 subject
                                                             )
                                                         }
+                                                        onMouseEnter={(e) =>
+                                                            (e.currentTarget.style.transform =
+                                                                "translate(-1px, -1px)")
+                                                        } // ✅ LIFT UP
+                                                        onMouseLeave={(e) =>
+                                                            (e.currentTarget.style.transform =
+                                                                "translate(0, 0)")
+                                                        } // ✅ RESET
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
+
+                                                    {/* DELETE BUTTON (With Lift Effect) */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -331,12 +342,22 @@ export default function Subjects() {
                                                                 "#F96E5B",
                                                             boxShadow:
                                                                 "2px 2px 0 #000",
+                                                            transition:
+                                                                "transform 0.1s", // ✅ Animation Speed
                                                         }}
                                                         onClick={() =>
                                                             handleDelete(
                                                                 subject.id
                                                             )
                                                         }
+                                                        onMouseEnter={(e) =>
+                                                            (e.currentTarget.style.transform =
+                                                                "translate(-1px, -1px)")
+                                                        } // ✅ LIFT UP
+                                                        onMouseLeave={(e) =>
+                                                            (e.currentTarget.style.transform =
+                                                                "translate(0, 0)")
+                                                        } // ✅ RESET
                                                     >
                                                         <i className="bi bi-trash-fill text-white"></i>
                                                     </button>
@@ -350,12 +371,11 @@ export default function Subjects() {
                     </div>
                 </div>
 
-                {/* PAGINATION FOOTER (RETRO STYLE) */}
+                {/* PAGINATION FOOTER */}
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
                 >
-                    {/* Showing X to Y of Z entries */}
                     <small className="text-muted font-monospace">
                         Showing{" "}
                         <strong>
@@ -372,7 +392,6 @@ export default function Subjects() {
 
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
-                            {/* PREV BUTTON */}
                             <li
                                 className={`page-item ${
                                     currentPage === 1 ? "disabled" : ""
@@ -387,7 +406,6 @@ export default function Subjects() {
                                 </button>
                             </li>
 
-                            {/* MIDDLE: PAGE INDICATOR (Yellow Box) */}
                             <li className="page-item disabled">
                                 <span
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 mx-1"
@@ -397,7 +415,6 @@ export default function Subjects() {
                                 </span>
                             </li>
 
-                            {/* NEXT BUTTON */}
                             <li
                                 className={`page-item ${
                                     currentPage === totalPages ||

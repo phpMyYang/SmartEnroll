@@ -5,18 +5,24 @@ import Toast from "../../utils/toast";
 import SectionDrawer from "../../components/SectionDrawer";
 
 export default function Sections() {
+    // STATES
     const [sections, setSections] = useState([]);
-    const [strands, setStrands] = useState([]); // Need natin to para sa dropdown
+    const [strands, setStrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // Drawer States
+    // DRAWER STATES
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSection, setSelectedSection] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 1. FETCH DATA (Sections + Strands)
+    // MASTER LIST MODAL STATES
+    const [showMasterList, setShowMasterList] = useState(false);
+    const [masterData, setMasterData] = useState(null);
+    const [loadingMaster, setLoadingMaster] = useState(false);
+
+    // 1. FETCH DATA
     const fetchData = async () => {
         try {
             const [secRes, strandRes] = await Promise.all([
@@ -62,13 +68,10 @@ export default function Sections() {
                 );
                 Toast.fire({ icon: "success", title: "Section updated!" });
             }
-            fetchData(); // Refresh Data
+            fetchData();
             setShowDrawer(false);
         } catch (error) {
-            Toast.fire({
-                icon: "error",
-                title: error.response?.data?.message || "Error occurred.",
-            });
+            Toast.fire({ icon: "error", title: "Error saving section." });
         } finally {
             setIsSubmitting(false);
         }
@@ -77,14 +80,11 @@ export default function Sections() {
     const handleDelete = (id) => {
         Swal.fire({
             title: "DELETE SECTION?",
-            text: "This will remove the section permanently.",
+            text: "This cannot be undone.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#F96E5B",
-            cancelButtonColor: "#2d3436",
+            confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
-            background: "#FFE2AF",
-            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -95,19 +95,54 @@ export default function Sections() {
                 try {
                     await axios.delete(`/api/sections/${id}`);
                     fetchData();
-                    Swal.fire(
-                        "Deleted!",
-                        "Section has been removed.",
-                        "success"
-                    );
+                    Swal.fire("Deleted!", "Section removed.", "success");
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete section.", "error");
+                    Swal.fire("Error", "Failed to delete.", "error");
                 }
             }
         });
     };
 
-    // Filter Logic
+    // 3. MASTER LIST FUNCTIONS
+    const handleViewMasterList = async (sectionId) => {
+        setShowMasterList(true);
+        setLoadingMaster(true);
+        setMasterData(null);
+        try {
+            const res = await axios.get(
+                `/api/sections/${sectionId}/masterlist`
+            );
+            setMasterData(res.data);
+        } catch (error) {
+            Toast.fire({ icon: "error", title: "Failed to load list." });
+            setShowMasterList(false);
+        } finally {
+            setLoadingMaster(false);
+        }
+    };
+
+    const handleDownloadPDF = async (sectionId, sectionName) => {
+        Swal.fire({
+            title: "Preparing Download...",
+            text: "Generating Professional PDF...",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+            const response = await axios.get(
+                `/api/sections/${sectionId}/masterlist/generate-url`
+            );
+            const secureUrl = response.data.url;
+            window.open(secureUrl, "_blank");
+            Swal.close();
+            Toast.fire({ icon: "success", title: "Download Started!" });
+        } catch (error) {
+            console.error("Download Error:", error);
+            Swal.fire("Error", "Failed to generate download link.", "error");
+        }
+    };
+
     const filteredSections = sections.filter(
         (s) =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,14 +152,11 @@ export default function Sections() {
     return (
         <div className="container-fluid fade-in mb-5">
             {/* HEADER */}
-            <div
-                className="d-flex justify-content-between align-items-center mb-4 pb-3"
-                style={{ borderBottom: "2px solid black" }}
-            >
+            <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-dark">
                 <div>
                     <h2
                         className="fw-bold text-dark mb-0 font-monospace"
-                        style={{ textShadow: "2px 2px 0 #fff" }}
+                        style={{ textShadow: "2px 2px 0px #FFFFFF" }}
                     >
                         SECTION MANAGEMENT
                     </h2>
@@ -133,24 +165,25 @@ export default function Sections() {
                     </p>
                 </div>
                 <button
-                    className="btn btn-retro px-4 py-2 d-flex align-items-center gap-2"
+                    className="btn btn-retro px-4 py-2 bg-primary text-white border-dark"
                     onClick={handleOpenCreate}
                 >
-                    <i className="bi bi-plus-square-fill"></i> NEW SECTION
+                    <i className="bi bi-plus-square-fill me-2"></i> NEW SECTION
                 </button>
             </div>
 
-            {/* SEARCH BAR */}
+            {/* SEARCH */}
             <div className="row mb-4">
                 <div className="col-md-4">
-                    <div className="input-group">
+                    <div className="input-group shadow-sm">
                         <span className="input-group-text bg-white border-dark border-2 border-end-0">
                             <i className="bi bi-search"></i>
                         </span>
                         <input
                             type="text"
-                            className="form-control border-dark border-2 border-start-0 ps-0 font-monospace"
-                            placeholder="Search section or strand..."
+                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
+                            placeholder="Search section..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -158,120 +191,404 @@ export default function Sections() {
                 </div>
             </div>
 
-            {/* 🔥 GRID CARDS LAYOUT */}
+            {/* CARDS GRID - UPDATED TO MATCH YOUR IMAGE */}
             <div className="row g-4">
                 {loading ? (
                     <div className="col-12 text-center py-5">
-                        <div
-                            className="spinner-border"
-                            style={{ borderWidth: "4px", color: "black" }}
-                        ></div>
-                        <p className="mt-2 font-monospace fw-bold">
-                            LOADING SECTIONS...
-                        </p>
+                        <div className="spinner-border"></div>
                     </div>
                 ) : filteredSections.length === 0 ? (
                     <div className="col-12 text-center py-5">
-                        <p className="text-muted font-monospace fw-bold">
-                            NO SECTIONS FOUND.
-                        </p>
+                        <p className="text-muted fw-bold">NO SECTIONS FOUND.</p>
                     </div>
                 ) : (
-                    filteredSections.map((section) => (
-                        <div
-                            key={section.id}
-                            className="col-md-6 col-lg-4 col-xl-3"
-                        >
-                            <div className="card-retro h-100 position-relative overflow-hidden group-hover-effect">
-                                {/* DECORATIVE STRIP (Color coded by Grade) */}
-                                <div
-                                    style={{
-                                        height: "8px",
-                                        backgroundColor:
-                                            section.grade_level === "11"
-                                                ? "var(--color-primary)"
-                                                : "var(--color-danger)",
-                                        borderBottom: "2px solid black",
-                                    }}
-                                ></div>
+                    filteredSections.map((section) => {
+                        const enrolled = section.enrolled_count || 0;
+                        const capacity = section.capacity || 40;
+                        const isFull = enrolled >= capacity;
 
-                                <div className="card-body p-4 d-flex flex-column">
-                                    {/* HEADER INFO */}
-                                    <div className="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <span
-                                                className="badge border border-dark text-dark rounded-0 mb-2"
+                        return (
+                            <div
+                                key={section.id}
+                                className="col-md-6 col-lg-4 col-xl-3"
+                            >
+                                <div
+                                    className="card h-100 position-relative bg-white"
+                                    style={{
+                                        border: "3px solid #000",
+                                        borderRadius: "12px",
+                                        boxShadow: "6px 6px 0px #000",
+                                    }}
+                                >
+                                    {/* COLOR STRIP (Maintains Grade Logic) */}
+                                    <div
+                                        style={{
+                                            height: "14px",
+                                            backgroundColor:
+                                                section.grade_level === "11"
+                                                    ? "#F96E5B"
+                                                    : "#F4D03F",
+                                            borderBottom: "3px solid #000",
+                                            borderTopLeftRadius: "9px",
+                                            borderTopRightRadius: "9px",
+                                        }}
+                                    ></div>
+
+                                    <div className="card-body p-4 d-flex flex-column">
+                                        {/* HEADER PART */}
+                                        <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h3
+                                                    className="fw-bold mb-1 font-monospace text-uppercase"
+                                                    style={{
+                                                        fontSize: "1.4rem",
+                                                        color: "#2d3436",
+                                                    }}
+                                                >
+                                                    {section.name}
+                                                </h3>
+                                                <div className="small text-muted font-monospace fw-bold">
+                                                    {section.strand?.code}{" "}
+                                                    &bull; Grade{" "}
+                                                    {section.grade_level}
+                                                </div>
+                                            </div>
+                                            <i className="bi bi-bookmark-fill fs-4 text-muted opacity-25"></i>
+                                        </div>
+
+                                        {/* CAPACITY BAR (Keeping this functional requirement) */}
+                                        <div className="my-3">
+                                            <div className="d-flex justify-content-between small fw-bold font-monospace mb-1">
+                                                <span>STUDENTS:</span>
+                                                <span
+                                                    className={
+                                                        isFull
+                                                            ? "text-danger"
+                                                            : "text-success"
+                                                    }
+                                                >
+                                                    {enrolled} / {capacity}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className="progress border border-2 border-dark rounded-pill"
                                                 style={{
-                                                    backgroundColor: "#FFE2AF",
+                                                    height: "10px",
+                                                    backgroundColor: "#f1f2f6",
                                                 }}
                                             >
-                                                GRADE {section.grade_level}
-                                            </span>
-                                            <h3 className="fw-bold mb-0 text-uppercase font-monospace">
-                                                {section.name}
-                                            </h3>
-                                            <small className="fw-bold text-primary">
-                                                {section.strand
-                                                    ? section.strand.code
-                                                    : "NO STRAND"}
-                                            </small>
+                                                <div
+                                                    className={`progress-bar rounded-pill ${
+                                                        isFull
+                                                            ? "bg-danger"
+                                                            : "bg-success"
+                                                    }`}
+                                                    style={{
+                                                        width: `${
+                                                            (enrolled /
+                                                                capacity) *
+                                                            100
+                                                        }%`,
+                                                    }}
+                                                ></div>
+                                            </div>
                                         </div>
-                                        <div className="text-center border border-dark p-2 rounded-0 bg-light">
-                                            <small
-                                                className="d-block fw-bold"
-                                                style={{ fontSize: "0.6rem" }}
+
+                                        {/* DIVIDER LINE */}
+                                        <hr className="my-3 border-top border-2 border-dark opacity-100" />
+
+                                        {/* BUTTONS AREA */}
+                                        <div className="mt-auto">
+                                            {/* Master List (Cyan Button) */}
+                                            <button
+                                                className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
+                                                style={{
+                                                    backgroundColor: "#dff9fb",
+                                                    color: "#000",
+                                                    borderRadius: "6px",
+                                                }}
+                                                onClick={() =>
+                                                    handleViewMasterList(
+                                                        section.id
+                                                    )
+                                                }
                                             >
-                                                CAPACITY
-                                            </small>
-                                            <span className="fw-bold fs-5">
-                                                {section.capacity}
-                                            </span>
+                                                <i className="bi bi-list-task me-2"></i>{" "}
+                                                MASTER LIST
+                                            </button>
+
+                                            <div className="d-flex gap-2">
+                                                {/* Edit (Yellow Button) */}
+                                                <button
+                                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#f6e58d",
+                                                        color: "#000",
+                                                        borderRadius: "6px",
+                                                    }}
+                                                    onClick={() =>
+                                                        handleOpenEdit(section)
+                                                    }
+                                                >
+                                                    <i className="bi bi-pencil-fill me-2"></i>{" "}
+                                                    EDIT
+                                                </button>
+
+                                                {/* Delete (Red Button) */}
+                                                <button
+                                                    className="btn font-monospace fw-bold px-3 btn-retro-effect" // ✅ ADDED CLASS
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#ff7675",
+                                                        color: "#fff",
+                                                        borderRadius: "6px",
+                                                    }}
+                                                    onClick={() =>
+                                                        handleDelete(section.id)
+                                                    }
+                                                >
+                                                    <i className="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    <div className="flex-grow-1"></div>
-
-                                    {/* ACTION BUTTONS */}
-                                    <div className="d-flex gap-2 mt-3">
-                                        <button
-                                            className="btn btn-sm w-100 rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                            style={{
-                                                backgroundColor: "#F4D03F",
-                                                boxShadow: "2px 2px 0 #000",
-                                            }}
-                                            onClick={() =>
-                                                handleOpenEdit(section)
-                                            }
-                                        >
-                                            <i className="bi bi-pencil-fill me-2"></i>{" "}
-                                            EDIT
-                                        </button>
-                                        <button
-                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center px-3"
-                                            style={{
-                                                backgroundColor: "#F96E5B",
-                                                boxShadow: "2px 2px 0 #000",
-                                            }}
-                                            onClick={() =>
-                                                handleDelete(section.id)
-                                            }
-                                        >
-                                            <i className="bi bi-trash-fill text-white"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
-            {/* DRAWER */}
+            {/* MASTER LIST MODAL - SAME CLEAN DESIGN */}
+            {showMasterList && (
+                <>
+                    <div
+                        className="modal-backdrop fade show"
+                        style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+                    ></div>
+                    <div className="modal fade show d-block">
+                        <div className="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div className="modal-content border-2 border-dark rounded-0 shadow-lg">
+                                {/* MODAL HEADER */}
+                                <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3">
+                                    <h5 className="modal-title fw-bold font-monospace mx-auto">
+                                        <i className="bi bi-file-earmark-person-fill me-2 text-warning"></i>{" "}
+                                        CLASS MASTER LIST
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close btn-close-white position-absolute end-0 me-3"
+                                        onClick={() => setShowMasterList(false)}
+                                    ></button>
+                                </div>
+
+                                <div className="modal-body bg-secondary p-4 bg-opacity-10">
+                                    {loadingMaster || !masterData ? (
+                                        <div className="text-center py-5">
+                                            <div className="spinner-border"></div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="bg-white border border-dark shadow p-4 mx-auto"
+                                            style={{
+                                                maxWidth: "95%",
+                                                minHeight: "500px",
+                                            }}
+                                        >
+                                            <div className="text-center border-bottom border-dark border-2 pb-3 mb-4">
+                                                <h1 className="fw-bold text-uppercase display-6 font-monospace mb-0">
+                                                    {masterData.section.name}
+                                                </h1>
+                                                <p className="text-muted font-monospace fw-bold mb-2">
+                                                    {
+                                                        masterData.section
+                                                            .strand.description
+                                                    }
+                                                </p>
+                                                <div className="d-flex justify-content-center gap-2 mt-3">
+                                                    <span className="badge bg-white text-dark border border-dark rounded-0 px-3">
+                                                        GRADE{" "}
+                                                        {
+                                                            masterData.section
+                                                                .grade_level
+                                                        }
+                                                    </span>
+                                                    <span className="badge bg-white text-dark border border-dark rounded-0 px-3">
+                                                        {masterData.semester}
+                                                    </span>
+                                                    <span className="badge bg-white text-dark border border-dark rounded-0 px-3">
+                                                        SY{" "}
+                                                        {masterData.school_year}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="table-responsive">
+                                                <table className="table table-bordered border-dark mb-0 font-monospace small align-middle">
+                                                    <thead className="bg-light text-center">
+                                                        <tr>
+                                                            <th
+                                                                style={{
+                                                                    width: "5%",
+                                                                }}
+                                                            >
+                                                                #
+                                                            </th>
+                                                            <th
+                                                                style={{
+                                                                    width: "60%",
+                                                                }}
+                                                            >
+                                                                STUDENT NAME
+                                                            </th>
+                                                            <th
+                                                                style={{
+                                                                    width: "10%",
+                                                                }}
+                                                            >
+                                                                SEX
+                                                            </th>
+                                                            <th
+                                                                style={{
+                                                                    width: "25%",
+                                                                }}
+                                                            >
+                                                                LRN
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr className="table-secondary fw-bold border-top border-dark">
+                                                            <td
+                                                                colSpan="4"
+                                                                className="ps-3"
+                                                            >
+                                                                <i className="bi bi-gender-male me-2"></i>
+                                                                MALE
+                                                            </td>
+                                                        </tr>
+                                                        {masterData.males.map(
+                                                            (s, i) => (
+                                                                <tr key={s.id}>
+                                                                    <td className="text-center fw-bold">
+                                                                        {i + 1}
+                                                                    </td>
+                                                                    <td className="text-uppercase fw-bold text-primary">
+                                                                        {
+                                                                            s.last_name
+                                                                        }
+                                                                        ,{" "}
+                                                                        {
+                                                                            s.first_name
+                                                                        }
+                                                                    </td>
+                                                                    <td className="text-center">
+                                                                        M
+                                                                    </td>
+                                                                    <td className="text-center">
+                                                                        {s.lrn}
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        )}
+                                                        {masterData.males
+                                                            .length === 0 && (
+                                                            <tr>
+                                                                <td
+                                                                    colSpan="4"
+                                                                    className="text-center text-muted fst-italic py-2"
+                                                                >
+                                                                    No Male
+                                                                    Students
+                                                                </td>
+                                                            </tr>
+                                                        )}
+
+                                                        <tr className="table-secondary fw-bold border-top border-dark">
+                                                            <td
+                                                                colSpan="4"
+                                                                className="ps-3"
+                                                            >
+                                                                <i className="bi bi-gender-female me-2"></i>
+                                                                FEMALE
+                                                            </td>
+                                                        </tr>
+                                                        {masterData.females.map(
+                                                            (s, i) => (
+                                                                <tr key={s.id}>
+                                                                    <td className="text-center fw-bold">
+                                                                        {i + 1}
+                                                                    </td>
+                                                                    <td className="text-uppercase fw-bold text-danger">
+                                                                        {
+                                                                            s.last_name
+                                                                        }
+                                                                        ,{" "}
+                                                                        {
+                                                                            s.first_name
+                                                                        }
+                                                                    </td>
+                                                                    <td className="text-center">
+                                                                        F
+                                                                    </td>
+                                                                    <td className="text-center">
+                                                                        {s.lrn}
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        )}
+                                                        {masterData.females
+                                                            .length === 0 && (
+                                                            <tr>
+                                                                <td
+                                                                    colSpan="4"
+                                                                    className="text-center text-muted fst-italic py-2"
+                                                                >
+                                                                    No Female
+                                                                    Students
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
+                                    {masterData && (
+                                        <button
+                                            className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect" // ✅ ADDED CLASS
+                                            onClick={() =>
+                                                handleDownloadPDF(
+                                                    masterData.section.id,
+                                                    masterData.section.name
+                                                )
+                                            }
+                                        >
+                                            <i className="bi bi-file-earmark-pdf-fill me-2"></i>{" "}
+                                            DOWNLOAD PDF
+                                        </button>
+                                    )}
+                                    <button
+                                        className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect" // ✅ ADDED CLASS
+                                        onClick={() => setShowMasterList(false)}
+                                    >
+                                        CLOSE
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
             <SectionDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSection={selectedSection}
-                strands={strands} // Pass strands to drawer
+                strands={strands}
                 onClose={() => setShowDrawer(false)}
                 onSubmit={handleSubmit}
                 isLoading={isSubmitting}
