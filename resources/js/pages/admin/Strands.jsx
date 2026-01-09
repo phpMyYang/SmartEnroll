@@ -5,11 +5,12 @@ import Toast from "../../utils/toast";
 import StrandDrawer from "../../components/StrandDrawer";
 
 export default function Strands() {
+    // STATES
     const [strands, setStrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // Drawer States
+    // DRAWER STATES
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedStrand, setSelectedStrand] = useState(null);
@@ -78,11 +79,8 @@ export default function Strands() {
             text: "This action cannot be undone.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#F96E5B",
-            cancelButtonColor: "#2d3436",
+            confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
-            background: "#FFE2AF",
-            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -115,14 +113,11 @@ export default function Strands() {
     return (
         <div className="container-fluid fade-in mb-5">
             {/* HEADER */}
-            <div
-                className="d-flex justify-content-between align-items-center mb-4 pb-3"
-                style={{ borderBottom: "2px solid black" }}
-            >
+            <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-dark">
                 <div>
                     <h2
                         className="fw-bold text-dark mb-0 font-monospace"
-                        style={{ textShadow: "2px 2px 0 #fff" }}
+                        style={{ textShadow: "2px 2px 0 #FFFFFF" }} // White Shadow (Retro Style)
                     >
                         STRANDS MANAGEMENT
                     </h2>
@@ -131,7 +126,7 @@ export default function Strands() {
                     </p>
                 </div>
                 <button
-                    className="btn btn-retro px-4 py-2 d-flex align-items-center gap-2"
+                    className="btn btn-retro px-4 py-2 bg-primary text-white border-dark d-flex align-items-center gap-2"
                     onClick={handleOpenCreate}
                 >
                     <i className="bi bi-plus-square-fill"></i> NEW STRAND
@@ -141,13 +136,14 @@ export default function Strands() {
             {/* SEARCH BAR */}
             <div className="row mb-4">
                 <div className="col-md-4">
-                    <div className="input-group">
+                    <div className="input-group shadow-sm">
                         <span className="input-group-text bg-white border-dark border-2 border-end-0">
                             <i className="bi bi-search"></i>
                         </span>
                         <input
                             type="text"
-                            className="form-control border-dark border-2 border-start-0 ps-0 font-monospace"
+                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search strand code or description..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -156,17 +152,11 @@ export default function Strands() {
                 </div>
             </div>
 
-            {/* 🔥 GRID CARDS LAYOUT */}
+            {/* 🔥 GRID CARDS LAYOUT (RETRO STYLE MATCHING SECTIONS) */}
             <div className="row g-4">
                 {loading ? (
                     <div className="col-12 text-center py-5">
-                        <div
-                            className="spinner-border"
-                            style={{ borderWidth: "4px", color: "black" }}
-                        ></div>
-                        <p className="mt-2 font-monospace fw-bold">
-                            LOADING STRANDS...
-                        </p>
+                        <div className="spinner-border"></div>
                     </div>
                 ) : filteredStrands.length === 0 ? (
                     <div className="col-12 text-center py-5">
@@ -180,41 +170,60 @@ export default function Strands() {
                             key={strand.id}
                             className="col-md-6 col-lg-4 col-xl-3"
                         >
-                            <div className="card-retro h-100 position-relative overflow-hidden group-hover-effect">
-                                {/* DECORATIVE STRIP */}
+                            <div
+                                className="card h-100 position-relative bg-white"
+                                style={{
+                                    border: "3px solid #000",
+                                    borderRadius: "12px",
+                                    boxShadow: "6px 6px 0px #000",
+                                }}
+                            >
+                                {/* DECORATIVE STRIP (Light Blue for all Strands) */}
                                 <div
                                     style={{
-                                        height: "8px",
-                                        backgroundColor: "var(--color-primary)",
-                                        borderBottom: "2px solid black",
+                                        height: "14px",
+                                        backgroundColor: "#48dbfb", // Retro Cyan/Light Blue
+                                        borderBottom: "3px solid #000",
+                                        borderTopLeftRadius: "9px",
+                                        borderTopRightRadius: "9px",
                                     }}
                                 ></div>
 
                                 <div className="card-body p-4 d-flex flex-column">
+                                    {/* HEADER: Code & Icon */}
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <h3
-                                            className="fw-bold mb-0 text-uppercase font-monospace text-primary"
-                                            style={{ letterSpacing: "1px" }}
+                                            className="fw-bold mb-1 text-uppercase font-monospace"
+                                            style={{
+                                                fontSize: "1.4rem",
+                                                color: "#2d3436",
+                                            }}
                                         >
                                             {strand.code}
                                         </h3>
                                         <i className="bi bi-bookmark-fill text-muted opacity-25 fs-4"></i>
                                     </div>
 
+                                    {/* DESCRIPTION */}
                                     <p
-                                        className="text-muted small flex-grow-1 border-bottom border-dark pb-3 mb-3 border-opacity-10"
-                                        style={{ lineHeight: "1.6" }}
+                                        className="text-muted small font-monospace flex-grow-1"
+                                        style={{ lineHeight: "1.5" }}
                                     >
                                         {strand.description}
                                     </p>
 
+                                    {/* DIVIDER LINE */}
+                                    <hr className="my-3 border-top border-2 border-dark opacity-100" />
+
                                     {/* ACTION BUTTONS */}
-                                    <div className="d-flex gap-2">
+                                    <div className="d-flex gap-2 mt-auto">
+                                        {/* Edit Button */}
                                         <button
-                                            className="btn btn-sm w-100 rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                            className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
                                             style={{
-                                                backgroundColor: "#F4D03F",
-                                                boxShadow: "2px 2px 0 #000",
+                                                backgroundColor: "#f6e58d", // Retro Yellow
+                                                color: "#000",
+                                                borderRadius: "6px",
                                             }}
                                             onClick={() =>
                                                 handleOpenEdit(strand)
@@ -223,17 +232,20 @@ export default function Strands() {
                                             <i className="bi bi-pencil-fill me-2"></i>{" "}
                                             EDIT
                                         </button>
+
+                                        {/* Delete Button */}
                                         <button
-                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center px-3"
+                                            className="btn font-monospace fw-bold px-3 btn-retro-effect" // ✅ ADDED CLASS
                                             style={{
-                                                backgroundColor: "#F96E5B",
-                                                boxShadow: "2px 2px 0 #000",
+                                                backgroundColor: "#ff7675", // Retro Red
+                                                color: "#fff",
+                                                borderRadius: "6px",
                                             }}
                                             onClick={() =>
                                                 handleDelete(strand.id)
                                             }
                                         >
-                                            <i className="bi bi-trash-fill text-white"></i>
+                                            <i className="bi bi-trash-fill"></i>
                                         </button>
                                     </div>
                                 </div>

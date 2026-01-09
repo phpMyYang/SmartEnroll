@@ -40,9 +40,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/analytics', [AdminController::class, 'getAnalytics']);
     Route::resource('users', UserController::class);
     Route::apiResource('strands', StrandController::class);
+    // SECTIONS & MASTERLIST ROUTES
     Route::apiResource('sections', SectionController::class);
+    Route::get('/sections/{id}/masterlist', [SectionController::class, 'masterList']);
+    // ✅ 1. TICKET BOOTH: Dito hihingi ng Signed URL ang React
+    Route::get('/sections/{id}/masterlist/generate-url', [SectionController::class, 'generatePrintUrl']);
     Route::apiResource('subjects', SubjectController::class);
 });
+
+// ✅ 2. THE VIP GATE: Ito ang gagamitin ng browser para mag-download
+// Nasa LABAS ng auth:sanctum, pero protektado ng 'signed' middleware (Laravel feature)
+Route::get('/print/masterlist/{section}/{user}', [SectionController::class, 'printMasterList'])
+    ->name('masterlist.print')
+    ->middleware('signed');
 
 // ✅ EMAIL VERIFICATION ROUTE (Updated Logic)
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id) {

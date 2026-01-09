@@ -196,7 +196,8 @@ export default function Users() {
                         </span>
                         <input
                             type="text"
-                            className="form-control border-dark border-2 border-start-0 ps-0 font-monospace"
+                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search user..."
                             value={searchTerm}
                             onChange={(e) => {

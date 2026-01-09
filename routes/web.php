@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VerificationController;
 
+// Route::get('/php-info', function () {
+//     phpinfo();
+// });
+
 // 👇 Route para sa Email Verification Link
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->middleware(['signed']) // Importante: Security para hindi mapeke ang link
