@@ -165,10 +165,10 @@ export default function Sections() {
                     </p>
                 </div>
                 <button
-                    className="btn btn-retro px-4 py-2 bg-primary text-white border-dark"
+                    className="btn btn-retro px-4 py-2 d-flex align-items-center gap-2"
                     onClick={handleOpenCreate}
                 >
-                    <i className="bi bi-plus-square-fill me-2"></i> NEW SECTION
+                    <i className="bi bi-plus-square-fill"></i> NEW SECTION
                 </button>
             </div>
 

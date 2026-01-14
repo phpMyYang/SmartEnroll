@@ -17,6 +17,7 @@ import Users from "./pages/admin/Users";
 import Strands from "./pages/admin/Strands";
 import Sections from "./pages/admin/Sections";
 import Subjects from "./pages/admin/Subjects";
+import Students from "./pages/admin/Students";
 
 // 👇 Placeholder Component
 // Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
@@ -66,10 +67,10 @@ function App() {
                         path="users"
                         element={<Users title="Users Management" />}
                     />
-
+                    {/* Strand Management */}
                     <Route
                         path="students"
-                        element={<Placeholder title="Student Management" />}
+                        element={<Students title="Student Management" />}
                     />
                     {/* Strand Management */}
                     <Route

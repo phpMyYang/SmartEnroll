@@ -136,7 +136,7 @@ export default function StrandDrawer({
                             {isLoading ? (
                                 <>
                                     <i className="bi bi-mortarboard-fill fs-5 me-2 toga-spin"></i>
-                                    <span>SAVING...</span>
+                                    <span>PROCESSING...</span>
                                 </>
                             ) : (
                                 <span>
