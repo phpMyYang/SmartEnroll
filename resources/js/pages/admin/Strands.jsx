@@ -126,7 +126,7 @@ export default function Strands() {
                     </p>
                 </div>
                 <button
-                    className="btn btn-retro px-4 py-2 bg-primary text-white border-dark d-flex align-items-center gap-2"
+                    className="btn btn-retro px-4 py-2 d-flex align-items-center gap-2"
                     onClick={handleOpenCreate}
                 >
                     <i className="bi bi-plus-square-fill"></i> NEW STRAND

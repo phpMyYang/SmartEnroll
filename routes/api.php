@@ -9,6 +9,9 @@ use App\Models\User; // Don't forget imports
 use App\Http\Controllers\StrandController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\EnrollmentSettingController;
+use App\Http\Controllers\CORController;
 use Illuminate\Auth\Events\Verified;
 
 /*
@@ -46,8 +49,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // ✅ 1. TICKET BOOTH: Dito hihingi ng Signed URL ang React
     Route::get('/sections/{id}/masterlist/generate-url', [SectionController::class, 'generatePrintUrl']);
     Route::apiResource('subjects', SubjectController::class);
+
+    Route::apiResource('students', StudentController::class);
+    // Custom Route para sa Status Change (Passed, Released, Reset, etc.)
+    Route::put('/students/{id}/status', [StudentController::class, 'changeStatus']);
+    Route::get('/students/{id}/cor-data', [CORController::class, 'getCORData']); // Populate Modal
+    Route::post('/cor/generate-url', [CORController::class, 'generateUrl']); // ✅ NEW: Save data & Get URL
+
+    Route::get('/settings', [EnrollmentSettingController::class, 'index']);
 });
 
+// SA LABAS ng auth:sanctum (Dito bubuksan ang PDF, protected by Signature)
+Route::get('/print/cor/{id}', [CORController::class, 'printCOR'])
+    ->name('cor.print')
+    ->middleware('signed');
+    
 // ✅ 2. THE VIP GATE: Ito ang gagamitin ng browser para mag-download
 // Nasa LABAS ng auth:sanctum, pero protektado ng 'signed' middleware (Laravel feature)
 Route::get('/print/masterlist/{section}/{user}', [SectionController::class, 'printMasterList'])

@@ -327,7 +327,7 @@ export default function UserDrawer({
                                 ) : type === "create" ? (
                                     "CREATE ACCOUNT"
                                 ) : (
-                                    "UPDATE ACCOUNT"
+                                    "SAVE CHANGES"
                                 )}
                             </button>
                         )}
