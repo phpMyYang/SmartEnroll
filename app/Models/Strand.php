@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // ✅ UUID
-use Illuminate\Database\Eloquent\SoftDeletes; // ✅ Recycle Bin
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // UUID
+use Illuminate\Database\Eloquent\SoftDeletes; // Recycle Bin
 
 class Strand extends Model
 {
@@ -16,7 +16,7 @@ class Strand extends Model
         'description'   // e.g., Science, Technology...
     ];
 
-    // ✅ Relationships
+    // Relationships
 
     // Ang isang Strand ay may maraming Sections
     public function sections()

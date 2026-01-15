@@ -82,7 +82,7 @@ export default function Dashboard() {
 
     const { cards, charts } = data;
 
-    // 🎨 RETRO CHART PALETTE
+    // RETRO CHART PALETTE
     const retroColors = [
         "#3F9AAE", // Primary (Teal)
         "#F96E5B", // Danger (Red/Orange)
@@ -131,7 +131,7 @@ export default function Dashboard() {
         ],
     };
 
-    // ✅ FIXED: Added "Released" dataset back & Retro Styling
+    // FIXED: Added "Released" dataset back & Retro Styling
     const trendData = {
         labels: charts.enrollment_trend.labels,
         datasets: [
@@ -172,7 +172,7 @@ export default function Dashboard() {
                 borderWidth: 3,
             },
             {
-                // ✅ ADDED BACK: Released Line (Mustard)
+                // ADDED BACK: Released Line (Mustard)
                 label: "Released",
                 data: charts.enrollment_trend.released,
                 borderColor: "#F4D03F", // Mustard Yellow
@@ -208,7 +208,7 @@ export default function Dashboard() {
                 className="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3"
                 style={{ borderBottom: "2px solid black" }}
             >
-                {/* 🔥 UPDATED HEADER: May Description na sa baba */}
+                {/* UPDATED HEADER: May Description na sa baba */}
                 <div>
                     <h2
                         className="fw-bold mb-0 font-monospace text-uppercase"
@@ -316,7 +316,7 @@ export default function Dashboard() {
             <div className="row g-4 mb-4">
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* ✅ FIX: Added 'px-4' for better left padding */}
+                        {/* FIX: Added 'px-4' for better left padding */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
@@ -337,7 +337,7 @@ export default function Dashboard() {
 
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* ✅ FIX: Added 'px-4' */}
+                        {/* FIX: Added 'px-4' */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
@@ -355,7 +355,7 @@ export default function Dashboard() {
 
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* ✅ FIX: Added 'px-4' */}
+                        {/* FIX: Added 'px-4' */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
@@ -376,7 +376,7 @@ export default function Dashboard() {
             <div className="row">
                 <div className="col-md-12">
                     <div className="card-retro">
-                        {/* ✅ FIX: Added 'px-4' */}
+                        {/* FIX: Added 'px-4' */}
                         <div
                             className="card-header bg-white fw-bold d-flex justify-content-between align-items-center py-3 px-4"
                             style={{ borderBottom: "2px solid black" }}

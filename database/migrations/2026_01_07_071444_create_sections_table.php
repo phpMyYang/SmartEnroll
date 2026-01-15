@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('grade_level'); // 11 or 12
             $table->integer('capacity')->default(40);
             $table->timestamps();
-            $table->softDeletes(); // 👈 RECYCLE BIN
+            $table->softDeletes(); // RECYCLE BIN
         });
     }
 

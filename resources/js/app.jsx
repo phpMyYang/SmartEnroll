@@ -4,24 +4,25 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Public Pages
+// --- LAYOUTS ---
+import AdminLayout from "./layouts/AdminLayout";
+
+// --- PUBLIC PAGES ---
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-// Admin Layout & Pages (Galing sa Step 3)
-import AdminLayout from "./layouts/AdminLayout";
+// --- ADMIN PAGES ---
 import Dashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
+import Students from "./pages/admin/Students";
 import Strands from "./pages/admin/Strands";
 import Sections from "./pages/admin/Sections";
 import Subjects from "./pages/admin/Subjects";
-import Students from "./pages/admin/Students";
+import Settings from "./pages/admin/Settings";
 
-// 👇 Placeholder Component
-// Ito muna ang lalabas sa mga pages na gagawin pa lang natin sa Step 4
-// para hindi mag-crash ang app pag kinlick mo ang sidebar menu.
+// Placeholder Component (Para sa mga modules na gagawin pa lang)
 const Placeholder = ({ title }) => (
     <div className="container-fluid p-4 fade-in">
         <h2 className="fw-bold text-dark mb-3">{title}</h2>
@@ -30,7 +31,8 @@ const Placeholder = ({ title }) => (
                 <i className="bi bi-cone-striped fs-1 text-warning mb-3"></i>
                 <h4 className="text-muted">Work in Progress</h4>
                 <p>
-                    This module will be developed in <strong>Step 4</strong>.
+                    This module (<strong>{title}</strong>) is currently under
+                    development.
                 </p>
             </div>
         </div>
@@ -41,7 +43,9 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* === PUBLIC ROUTES === */}
+                {/* ==============================
+                    PUBLIC ROUTES
+                ============================== */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -50,50 +54,71 @@ function App() {
                     element={<ResetPassword />}
                 />
 
-                {/* === 🔒 ADMIN ROUTES === */}
-                {/* Lahat ng nasa loob nito ay gagamit ng Sidebar at Navbar */}
+                {/* ==============================
+                    ADMIN PROTECTED ROUTES
+                ============================== */}
                 <Route path="/admin" element={<AdminLayout />}>
-                    {/* Default Redirect: Pag /admin lang, punta sa dashboard */}
+                    {/* Default Redirect: /admin -> /admin/dashboard */}
                     <Route
                         index
                         element={<Navigate to="/admin/dashboard" replace />}
                     />
 
-                    {/* Dashboard */}
+                    {/* 1. Dashboard */}
                     <Route path="dashboard" element={<Dashboard />} />
 
-                    {/* User Management */}
+                    {/* 2. User Management */}
                     <Route
                         path="users"
                         element={<Users title="Users Management" />}
                     />
-                    {/* Strand Management */}
+
+                    {/* 3. Student Management */}
                     <Route
                         path="students"
                         element={<Students title="Student Management" />}
                     />
-                    {/* Strand Management */}
+
+                    {/* 4. Strand Management */}
                     <Route
                         path="strands"
                         element={<Strands title="Strand Management" />}
                     />
-                    {/* Sections Management */}
+
+                    {/* 5. Section Management */}
                     <Route
                         path="sections"
                         element={<Sections title="Section Management" />}
                     />
-                    {/* Subjects Management */}
+
+                    {/* 6. Subject Management */}
                     <Route
                         path="subjects"
                         element={<Subjects title="Subject Management" />}
                     />
+
+                    {/* 7. Reports (Placeholder) */}
+                    <Route
+                        path="reports"
+                        element={<Placeholder title="System Reports" />}
+                    />
+
+                    {/* 8. Settings */}
                     <Route
                         path="settings"
-                        element={<Placeholder title="Enrollment Settings" />}
+                        element={<Settings title="Enrollment Settings" />}
+                    />
+
+                    {/* 9. Recycle Bin (Placeholder) */}
+                    <Route
+                        path="recycle-bin"
+                        element={<Placeholder title="Recycle Bin" />}
                     />
                 </Route>
 
-                {/* 404 Fallback: Pag walang match, balik sa login */}
+                {/* ==============================
+                    404 FALLBACK
+                ============================== */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>

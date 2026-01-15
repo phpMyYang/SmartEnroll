@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Models\Section;
 use App\Models\Strand;
 use App\Models\EnrollmentSetting;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +78,14 @@ class StudentController extends Controller
 
         // 6. Save to Database
         $student = Student::create($data);
+
+        // LOG ACTIVITY: CREATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'description' => "Enrolled new student: {$student->last_name}, {$student->first_name}",
+            'ip_address' => $request->ip()
+        ]);
         
         // 7. Send Welcome Email
         try {
@@ -112,7 +121,7 @@ class StudentController extends Controller
 
         $data = $request->all();
 
-        // 🛑 REMOVE SYSTEM FIELDS & RELATIONSHIPS (Fixes "Unknown Column" Error)
+        // REMOVE SYSTEM FIELDS & RELATIONSHIPS (Fixes "Unknown Column" Error)
         unset($data['id']);
         unset($data['created_at']);
         unset($data['updated_at']);
@@ -147,7 +156,15 @@ class StudentController extends Controller
             $rawChanges = $student->getDirty();
             $student->save();
 
-            // --- ✨ FORMAT DATA FOR EMAIL ✨ ---
+            // LOG ACTIVITY: UPDATE
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update',
+                'description' => "Updated profile of student: {$student->last_name}, {$student->first_name}",
+                'ip_address' => $request->ip()
+            ]);
+
+            // --- FORMAT DATA FOR EMAIL ---
             $formattedChanges = [];
 
             foreach ($rawChanges as $key => $newValue) {
@@ -230,6 +247,7 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
         $newStatus = $request->status;
+        $oldStatus = $student->status; // Capture old status for log
         $user = Auth::user(); 
 
         if ($newStatus !== 'reset') {
@@ -244,10 +262,19 @@ class StudentController extends Controller
                 'released_by' => null,
                 'released_at' => null
             ]);
+
+            // LOG ACTIVITY: RESET
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update',
+                'description' => "Reset status of {$student->last_name} from " . strtoupper($oldStatus) . " back to " . strtoupper($prev),
+                'ip_address' => $request->ip()
+            ]);
+
             return response()->json(['message' => 'Status reset to ' . $prev]);
         }
 
-        // B. PASSED LOGIC (✅ Sends Instruction Email)
+        // B. PASSED LOGIC  Sends Instruction Email)
         if ($newStatus === 'passed') {
             try {
                 Mail::to($student->email)->send(new EnrollmentInstruction($student));
@@ -263,11 +290,28 @@ class StudentController extends Controller
                 'released_by' => $user ? $user->name : 'Administrator',
                 'released_at' => now()
             ]);
+
+            // LOG ACTIVITY: RELEASED
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update',
+                'description' => "Released record of student: {$student->last_name}, {$student->first_name}",
+                'ip_address' => $request->ip()
+            ]);
+
             return response()->json(['message' => 'Record marked as Released.']);
         }
 
         // D. GENERIC UPDATE
         $student->update(['status' => $newStatus]);
+
+        // LOG ACTIVITY: GENERIC STATUS CHANGE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'description' => "Changed status of {$student->last_name} from " . strtoupper($oldStatus) . " to " . strtoupper($newStatus),
+            'ip_address' => $request->ip()
+        ]);
 
         return response()->json(['message' => 'Status updated to ' . strtoupper($newStatus)]);
     }
@@ -277,7 +321,18 @@ class StudentController extends Controller
      */
     public function destroy($id)
     {
-        Student::findOrFail($id)->delete();
+        $student = Student::findOrFail($id);
+        $name = "{$student->last_name}, {$student->first_name}";
+        $student->delete();
+
+        // LOG ACTIVITY: DELETE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'description' => "Deleted student record: {$name}",
+            'ip_address' => request()->ip()
+        ]);
+
         return response()->json(['message' => 'Student record deleted successfully.']);
     }
 }

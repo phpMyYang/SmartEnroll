@@ -29,7 +29,7 @@
         table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .info-table td { padding: 3px 0; vertical-align: top; }
         
-        /* ✅ STUDENT INFO: REMOVED UNDERLINES */
+        /* STUDENT INFO: REMOVED UNDERLINES */
         .label { font-weight: bold; width: 15%; }
         .value { width: 35%; /* border-bottom: 1px solid #000;  <-- TINANGGAL NA */ }
 
@@ -42,10 +42,10 @@
             border: 2px solid #000; 
             padding: 10px; 
             margin-top: 20px; 
-            margin-bottom: 50px; /* ✅ PINALAKI: Lumayo sa Class Adviser */
+            margin-bottom: 50px; /* PINALAKI: Lumayo sa Class Adviser */
         }
         
-        /* ✅ SPACING NG SIGNATORIES: PINALAKI PARA HINDI DIKIT-DIKIT */
+        /* SPACING NG SIGNATORIES: PINALAKI PARA HINDI DIKIT-DIKIT */
         .sig-block { margin-top: 60px; text-align: center; } 
         
         .sig-line { border-top: 1px solid #000; width: 90%; margin: 0 auto; }

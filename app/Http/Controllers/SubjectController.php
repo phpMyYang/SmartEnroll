@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Models\ActivityLog; 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; 
 
 class SubjectController extends Controller
 {
@@ -24,6 +26,15 @@ class SubjectController extends Controller
         ]);
 
         $subject = Subject::create($validated);
+
+        // LOG ACTIVITY: CREATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'description' => "Created new subject: {$subject->code}",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json(['message' => 'Subject created successfully', 'subject' => $subject]);
     }
 
@@ -41,6 +52,15 @@ class SubjectController extends Controller
         ]);
 
         $subject->update($validated);
+
+        // LOG ACTIVITY: UPDATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'description' => "Updated subject details: {$subject->code}",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json(['message' => 'Subject updated successfully', 'subject' => $subject]);
     }
 
@@ -48,7 +68,17 @@ class SubjectController extends Controller
     {
         $subject = Subject::find($id);
         if ($subject) {
+            $code = $subject->code; // Save code before delete
             $subject->delete();
+
+            // LOG ACTIVITY: DELETE
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'description' => "Deleted subject: {$code}",
+                'ip_address' => request()->ip()
+            ]);
+
             return response()->json(['message' => 'Subject deleted successfully']);
         }
         return response()->json(['message' => 'Not found'], 404);

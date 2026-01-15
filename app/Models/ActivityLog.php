@@ -16,7 +16,7 @@ class ActivityLog extends Model
         'ip_address'
     ];
 
-    // ✅ Relationships
+    // Relationships
 
     // Gusto nating malaman kung sinong User ang gumawa ng action
     public function user()

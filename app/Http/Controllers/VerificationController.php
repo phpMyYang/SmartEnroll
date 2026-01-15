@@ -32,7 +32,7 @@ class VerificationController extends Controller
             event(new Verified($user));
         }
 
-        // ✅ REDIRECT sa Login Page na may dalang "verified" status
+        // REDIRECT sa Login Page na may dalang "verified" status
         return redirect('/login?status=verified');
     }
 }

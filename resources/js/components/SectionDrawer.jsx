@@ -4,7 +4,7 @@ export default function SectionDrawer({
     show,
     type,
     selectedSection,
-    strands, // 👈 Tatanggapin natin ang list ng strands from parent
+    strands, // Tatanggapin natin ang list ng strands from parent
     onClose,
     onSubmit,
     isLoading,

@@ -19,7 +19,7 @@ class Subject extends Model
         'semester'      // 1st or 2nd
     ];
 
-    // ✅ Relationships
+    // Relationships
 
     public function strand()
     {

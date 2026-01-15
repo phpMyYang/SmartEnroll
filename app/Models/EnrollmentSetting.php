@@ -18,7 +18,7 @@ class EnrollmentSetting extends Model
         'maintenance_mode'  // true or false
     ];
 
-    // ✅ Casting (Para automatic na Date object ang makuha natin, hindi string)
+    // Casting (Para automatic na Date object ang makuha natin, hindi string)
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',

@@ -8,12 +8,12 @@ use App\Http\Controllers\VerificationController;
 //     phpinfo();
 // });
 
-// 👇 Route para sa Email Verification Link
+// Route para sa Email Verification Link
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->middleware(['signed']) // Importante: Security para hindi mapeke ang link
     ->name('verification.verify'); // Ito ang pangalang hinahanap ni Laravel
 
-// ✅ Ito ang "pangalan" na hinahanap ng email generator
+// Ito ang "pangalan" na hinahanap ng email generator
 Route::get('/password-reset/{token}', function () {
     return view('welcome'); // Ibabalik nito ang React App
 })->name('password.reset');

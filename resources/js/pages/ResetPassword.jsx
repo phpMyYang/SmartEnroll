@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import Toast from "../utils/toast"; // ✅ Gamitin ang Toast utility
+import Toast from "../utils/toast"; // Gamitin ang Toast utility
 
 export default function ResetPassword() {
     // 1. GET DATA FROM URL
@@ -39,7 +39,7 @@ export default function ResetPassword() {
                 const { token, user, role, verified } = response.data;
 
                 if (verified && token) {
-                    // ✅ CASE A: SUCCESS & AUTO-LOGIN
+                    // CASE A: SUCCESS & AUTO-LOGIN
 
                     // 1. Save Credentials
                     localStorage.setItem("token", token);
@@ -57,21 +57,21 @@ export default function ResetPassword() {
                         timer: 2000,
                     });
 
-                    // 4. 🔥 HARD REDIRECT (UPDATED PATHS)
+                    // 4. HARD REDIRECT (UPDATED PATHS)
                     setTimeout(() => {
                         let targetPath = "/login"; // Default fallback
 
                         if (role === "admin") {
                             targetPath = "/admin/dashboard";
                         } else if (role === "staff") {
-                            targetPath = "/staff/dashboard"; // ✅ DITO TAYO NAG-CORRECT PARTNER
+                            targetPath = "/staff/dashboard"; // DITO TAYO NAG-CORRECT PARTNER
                         }
 
                         // Hard refresh para kumagat ang token
                         window.location.href = targetPath;
                     }, 2000);
                 } else {
-                    // 🛑 CASE B: HINDI PA VERIFIED
+                    // CASE B: HINDI PA VERIFIED
                     Toast.fire({
                         icon: "warning",
                         title: "Password updated. Please verify email first.",

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\Section;
 use App\Models\Subject;
+use App\Models\ActivityLog; 
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
 
 class CORController extends Controller
@@ -23,7 +25,7 @@ class CORController extends Controller
             ->where('grade_level', $student->grade_level)
             ->get();
 
-        // ✅ FIX: CLEAN SEMESTER DATA
+        // FIX: CLEAN SEMESTER DATA
         // Kukunin lang natin ang "1st" o "2nd" mula sa "1st Semester" para tumugma sa database
         $semKey = explode(' ', trim($student->semester))[0]; // "1st" or "2nd"
 
@@ -33,7 +35,7 @@ class CORController extends Controller
                   ->orWhereNull('strand_id');               // OR Core Subject (Null)
             })
             ->where('grade_level', $student->grade_level)   // Match Grade Level
-            ->where('semester', 'LIKE', "%{$semKey}%")     // ✅ Match "1st" kahit "1st Semester" ang nasa DB
+            ->where('semester', 'LIKE', "%{$semKey}%")     // Match "1st" kahit "1st Semester" ang nasa DB
             ->get();
 
         return response()->json([
@@ -48,6 +50,17 @@ class CORController extends Controller
     {
         $tempId = Str::random(40);
         Cache::put('cor_data_' . $tempId, $request->all(), now()->addMinutes(5));
+
+        // LOG ACTIVITY: DOWNLOAD COR
+        // Kukunin natin ang pangalan ng student mula sa request data
+        $studentName = $request->input('info.name') ?? 'Student';
+        
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'download',
+            'description' => "Downloaded COR for student: {$studentName}",
+            'ip_address' => $request->ip()
+        ]);
 
         $url = URL::temporarySignedRoute(
             'cor.print', 
