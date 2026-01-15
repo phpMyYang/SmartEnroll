@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->string('school_year'); // e.g., 2025-2026
             $table->string('semester'); // 1st or 2nd
-            $table->boolean('maintenance_mode')->default(false); // 👈 MAINTENANCE MODE TOGGLE
+            $table->boolean('maintenance_mode')->default(false); // MAINTENANCE MODE TOGGLE
             $table->timestamps();
         });
     }

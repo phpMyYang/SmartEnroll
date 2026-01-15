@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\UserCredentialsMail; // (Kailangan mo i-setup ang view nito later)
-use App\Mail\UserUpdatedMail;     // (Kailangan mo i-setup ang view nito later)
+use App\Mail\UserCredentialsMail;
+use App\Mail\UserUpdatedMail;     
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -38,12 +40,20 @@ class UserController extends Controller
         $userData = $validated;
         $userData['password'] = Hash::make($validated['password']);
         
-        // ❌ TANGGALIN NATIN ITO: 'email_verified_at' => now() 
+        // TANGGALIN NATIN ITO: 'email_verified_at' => now() 
         // Para manatiling UNVERIFIED ang account.
         
         $user = User::create($userData);
 
-        // ✅ SEND CREDENTIALS & VERIFICATION LINK
+        // LOG ACTIVITY: CREATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'description' => "Created new user account: {$user->name} ({$user->role})",
+            'ip_address' => $request->ip()
+        ]);
+
+        // SEND CREDENTIALS & VERIFICATION LINK
         try {
             // 1. Generate Signed Verification URL (Valid for 24 hours)
             // Tinuturo natin ito sa API route na gagawin natin sa Step 4
@@ -88,7 +98,7 @@ class UserController extends Controller
 
         // 1. Password Logic
         if ($request->filled('password')) {
-            $plainPassword = $request->password; // 👈 KOPYAHIN MUNA ANG PLAIN TEXT
+            $plainPassword = $request->password; // KOPYAHIN MUNA ANG PLAIN TEXT
             $validated['password'] = Hash::make($plainPassword); // Saka i-hash
         } else {
             unset($validated['password']);
@@ -111,11 +121,19 @@ class UserController extends Controller
 
         // 🚨 OVERRIDE: Palitan ang Hashed Password ng Plain Password sa Email List
         if ($plainPassword && array_key_exists('password', $changes)) {
-            $changes['password'] = $plainPassword; // 👈 Ito ang magpapakita ng "password123"
+            $changes['password'] = $plainPassword; // Ito ang magpapakita ng "password123"
         }
 
         // 5. Save
         $user->save();
+
+        // LOG ACTIVITY: UPDATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'description' => "Updated user account details for: {$user->name}",
+            'ip_address' => $request->ip()
+        ]);
 
         // 6. Send Email
         if (!empty($changes)) {
@@ -132,7 +150,7 @@ class UserController extends Controller
     // DELETE USER
     public function destroy($id)
     {
-        // 🔒 SAFETY LOCK: Check kung sariling account ang buburahin
+        // SAFETY LOCK: Check kung sariling account ang buburahin
         if (auth()->id() == $id) {
             return response()->json(['message' => 'You cannot delete your own account.'], 403);
         }
@@ -140,7 +158,17 @@ class UserController extends Controller
         $user = User::find($id);
         
         if($user) {
+            $userName = $user->name; // Save name before deleting
             $user->delete();
+
+            // LOG ACTIVITY: DELETE
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'description' => "Deleted user account: {$userName}",
+                'ip_address' => request()->ip()
+            ]);
+
             return response()->json(['message' => 'User deleted successfully']);
         }
         

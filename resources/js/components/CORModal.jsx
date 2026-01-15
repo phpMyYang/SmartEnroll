@@ -190,7 +190,7 @@ export default function CORModal({ show, student, onClose }) {
             >
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content border-2 border-dark rounded-0 shadow-lg">
-                        {/* ✅ UPDATED HEADER: Matches Masterlist Modal Design */}
+                        {/* UPDATED HEADER: Matches Masterlist Modal Design */}
                         <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3">
                             <h5 className="modal-title fw-bold font-monospace mx-auto">
                                 <i className="bi bi-printer-fill me-2 text-warning"></i>{" "}
@@ -555,7 +555,7 @@ export default function CORModal({ show, student, onClose }) {
                             )}
                         </div>
 
-                        {/* ✅ UPDATED FOOTER: Matches Masterlist Modal Design */}
+                        {/* UPDATED FOOTER: Matches Masterlist Modal Design */}
                         <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
                             <button
                                 className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect"

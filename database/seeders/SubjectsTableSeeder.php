@@ -45,7 +45,7 @@ class SubjectsTableSeeder extends Seeder
                 // 'units' => 3, // Removed per migration
                 'grade_level' => $faker->randomElement(['11', '12']),
                 
-                // ✅ FIX: "1st" at "2nd" na lang (Wala nang 'Semester' na word)
+                // FIX: "1st" at "2nd" na lang (Wala nang 'Semester' na word)
                 'semester' => $faker->randomElement(['1st', '2nd']),
                 
                 'strand_id' => $strandId,

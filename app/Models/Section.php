@@ -18,7 +18,7 @@ class Section extends Model
         'capacity'
     ];
 
-    // ✅ Relationships
+    // Relationships
 
     // Ang Section ay pagmamay-ari ng isang Strand
     public function strand()

@@ -3,18 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Strand;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; 
 
 class StrandController extends Controller
 {
-    // ✅ GET: Kunin lahat ng strands
+    // GET: Kunin lahat ng strands
     public function index()
     {
         // I-return natin na naka-sort mula sa pinakabago
         return Strand::latest()->get();
     }
 
-    // ✅ POST: Mag-save ng bagong strand
+    // POST: Mag-save ng bagong strand
     public function store(Request $request)
     {
         // Validation
@@ -26,13 +28,21 @@ class StrandController extends Controller
         // Create
         $strand = Strand::create($validated);
 
+        // LOG ACTIVITY: CREATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'description' => "Created new strand: {$strand->code}",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json([
             'message' => 'Strand created successfully',
             'strand' => $strand
         ]);
     }
 
-    // ✅ PUT: Mag-update ng existing strand
+    // PUT: Mag-update ng existing strand
     public function update(Request $request, $id)
     {
         $strand = Strand::find($id);
@@ -50,19 +60,37 @@ class StrandController extends Controller
         // Update
         $strand->update($validated);
 
+        // LOG ACTIVITY: UPDATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'description' => "Updated strand details: {$strand->code}",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json([
             'message' => 'Strand updated successfully',
             'strand' => $strand
         ]);
     }
 
-    // ✅ DELETE: Magbura ng strand
+    // DELETE: Magbura ng strand
     public function destroy($id)
     {
         $strand = Strand::find($id);
 
         if ($strand) {
+            $code = $strand->code; // Simpan muna ang code bago burahin para sa log
             $strand->delete();
+
+            // LOG ACTIVITY: DELETE
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'description' => "Deleted strand: {$code}",
+                'ip_address' => request()->ip()
+            ]);
+
             return response()->json(['message' => 'Strand deleted successfully']);
         }
 

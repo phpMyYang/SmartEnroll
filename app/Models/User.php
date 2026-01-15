@@ -63,7 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->forceFill([
             'email_verified_at' => $this->freshTimestamp(),
-            'status' => 'active', // 👈 ETO ANG MAGIC!
+            'status' => 'active', // ETO ANG MAGIC!
         ])->save();
     }
 }

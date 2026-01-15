@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    // ✅ LOGIN
+    // LOGIN
     public function login(Request $request)
     {
         $request->validate([
@@ -35,6 +36,14 @@ class AuthController extends Controller
         // Create Token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // LOG ACTIVITY: LOGIN
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'login',
+            'description' => "User {$user->name} logged in successfully.",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json([
             'message' => 'Login successful!',
             'user' => $user,
@@ -44,14 +53,28 @@ class AuthController extends Controller
         ]);
     }
 
-    // ✅ LOGOUT
+    // LOGOUT
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+
+        if ($user) {
+            // LOG ACTIVITY: LOGOUT
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'logout',
+                'description' => "User {$user->name} logged out.",
+                'ip_address' => $request->ip()
+            ]);
+
+            // Delete Token
+            $user->currentAccessToken()->delete();
+        }
+
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    // ✅ SEND RESET LINK
+    // SEND RESET LINK
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
@@ -64,7 +87,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Unable to send reset link.'], 400);
     }
 
-    // ✅ RESET PASSWORD (UPDATED with Auto-Login Token)
+    // RESET PASSWORD (UPDATED with Auto-Login Token)
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -87,22 +110,22 @@ class AuthController extends Controller
         if ($status === Password::PASSWORD_RESET) {
             $user = User::where('email', $request->email)->first();
             
-            // 👇 ITO ANG KULANG PARTNER: Gumawa ng Token
+            // ITO ANG KULANG PARTNER: Gumawa ng Token
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Password reset success', 
                 'role' => $user->role,
                 'verified' => $user->hasVerifiedEmail(),
-                'token' => $token, // 👈 Ibalik ang token sa frontend
-                'user' => $user    // 👈 Ibalik din ang user details
+                'token' => $token, // Ibalik ang token sa frontend
+                'user' => $user    // Ibalik din ang user details
             ]);
         }
 
         return response()->json(['message' => 'Invalid token or email.'], 400);
     }
 
-    // ✅ RESEND VERIFICATION
+    // RESEND VERIFICATION
     public function resendVerification(Request $request)
     {
         $request->validate(['email' => 'required|email']);

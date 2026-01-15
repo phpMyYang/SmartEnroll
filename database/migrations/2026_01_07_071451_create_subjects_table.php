@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignUuid('strand_id')->nullable()->constrained(); // Nullable kasi baka Core subject (pang lahat)
             $table->string('semester'); // 1st or 2nd
             $table->timestamps();
-            $table->softDeletes(); // 👈 RECYCLE BIN
+            $table->softDeletes(); // RECYCLE BIN
         });
     }
 

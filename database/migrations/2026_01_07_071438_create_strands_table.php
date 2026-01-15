@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('code')->unique(); // e.g., STEM, ABM
             $table->string('description'); // e.g., Science Technology...
             $table->timestamps();
-            $table->softDeletes(); // 👈 IMPORTANTE SA RECYCLE BIN
+            $table->softDeletes(); // IMPORTANTE SA RECYCLE BIN
         });
     }
 

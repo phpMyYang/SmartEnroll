@@ -30,7 +30,7 @@ class StudentSeeder extends Seeder
                 }
 
                 Student::create([
-                    // ❌ REMOVED: reference_number
+                    // REMOVED: reference_number
                     
                     'lrn' => $faker->unique()->numerify('10##########'),
                     'last_name' => $faker->lastName,
@@ -56,7 +56,7 @@ class StudentSeeder extends Seeder
                     'section_id' => $section->id,
                     'grade_level' => $section->grade_level,
                     'semester' => '1st Semester',
-                    'school_year' => $schoolYear, // ✅ ADDED: Required field
+                    'school_year' => $schoolYear, // ADDED: Required field
                     
                     // Family (Optional faker data)
                     'father_name' => $faker->name('Male'),

@@ -187,7 +187,7 @@ export default function Subjects() {
                         </span>
                         <input
                             type="text"
-                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            // PINALITAN: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search subject..."
                             value={searchTerm}
@@ -313,7 +313,7 @@ export default function Subjects() {
                                                             boxShadow:
                                                                 "2px 2px 0 #000",
                                                             transition:
-                                                                "transform 0.1s", // ✅ Animation Speed
+                                                                "transform 0.1s", // Animation Speed
                                                         }}
                                                         onClick={() =>
                                                             handleOpenEdit(
@@ -323,11 +323,11 @@ export default function Subjects() {
                                                         onMouseEnter={(e) =>
                                                             (e.currentTarget.style.transform =
                                                                 "translate(-1px, -1px)")
-                                                        } // ✅ LIFT UP
+                                                        } // LIFT UP
                                                         onMouseLeave={(e) =>
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
-                                                        } // ✅ RESET
+                                                        } // RESET
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
@@ -343,7 +343,7 @@ export default function Subjects() {
                                                             boxShadow:
                                                                 "2px 2px 0 #000",
                                                             transition:
-                                                                "transform 0.1s", // ✅ Animation Speed
+                                                                "transform 0.1s", // Animation Speed
                                                         }}
                                                         onClick={() =>
                                                             handleDelete(
@@ -353,11 +353,11 @@ export default function Subjects() {
                                                         onMouseEnter={(e) =>
                                                             (e.currentTarget.style.transform =
                                                                 "translate(-1px, -1px)")
-                                                        } // ✅ LIFT UP
+                                                        } // LIFT UP
                                                         onMouseLeave={(e) =>
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
-                                                        } // ✅ RESET
+                                                        } // RESET
                                                     >
                                                         <i className="bi bi-trash-fill text-white"></i>
                                                     </button>

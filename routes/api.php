@@ -2,21 +2,24 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Auth\Events\Verified;
+
+// CONTROLLERS IMPORT
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
-use App\Models\User; // Don't forget imports
 use App\Http\Controllers\StrandController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\EnrollmentSettingController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CORController;
-use Illuminate\Auth\Events\Verified;
+use App\Models\User; 
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES (Open Access)
+|  PUBLIC ROUTES (No Login Required)
 |--------------------------------------------------------------------------
 */
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,72 +29,98 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES (Requires Login/Token)
+|  PROTECTED ROUTES (Requires Login / Sanctum Token)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
 
-    // ✅ 1. Get Current User (Mahalaga ito para sa Sidebar Name/Profile)
+    // --- 👤 USER & AUTH ---
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-
-    // ✅ 2. Logout (Dito dapat ito sa loob)
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // ✅ 3. Admin Dashboard Analytics
+    // --- ADMIN DASHBOARD ---
     Route::get('/admin/analytics', [AdminController::class, 'getAnalytics']);
     Route::resource('users', UserController::class);
+
+    // --- ACADEMIC MANAGEMENT ---
     Route::apiResource('strands', StrandController::class);
-    // SECTIONS & MASTERLIST ROUTES
+    Route::apiResource('subjects', SubjectController::class);
+    
+    // Sections & Masterlist
     Route::apiResource('sections', SectionController::class);
     Route::get('/sections/{id}/masterlist', [SectionController::class, 'masterList']);
-    // ✅ 1. TICKET BOOTH: Dito hihingi ng Signed URL ang React
     Route::get('/sections/{id}/masterlist/generate-url', [SectionController::class, 'generatePrintUrl']);
-    Route::apiResource('subjects', SubjectController::class);
 
+    // --- STUDENT MANAGEMENT ---
     Route::apiResource('students', StudentController::class);
-    // Custom Route para sa Status Change (Passed, Released, Reset, etc.)
-    Route::put('/students/{id}/status', [StudentController::class, 'changeStatus']);
-    Route::get('/students/{id}/cor-data', [CORController::class, 'getCORData']); // Populate Modal
-    Route::post('/cor/generate-url', [CORController::class, 'generateUrl']); // ✅ NEW: Save data & Get URL
+    Route::put('/students/{id}/status', [StudentController::class, 'changeStatus']); // Change Status (Passed, Released, etc.)
+    
+    // COR (Certificate of Registration)
+    Route::get('/students/{id}/cor-data', [CORController::class, 'getCORData']); 
+    Route::post('/cor/generate-url', [CORController::class, 'generateUrl']); 
 
+    // --- SYSTEM SETTINGS & LOGS ---
     Route::get('/settings', [EnrollmentSettingController::class, 'index']);
+    Route::post('/settings', [EnrollmentSettingController::class, 'store']);
+    Route::put('/settings/maintenance', [EnrollmentSettingController::class, 'toggleMaintenance']);
+    Route::delete('/settings/{id}', [EnrollmentSettingController::class, 'destroy']);
+    
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+
+    // --- MAINTENANCE MODE GROUP (Example for Staff) ---
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckMaintenanceMode::class])->group(function () {
+        // Example: Staff specific routes that are blocked during maintenance
+        // Route::apiResource('students', StudentController::class);
+    });
 });
 
-// SA LABAS ng auth:sanctum (Dito bubuksan ang PDF, protected by Signature)
+/*
+|--------------------------------------------------------------------------
+| SIGNED ROUTES (Public but Protected by Signature)
+|--------------------------------------------------------------------------
+| Ginagamit ito para sa pag-download/print ng PDF mula sa browser.
+*/
+
+// Print COR
 Route::get('/print/cor/{id}', [CORController::class, 'printCOR'])
     ->name('cor.print')
     ->middleware('signed');
-    
-// ✅ 2. THE VIP GATE: Ito ang gagamitin ng browser para mag-download
-// Nasa LABAS ng auth:sanctum, pero protektado ng 'signed' middleware (Laravel feature)
+
+// Print Masterlist
 Route::get('/print/masterlist/{section}/{user}', [SectionController::class, 'printMasterList'])
     ->name('masterlist.print')
     ->middleware('signed');
 
-// ✅ EMAIL VERIFICATION ROUTE (Updated Logic)
+/*
+|--------------------------------------------------------------------------
+| EMAIL VERIFICATION LOGIC
+|--------------------------------------------------------------------------
+*/
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id) {
     $user = User::find($id);
 
+    // 1. Validate User Existence
     if (!$user) {
         return redirect(env('FRONTEND_URL', 'http://127.0.0.1:8000') . '/login?status=invalid');
     }
 
+    // 2. Validate Hash
     if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
         return redirect(env('FRONTEND_URL', 'http://127.0.0.1:8000') . '/login?status=invalid');
     }
 
-    // Kung verified na dati pa, redirect na lang
+    // 3. Check if Already Verified
     if ($user->hasVerifiedEmail()) {
         return redirect(env('FRONTEND_URL', 'http://127.0.0.1:8000') . '/login?status=already_verified');
     }
 
-    // 👇 DITO ANG PAGBABAGO: Pagka-verify, gawing ACTIVE ang status
+    // 4. Mark as Verified & Activate
     if ($user->markEmailAsVerified()) {
         event(new Verified($user));
         
-        // ✅ FORCE ACTIVATE ACCOUNT
+        // Force Activate Account
         $user->forceFill([
             'status' => 'active'
         ])->save();

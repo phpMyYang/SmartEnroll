@@ -181,7 +181,7 @@ export default function Sections() {
                         </span>
                         <input
                             type="text"
-                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search section..."
                             value={searchTerm}
@@ -301,7 +301,7 @@ export default function Sections() {
                                         <div className="mt-auto">
                                             {/* Master List (Cyan Button) */}
                                             <button
-                                                className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
+                                                className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect" // ADDED CLASS
                                                 style={{
                                                     backgroundColor: "#dff9fb",
                                                     color: "#000",
@@ -320,7 +320,7 @@ export default function Sections() {
                                             <div className="d-flex gap-2">
                                                 {/* Edit (Yellow Button) */}
                                                 <button
-                                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
+                                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // DDED CLASS
                                                     style={{
                                                         backgroundColor:
                                                             "#f6e58d",
@@ -337,7 +337,7 @@ export default function Sections() {
 
                                                 {/* Delete (Red Button) */}
                                                 <button
-                                                    className="btn font-monospace fw-bold px-3 btn-retro-effect" // ✅ ADDED CLASS
+                                                    className="btn font-monospace fw-bold px-3 btn-retro-effect" // ADDED CLASS
                                                     style={{
                                                         backgroundColor:
                                                             "#ff7675",
@@ -559,7 +559,7 @@ export default function Sections() {
                                 <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
                                     {masterData && (
                                         <button
-                                            className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect" // ✅ ADDED CLASS
+                                            className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect" // ADDED CLASS
                                             onClick={() =>
                                                 handleDownloadPDF(
                                                     masterData.section.id,
@@ -572,7 +572,7 @@ export default function Sections() {
                                         </button>
                                     )}
                                     <button
-                                        className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect" // ✅ ADDED CLASS
+                                        className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect" // ADDED CLASS
                                         onClick={() => setShowMasterList(false)}
                                     >
                                         CLOSE

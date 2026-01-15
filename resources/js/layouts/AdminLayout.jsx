@@ -20,11 +20,53 @@ export default function AdminLayout() {
         role: "Administrator",
     });
 
+    // Dynamic Header State
+    const [currentSem, setCurrentSem] = useState({
+        school_year: "Loading...",
+        semester: "",
+    });
+
+    // FUNCTION: Fetch Settings (Extracted para reusable)
+    const fetchSettings = async () => {
+        try {
+            const res = await axios.get("/api/settings");
+            if (res.data) {
+                setCurrentSem({
+                    school_year: res.data.school_year || "N/A",
+                    semester: res.data.semester || "",
+                });
+            }
+        } catch (error) {
+            console.error("Failed to load settings");
+            setCurrentSem({ school_year: "N/A", semester: "Offline" });
+        }
+    };
+
     useEffect(() => {
+        // 1. Load User
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
+
+        // 2. Initial Fetch
+        fetchSettings();
+
+        // 3. LISTEN FOR UPDATES (Para realtime magbago ang Header)
+        const handleSettingsUpdate = () => {
+            console.log("Settings updated! Refreshing header...");
+            fetchSettings();
+        };
+
+        window.addEventListener("settings-updated", handleSettingsUpdate);
+
+        // Cleanup listener when component unmounts
+        return () => {
+            window.removeEventListener(
+                "settings-updated",
+                handleSettingsUpdate
+            );
+        };
     }, []);
 
     const handleLogout = async () => {
@@ -41,45 +83,58 @@ export default function AdminLayout() {
         }
     };
 
-    // Helper para sa Active Link style (Retro Version)
-    const isActive = (path) =>
-        location.pathname === path
-            ? "active" // The CSS .nav-link-retro.active handles the style
-            : "";
+    const isActive = (path) => (location.pathname === path ? "active" : "");
 
     return (
         <div
             className="d-flex"
             style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)" }}
         >
-            {/* 🟦 RETRO SIDEBAR */}
+            {/* RETRO SIDEBAR */}
             <div
                 className="d-flex flex-column flex-shrink-0 p-3 sidebar-retro text-white"
                 style={{
-                    width: isSidebarOpen ? "280px" : "80px",
-                    transition: "width 0.3s ease-in-out",
+                    width: isSidebarOpen ? "280px" : "90px",
+                    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     position: "relative",
                     zIndex: 1000,
                 }}
             >
-                {/* BRAND / LOGO */}
+                {/* 1. BRAND / LOGO */}
                 <div
-                    className="d-flex align-items-center mb-4 text-white text-decoration-none overflow-hidden"
-                    style={{ height: "50px" }}
+                    className={`d-flex align-items-center mb-4 text-white text-decoration-none ${
+                        !isSidebarOpen ? "justify-content-center" : ""
+                    }`}
+                    style={{ height: "60px", overflow: "hidden" }}
                 >
-                    <div className="bg-white p-1 border border-2 border-dark rounded-circle me-2 flex-shrink-0">
-                        <img src="/images/logo.png" alt="Logo" width="30" />
+                    <div
+                        className="bg-white p-1 border border-2 border-dark rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center"
+                        style={{ width: "50px", height: "50px" }}
+                    >
+                        <img
+                            src="/images/logo.png"
+                            alt="Logo"
+                            style={{ width: "100%", height: "auto" }}
+                        />
                     </div>
-                    {isSidebarOpen && (
-                        <div className="fade-in">
-                            <span
-                                className="fs-5 fw-bold d-block text-uppercase"
-                                style={{ textShadow: "2px 2px 0 #000" }}
-                            >
-                                SmartEnroll
-                            </span>
-                        </div>
-                    )}
+
+                    <div
+                        className={`ms-3 fade-in ${
+                            !isSidebarOpen ? "d-none" : "d-block"
+                        }`}
+                        style={{ whiteSpace: "nowrap" }}
+                    >
+                        <span
+                            className="fw-black d-block text-uppercase"
+                            style={{
+                                textShadow: "3px 3px 0 #000",
+                                fontSize: "1.5rem",
+                                letterSpacing: "1px",
+                            }}
+                        >
+                            SmartEnroll
+                        </span>
+                    </div>
                 </div>
 
                 <hr className="border-dark opacity-100" />
@@ -118,17 +173,30 @@ export default function AdminLayout() {
                             label: "Subjects",
                         },
                         {
+                            path: "/admin/reports",
+                            icon: "bi-file-earmark-bar-graph-fill",
+                            label: "Reports",
+                        },
+                        {
                             path: "/admin/settings",
                             icon: "bi-gear-fill",
                             label: "Settings",
+                        },
+                        {
+                            path: "/admin/recycle-bin",
+                            icon: "bi-trash-fill",
+                            label: "Recycle Bin",
                         },
                     ].map((item) => (
                         <li className="nav-item mb-2" key={item.path}>
                             <Link
                                 to={item.path}
-                                className={`nav-link nav-link-retro d-flex align-items-center gap-3 ${isActive(
-                                    item.path
-                                )}`}
+                                className={`nav-link nav-link-retro d-flex align-items-center ${
+                                    isSidebarOpen
+                                        ? "gap-3 px-3"
+                                        : "justify-content-center px-0"
+                                } ${isActive(item.path)}`}
+                                title={!isSidebarOpen ? item.label : ""}
                             >
                                 <i className={`bi ${item.icon} fs-5`}></i>
                                 {isSidebarOpen && <span>{item.label}</span>}
@@ -139,16 +207,19 @@ export default function AdminLayout() {
 
                 <hr className="border-dark opacity-100" />
 
-                {/* USER PROFILE & DROPDOWN */}
+                {/* 2. USER PROFILE & DROPDOWN */}
                 <div className="dropdown position-relative">
                     <div
-                        className="d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded border border-2 border-transparent hover-border-dark"
+                        className={`d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded border border-2 border-transparent hover-border-dark ${
+                            !isSidebarOpen ? "justify-content-center" : ""
+                        }`}
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         style={{
                             cursor: "pointer",
                             backgroundColor: isDropdownOpen
                                 ? "rgba(0,0,0,0.2)"
                                 : "transparent",
+                            transition: "background 0.2s",
                         }}
                     >
                         <img
@@ -156,14 +227,14 @@ export default function AdminLayout() {
                             alt="User"
                             width="40"
                             height="40"
-                            className="rounded-circle me-2 border border-2 border-dark"
+                            className="rounded-circle border border-2 border-dark flex-shrink-0"
                         />
 
                         {isSidebarOpen && (
-                            <div className="fade-in overflow-hidden">
+                            <div className="ms-2 fade-in overflow-hidden">
                                 <strong
                                     className="d-block text-truncate"
-                                    style={{ maxWidth: "160px" }}
+                                    style={{ maxWidth: "150px" }}
                                 >
                                     {user.name}
                                 </strong>
@@ -188,26 +259,29 @@ export default function AdminLayout() {
                         )}
                     </div>
 
-                    {/* RETRO DROPDOWN MENU */}
+                    {/* DROPDOWN MENU */}
                     {isDropdownOpen && (
                         <div
                             className="bg-white text-dark rounded p-2 fade-in"
                             style={{
                                 position: "absolute",
-                                bottom: "100%",
-                                left: 0,
-                                marginBottom: "10px",
-                                width: "100%",
+                                bottom: "120%",
+                                left: "0",
+                                width: isSidebarOpen ? "100%" : "260px",
+                                minWidth: "260px",
                                 border: "2px solid black",
                                 boxShadow: "4px 4px 0px #000",
-                                zIndex: 1000,
+                                zIndex: 1050,
                             }}
                         >
                             <div className="px-3 py-2 border-bottom border-dark mb-2 bg-retro-bg rounded">
                                 <span className="d-block small fw-bold text-muted">
                                     SIGNED IN AS
                                 </span>
-                                <span className="d-block text-truncate fw-bold">
+                                <span
+                                    className="d-block text-truncate fw-bold text-dark"
+                                    title={user.email}
+                                >
                                     {user.email}
                                 </span>
                             </div>
@@ -228,7 +302,7 @@ export default function AdminLayout() {
                 </div>
             </div>
 
-            {/* ⬜ CONTENT AREA */}
+            {/* CONTENT AREA */}
             <div
                 className="flex-grow-1 d-flex flex-column"
                 style={{ overflowY: "auto", height: "100vh" }}
@@ -248,6 +322,7 @@ export default function AdminLayout() {
                         <i className="bi bi-list fs-1 fw-bold"></i>
                     </button>
 
+                    {/* DYNAMIC SCHOOL YEAR DISPLAY */}
                     <div
                         className="fw-bold d-flex align-items-center gap-2 px-3 py-1 rounded"
                         style={{
@@ -262,7 +337,8 @@ export default function AdminLayout() {
                                 fontSize: "1.1rem",
                             }}
                         >
-                            S.Y. 2025-2026 | 1st Sem
+                            S.Y. {currentSem.school_year} |{" "}
+                            {currentSem.semester}
                         </span>
                     </div>
                 </header>

@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
-            // 🆔 Identifiers
+            // Identifiers
             $table->string('lrn')->unique(); // Main ID
             
-            // 👤 Personal Info
+            // Personal Info
             $table->string('last_name');
             $table->string('first_name');
             $table->string('middle_name')->nullable();
@@ -27,21 +27,21 @@ return new class extends Migration
             $table->string('civil_status');
             $table->string('religion');
             
-            // 🏠 Contact Info
+            // Contact Info
             $table->text('home_address');
             $table->text('provincial_address')->nullable();
             $table->string('email')->unique();
             $table->string('contact_number');
             
-            // 🏫 Academic Info
+            // Academic Info
             $table->string('current_school_attended')->nullable();
             $table->foreignUuid('strand_id')->constrained()->onDelete('cascade');
             $table->foreignUuid('section_id')->nullable()->constrained()->onDelete('set null');
             $table->string('grade_level');
             $table->string('semester'); 
-            $table->string('school_year'); // ✅ New Field
+            $table->string('school_year'); // New Field
 
-            // 💼 Employment & Family
+            // Employment & Family
             $table->string('employer_name')->nullable();
             $table->string('employer_contact')->nullable();
             $table->string('father_name')->nullable();
@@ -54,13 +54,13 @@ return new class extends Migration
             $table->string('guardian_occupation')->nullable();
             $table->string('guardian_contact')->nullable();
 
-            // 📋 Data Fields
+            // Data Fields
             $table->json('requirements')->nullable();
             $table->json('fees')->nullable(); // Para sa COR Editing
 
-            // 🚦 Status & Logs
+            // Status & Logs
             $table->string('status')->default('pending');
-            $table->string('previous_status')->nullable(); // ✅ Para sa Reset
+            $table->string('previous_status')->nullable(); // Para sa Reset
             
             // Release Info
             $table->string('released_by')->nullable();

@@ -87,7 +87,7 @@ export default function ForgotPassword() {
             {/* RIGHT SIDE */}
             <div className="split-right">
                 <div className="auth-form-container">
-                    {/* ✅ MOBILE LOGO (Visible only on small screens) */}
+                    {/* MOBILE LOGO (Visible only on small screens) */}
                     <div className="text-center mb-4 d-md-none">
                         <img src="/images/logo.png" alt="Logo" width="60" />
                     </div>
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
                             <i className="bi bi-arrow-left"></i> Back to Login
                         </Link>
 
-                        {/* ✅ DESKTOP LOGO (Next to Heading) */}
+                        {/* DESKTOP LOGO (Next to Heading) */}
                         <div className="mt-2">
                             <img
                                 src="/images/logo.png"

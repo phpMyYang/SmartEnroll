@@ -94,7 +94,7 @@ export default function Login() {
                 }, 1000);
             }
         } catch (error) {
-            // 🛑 CATCH: Account exists but NOT Verified
+            // CATCH: Account exists but NOT Verified
             if (
                 error.response &&
                 error.response.status === 403 &&
@@ -164,7 +164,7 @@ export default function Login() {
             {/* RIGHT SIDE */}
             <div className="split-right">
                 <div className="auth-form-container">
-                    {/* ✅ MOBILE LOGO (Visible only on small screens) */}
+                    {/* MOBILE LOGO (Visible only on small screens) */}
                     <div className="text-center mb-4 d-md-none">
                         <img src="/images/logo.png" alt="Logo" width="60" />
                     </div>
@@ -173,7 +173,7 @@ export default function Login() {
                         // === STANDARD LOGIN FORM ===
                         <>
                             <div className="mb-4">
-                                {/* ✅ DESKTOP LOGO (Next to Sign In Text) */}
+                                {/* DESKTOP LOGO (Next to Sign In Text) */}
                                 <img
                                     src="/images/logo.png"
                                     alt="Logo"

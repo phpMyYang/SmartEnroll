@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Section;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +35,7 @@ class SectionController extends Controller
         $males = $students->where('gender', 'Male')->values();
         $females = $students->where('gender', 'Female')->values();
 
-        // ✅ FETCH DYNAMIC SETTINGS
+        // FETCH DYNAMIC SETTINGS
         // Kukunin ang active School Year at Semester sa database
         $settings = \App\Models\EnrollmentSetting::first();
         
@@ -46,16 +47,24 @@ class SectionController extends Controller
             'section' => $section,
             'males' => $males,
             'females' => $females,
-            'school_year' => $schoolYear, // ✅ DYNAMIC NA
-            'semester' => $semester       // ✅ DYNAMIC NA
+            'school_year' => $schoolYear,
+            'semester' => $semester      
         ]);
     }
 
- // ✅ BAGONG FUNCTION: Taga-gawa ng Signed URL (Valid for 1 Minute)
+ // BAGONG FUNCTION: Taga-gawa ng Signed URL (Valid for 1 Minute)
     public function generatePrintUrl($id)
     {
         $section = Section::findOrFail($id);
         $user = auth()->user()->id; // Kunin ang ID ng user na nag-request
+
+        // LOG ACTIVITY: DOWNLOAD MASTERLIST
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'download',
+            'description' => "Downloaded Masterlist for section: {$section->name}",
+            'ip_address' => request()->ip()
+        ]);
 
         // Gumawa ng URL na may "Signature"
         $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
@@ -70,7 +79,7 @@ class SectionController extends Controller
         return response()->json(['url' => $url]);
     }
 
-    // ✅ UPDATED PRINT FUNCTION (Dynamic School Year & Semester)
+    // UPDATED PRINT FUNCTION (Dynamic School Year & Semester)
     public function printMasterList($sectionId, $userId)
     {
         if (ob_get_length()) ob_end_clean(); // Safety Clean
@@ -104,8 +113,8 @@ class SectionController extends Controller
                 'section' => $section,
                 'males' => $males,
                 'females' => $females,
-                'schoolYear' => $schoolYear, // ✅ DYNAMIC NA
-                'semester' => $semester,     // ✅ DYNAMIC NA
+                'schoolYear' => $schoolYear,
+                'semester' => $semester,    
                 'printedBy' => $printedBy
             ];
 
@@ -132,6 +141,14 @@ class SectionController extends Controller
 
         $section = Section::create($validated);
 
+        // LOG ACTIVITY: CREATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'description' => "Created new section: {$section->name} (G{$section->grade_level})",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json(['message' => 'Created', 'section' => $section]);
     }
 
@@ -142,6 +159,14 @@ class SectionController extends Controller
         if(!$section) return response()->json(['message'=>'Not found'], 404);
         $section->update($request->all());
 
+        // LOG ACTIVITY: UPDATE
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'description' => "Updated section details: {$section->name}",
+            'ip_address' => $request->ip()
+        ]);
+
         return response()->json(['message' => 'Updated', 'section' => $section]);
     }
 
@@ -150,7 +175,17 @@ class SectionController extends Controller
         $section = Section::find($id);
 
         if($section) { 
+            $name = $section->name; // Save name before delete
             $section->delete(); 
+
+            // LOG ACTIVITY: DELETE
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'description' => "Deleted section: {$name}",
+                'ip_address' => request()->ip()
+            ]);
+
             return response()->json(['message'=>'Deleted']); 
         }
         

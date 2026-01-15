@@ -196,7 +196,7 @@ export default function Users() {
                         </span>
                         <input
                             type="text"
-                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search user..."
                             value={searchTerm}
@@ -212,7 +212,7 @@ export default function Users() {
                 <div className="card-body p-0">
                     <div className="table-responsive">
                         <table className="table table-hover align-middle mb-0">
-                            {/* 🔥 TABLE HEAD: Added bg-info (Teal Light) and Py-3 for height */}
+                            {/* TABLE HEAD: Added bg-info (Teal Light) and Py-3 for height */}
                             <thead
                                 style={{
                                     backgroundColor: "var(--color-secondary)",
@@ -293,7 +293,7 @@ export default function Users() {
                                             user.id === currentUser.id;
 
                                         return (
-                                            // 🔥 ROW STYLE: Added border-bottom per row
+                                            // ROW STYLE: Added border-bottom per row
                                             <tr
                                                 key={user.id}
                                                 className={
@@ -387,7 +387,7 @@ export default function Users() {
 
                                                 {/* 7. ACTIONS: Added pe-4 for spacing */}
                                                 <td className="text-end pe-4 py-3">
-                                                    {/* 🔥 NEW DESIGN: Hiwalay na buttons na may Gap at Retro Shadow */}
+                                                    {/* NEW DESIGN: Hiwalay na buttons na may Gap at Retro Shadow */}
                                                     <div className="d-flex justify-content-end gap-2">
                                                         {/* 1. VIEW BUTTON (White) */}
                                                         <button

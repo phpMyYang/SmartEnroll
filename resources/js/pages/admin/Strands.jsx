@@ -142,7 +142,7 @@ export default function Strands() {
                         </span>
                         <input
                             type="text"
-                            // ✅ PINALITAN KO: ps-0 -> ps-2
+                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search strand code or description..."
                             value={searchTerm}
@@ -152,7 +152,7 @@ export default function Strands() {
                 </div>
             </div>
 
-            {/* 🔥 GRID CARDS LAYOUT (RETRO STYLE MATCHING SECTIONS) */}
+            {/* GRID CARDS LAYOUT (RETRO STYLE MATCHING SECTIONS) */}
             <div className="row g-4">
                 {loading ? (
                     <div className="col-12 text-center py-5">
@@ -219,7 +219,7 @@ export default function Strands() {
                                     <div className="d-flex gap-2 mt-auto">
                                         {/* Edit Button */}
                                         <button
-                                            className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ✅ ADDED CLASS
+                                            className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ADDED CLASS
                                             style={{
                                                 backgroundColor: "#f6e58d", // Retro Yellow
                                                 color: "#000",
@@ -235,7 +235,7 @@ export default function Strands() {
 
                                         {/* Delete Button */}
                                         <button
-                                            className="btn font-monospace fw-bold px-3 btn-retro-effect" // ✅ ADDED CLASS
+                                            className="btn font-monospace fw-bold px-3 btn-retro-effect" // ADDED CLASS
                                             style={{
                                                 backgroundColor: "#ff7675", // Retro Red
                                                 color: "#fff",
