@@ -16,6 +16,7 @@ use App\Http\Controllers\EnrollmentSettingController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CORController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RecycleBinController;
 use App\Models\User; 
 
 /*
@@ -72,7 +73,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/maintenance', [EnrollmentSettingController::class, 'toggleMaintenance']);
     Route::delete('/settings/{id}', [EnrollmentSettingController::class, 'destroy']);
     
+    // --- Activity logs ---
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+
+    // --- Recycle bin ---
+    Route::get('/recycle-bin', [RecycleBinController::class, 'index']);
+    Route::post('/recycle-bin/restore', [RecycleBinController::class, 'restore']);
+    Route::delete('/recycle-bin/force-delete', [RecycleBinController::class, 'forceDelete']);
 
     // --- MAINTENANCE MODE GROUP (Example for Staff) ---
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckMaintenanceMode::class])->group(function () {

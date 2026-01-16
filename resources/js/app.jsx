@@ -22,6 +22,7 @@ import Sections from "./pages/admin/Sections";
 import Subjects from "./pages/admin/Subjects";
 import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
+import RecycleBin from "./pages/admin/RecycleBin";
 
 // Placeholder Component (Para sa mga modules na gagawin pa lang)
 const Placeholder = ({ title }) => (
@@ -113,7 +114,7 @@ function App() {
                     {/* 9. Recycle Bin (Placeholder) */}
                     <Route
                         path="recycle-bin"
-                        element={<Placeholder title="Recycle Bin" />}
+                        element={<RecycleBin title="Recycle Bin" />}
                     />
                 </Route>
 
