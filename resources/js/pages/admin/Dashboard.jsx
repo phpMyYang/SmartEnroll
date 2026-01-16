@@ -25,20 +25,66 @@ ChartJS.register(
     LineElement
 );
 
+// UPDATED PLUGIN: Percentage Logic
+const centerTextPlugin = {
+    id: "centerText",
+    beforeDraw: function (chart) {
+        if (chart.config.type !== "doughnut") return;
+
+        const {
+            ctx,
+            chartArea: { top, bottom, left, right, width, height },
+        } = chart;
+
+        ctx.save();
+        const fontSize = (height / 114).toFixed(2);
+        ctx.font = `bold ${fontSize}em monospace`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#000";
+
+        const dataset = chart.config.data.datasets[0];
+
+        // 1. Calculate GRAND TOTAL (Lahat ng data, kasama ang hidden)
+        const grandTotal = dataset.data.reduce((a, b) => a + b, 0);
+
+        // 2. Calculate VISIBLE TOTAL (Yung mga hindi naka-hide sa legend)
+        const visibleTotal = dataset.data.reduce((a, b, index) => {
+            return chart.getDataVisibility(index) ? a + b : a;
+        }, 0);
+
+        // 3. Compute Percentage
+        const percentage =
+            grandTotal > 0 ? Math.round((visibleTotal / grandTotal) * 100) : 0;
+
+        const text = percentage + "%";
+        const centerX = (left + right) / 2;
+        const centerY = (top + bottom) / 2;
+
+        ctx.fillText(text, centerX, centerY);
+        ctx.restore();
+    },
+};
+
 export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [schoolYear, setSchoolYear] = useState("");
+    const [searchFilter, setSearchFilter] = useState("");
+    const [activeFilter, setActiveFilter] = useState("");
 
-    const fetchData = async (yearFilter = "") => {
+    const fetchData = async (filter = "") => {
         setLoading(true);
         try {
-            const res = await axios.get(
-                `/api/admin/analytics?year=${yearFilter}`
-            );
+            const res = await axios.get(`/api/admin/analytics?year=${filter}`);
             setData(res.data);
-            if (yearFilter)
-                Toast.fire({ icon: "info", title: `Filtered: ${yearFilter}` });
+            setActiveFilter(res.data.filter_used);
+
+            if (filter) {
+                Toast.fire({
+                    icon: "info",
+                    title: `Viewing Data for: ${filter}`,
+                });
+            }
         } catch (error) {
             console.error("Error:", error);
             Toast.fire({ icon: "error", title: "Failed to load analytics" });
@@ -52,7 +98,7 @@ export default function Dashboard() {
     }, []);
 
     const handleFilterSubmit = (e) => {
-        if (e.key === "Enter") fetchData(schoolYear);
+        if (e.key === "Enter") fetchData(searchFilter);
     };
 
     if (loading)
@@ -62,17 +108,12 @@ export default function Dashboard() {
                 style={{ height: "60vh" }}
             >
                 <div
-                    className="spinner-border"
-                    style={{
-                        width: "3rem",
-                        height: "3rem",
-                        borderWidth: "4px",
-                        color: "#000",
-                    }}
+                    className="spinner-border border-4 border-dark"
+                    style={{ width: "3rem", height: "3rem" }}
                     role="status"
                 ></div>
                 <span className="mt-3 fw-bold font-monospace">
-                    LOADING DATA...
+                    Loading Dashboard...
                 </span>
             </div>
         );
@@ -82,133 +123,139 @@ export default function Dashboard() {
 
     const { cards, charts } = data;
 
-    // RETRO CHART PALETTE
-    const retroColors = [
-        "#3F9AAE", // Primary (Teal)
-        "#F96E5B", // Danger (Red/Orange)
-        "#79C9C5", // Secondary (Light Teal)
-        "#F4D03F", // Mustard (Yellow)
-        "#2D3436", // Dark
-    ];
-    const retroBorder = "#000000";
+    // RETRO PALETTE
+    const retroColors = ["#3F9AAE", "#F96E5B", "#F4D03F", "#2D3436", "#79C9C5"];
+    const border = "#000";
 
-    // --- CHART CONFIGURATIONS ---
+    // --- CHART CONFIGS ---
+
+    // 1. DOUGHNUT (Strands)
+    const totalStrandStudents = charts.students_per_strand.reduce(
+        (a, b) => a + b.value,
+        0
+    );
     const strandData = {
-        labels: charts.students_per_strand.map((i) => i.label),
+        labels: charts.students_per_strand.map((i) => {
+            const pct =
+                totalStrandStudents > 0
+                    ? Math.round((i.value / totalStrandStudents) * 100)
+                    : 0;
+            return `${i.label} (${pct}%)`;
+        }),
         datasets: [
             {
                 data: charts.students_per_strand.map((i) => i.value),
                 backgroundColor: retroColors,
-                borderColor: retroBorder,
+                borderColor: border,
                 borderWidth: 2,
             },
         ],
     };
 
+    // 2. PIE (Sections)
     const sectionData = {
         labels: charts.sections_per_strand.map((i) => i.label),
         datasets: [
             {
                 data: charts.sections_per_strand.map((i) => i.value),
                 backgroundColor: [...retroColors].reverse(),
-                borderColor: retroBorder,
+                borderColor: border,
                 borderWidth: 2,
             },
         ],
     };
 
+    // 3. BAR (G11 vs G12) - Wider Bars
     const demoData = {
         labels: charts.demographics.map((i) => i.label),
         datasets: [
             {
-                label: "Students Count",
+                label: "Enrolled Students",
                 data: charts.demographics.map((i) => i.value),
                 backgroundColor: ["#3F9AAE", "#F4D03F"],
-                borderColor: retroBorder,
+                borderColor: border,
                 borderWidth: 2,
                 borderRadius: 0,
+                barThickness: 120,
             },
         ],
     };
 
-    // FIXED: Added "Released" dataset back & Retro Styling
+    // 4. LINE (Trends)
     const trendData = {
         labels: charts.enrollment_trend.labels,
         datasets: [
             {
                 label: "Enrolled",
                 data: charts.enrollment_trend.enrolled,
-                borderColor: "#3F9AAE", // Teal
+                borderColor: "#3F9AAE",
                 backgroundColor: "#3F9AAE",
                 pointBackgroundColor: "#fff",
-                pointBorderColor: "#000",
                 pointBorderWidth: 2,
-                pointRadius: 6,
+                tension: 0,
+                borderWidth: 3,
+            },
+            {
+                label: "Pending",
+                data: charts.enrollment_trend.pending,
+                borderColor: "#F4D03F",
+                backgroundColor: "#F4D03F",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 2,
+                tension: 0,
+                borderWidth: 3,
+            },
+            {
+                label: "Released",
+                data: charts.enrollment_trend.released,
+                borderColor: "#2D3436",
+                backgroundColor: "#2D3436",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 2,
                 tension: 0,
                 borderWidth: 3,
             },
             {
                 label: "Graduates",
                 data: charts.enrollment_trend.graduate,
-                borderColor: "#79C9C5", // Light Teal
+                borderColor: "#79C9C5",
                 backgroundColor: "#79C9C5",
                 pointBackgroundColor: "#fff",
-                pointBorderColor: "#000",
                 pointBorderWidth: 2,
-                pointRadius: 6,
                 tension: 0,
                 borderWidth: 3,
             },
             {
                 label: "Dropouts",
                 data: charts.enrollment_trend.dropped,
-                borderColor: "#F96E5B", // Red
+                borderColor: "#F96E5B",
                 backgroundColor: "#F96E5B",
                 pointBackgroundColor: "#fff",
-                pointBorderColor: "#000",
                 pointBorderWidth: 2,
-                pointRadius: 6,
-                tension: 0,
-                borderWidth: 3,
-            },
-            {
-                // ADDED BACK: Released Line (Mustard)
-                label: "Released",
-                data: charts.enrollment_trend.released,
-                borderColor: "#F4D03F", // Mustard Yellow
-                backgroundColor: "#F4D03F",
-                pointBackgroundColor: "#fff",
-                pointBorderColor: "#000",
-                pointBorderWidth: 2,
-                pointRadius: 6,
                 tension: 0,
                 borderWidth: 3,
             },
         ],
     };
 
-    const chartOptions = {
+    const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: "bottom",
-                labels: {
-                    font: { family: "'Courier New', monospace", size: 12 },
-                    color: "#000",
-                },
+                labels: { font: { family: "monospace" }, color: "#000" },
             },
         },
     };
 
     return (
         <div className="container-fluid fade-in mb-5">
-            {/* FILTER HEADER */}
+            {/* HEADER */}
             <div
                 className="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3"
                 style={{ borderBottom: "2px solid black" }}
             >
-                {/* UPDATED HEADER: May Description na sa baba */}
                 <div>
                     <h2
                         className="fw-bold mb-0 font-monospace text-uppercase"
@@ -216,174 +263,170 @@ export default function Dashboard() {
                     >
                         ANALYTICS DASHBOARD
                     </h2>
-                    <p className="text-muted small mb-0 font-monospace">
-                        Overview of enrollment status & trends
+                    <p className="text-muted small mb-0 font-monospace fw-bold">
+                        Overview for:{" "}
+                        <span className="text-primary bg-light px-2 border border-dark">
+                            {activeFilter}
+                        </span>
                     </p>
                 </div>
 
-                {/* Filter Input (Walang pagbabago dito) */}
                 <div className="d-flex align-items-center mt-2 mt-md-0">
                     <div
                         className="input-group"
                         style={{
-                            maxWidth: "250px",
+                            maxWidth: "300px",
                             boxShadow: "4px 4px 0 #000",
                         }}
                     >
-                        <span
-                            className="input-group-text bg-white border-end-0 fw-bold"
-                            style={{ border: "2px solid black" }}
-                        >
-                            SY:
+                        <span className="input-group-text bg-white border-end-0 fw-bold border-2 border-dark">
+                            FILTER:
                         </span>
                         <input
                             type="text"
-                            className="form-control ps-2 font-monospace fw-bold"
-                            style={{
-                                border: "2px solid black",
-                                borderLeft: "none",
-                                borderRadius: 0,
-                            }}
-                            placeholder="e.g. 2025"
-                            value={schoolYear}
-                            onChange={(e) => setSchoolYear(e.target.value)}
+                            className="form-control ps-2 font-monospace fw-bold border-2 border-dark border-start-0"
+                            placeholder="e.g. 2025 or 2025-2026"
+                            value={searchFilter}
+                            onChange={(e) => setSearchFilter(e.target.value)}
                             onKeyDown={handleFilterSubmit}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* 1. STATS CARDS ROW */}
-            <div className="row g-3 mb-4">
+            {/* === STATS CARDS === */}
+            <div className="row g-3 mb-3">
                 <StatCard
-                    title="Total Enrolled"
+                    title="TOTAL ENROLLED"
                     value={cards.total_enrolled}
                     icon="bi-person-check-fill"
                     bgColor="#3F9AAE"
                 />
                 <StatCard
-                    title="Pending"
+                    title="PENDING / PASSED"
                     value={cards.total_pending}
                     icon="bi-hourglass-split"
                     bgColor="#F4D03F"
                 />
                 <StatCard
-                    title="Freshmen (G11)"
-                    value={cards.total_freshmen}
-                    icon="bi-mortarboard"
+                    title="FRESHMEN (G11)"
+                    value={cards.total_g11}
+                    icon="11"
+                    isTextIcon
                     bgColor="#79C9C5"
                 />
                 <StatCard
-                    title="Old Students (G12)"
-                    value={cards.total_old}
-                    icon="bi-backpack-fill"
+                    title="OLD STUDENTS (G12)"
+                    value={cards.total_g12}
+                    icon="12"
+                    isTextIcon
                     bgColor="#F96E5B"
                 />
             </div>
 
             <div className="row g-3 mb-4">
                 <StatCard
-                    title="Total Grade 11"
-                    value={cards.total_g11}
-                    icon="11"
-                    isTextIcon
-                    bgColor="#ffffff"
-                    textColor="#000"
-                />
-                <StatCard
-                    title="Total Grade 12"
-                    value={cards.total_g12}
-                    icon="12"
-                    isTextIcon
-                    bgColor="#ffffff"
-                    textColor="#000"
-                />
-                <StatCard
-                    title="Total Male"
+                    title="MALE STUDENTS"
                     value={cards.total_male}
                     icon="bi-gender-male"
-                    bgColor="#3F9AAE"
+                    bgColor="#2980b9"
+                    textColor="#fff"
                 />
                 <StatCard
-                    title="Total Female"
+                    title="FEMALE STUDENTS"
                     value={cards.total_female}
                     icon="bi-gender-female"
-                    bgColor="#F96E5B"
+                    bgColor="#e74c3c"
+                    textColor="#fff"
+                />
+
+                {/* Graduates & Dropouts */}
+                <StatCard
+                    title="TOTAL GRADUATES"
+                    value={cards.total_graduates}
+                    icon="bi-mortarboard-fill"
+                    bgColor="#27ae60"
+                    textColor="#fff"
+                />
+                <StatCard
+                    title="TOTAL DROPOUTS"
+                    value={cards.total_dropouts}
+                    icon="bi-person-x-fill"
+                    bgColor="#c0392b"
+                    textColor="#fff"
                 />
             </div>
 
-            {/* 2. CHARTS ROW */}
+            {/* === CHARTS ROW === */}
             <div className="row g-4 mb-4">
+                {/* 1. DOUGHNUT (Strands) */}
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* FIX: Added 'px-4' for better left padding */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
                         >
-                            Students per Strand
+                            ENROLLED PER STRAND
                         </div>
                         <div
-                            className="card-body p-3"
+                            className="card-body p-3 d-flex justify-content-center align-items-center"
                             style={{ height: "300px" }}
                         >
                             <Doughnut
                                 data={strandData}
-                                options={chartOptions}
+                                options={commonOptions}
+                                plugins={[centerTextPlugin]} // REACTIVE PERCENTAGE
                             />
                         </div>
                     </div>
                 </div>
 
+                {/* 2. PIE (Sections) */}
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* FIX: Added 'px-4' */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
                         >
-                            Sections per Strand
+                            SECTIONS PER STRAND
                         </div>
                         <div
-                            className="card-body p-3"
+                            className="card-body p-3 d-flex justify-content-center align-items-center"
                             style={{ height: "300px" }}
                         >
-                            <Pie data={sectionData} options={chartOptions} />
+                            <Pie data={sectionData} options={commonOptions} />
                         </div>
                     </div>
                 </div>
 
+                {/* 3. BAR (Demographics) */}
                 <div className="col-md-4">
                     <div className="card-retro h-100">
-                        {/* FIX: Added 'px-4' */}
                         <div
                             className="card-header bg-white fw-bold border-bottom-0 py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
                         >
-                            Freshmen vs Old
+                            FRESHMEN VS OLD (ENROLLED)
                         </div>
                         <div
                             className="card-body p-3"
                             style={{ height: "300px" }}
                         >
-                            <Bar data={demoData} options={chartOptions} />
+                            <Bar data={demoData} options={commonOptions} />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 3. TREND CHART */}
+            {/* 4. LINE (Trend) */}
             <div className="row">
                 <div className="col-md-12">
                     <div className="card-retro">
-                        {/* FIX: Added 'px-4' */}
                         <div
-                            className="card-header bg-white fw-bold d-flex justify-content-between align-items-center py-3 px-4"
+                            className="card-header bg-white fw-bold py-3 px-4 font-monospace"
                             style={{ borderBottom: "2px solid black" }}
                         >
-                            <span className="font-monospace">
-                                Enrollment Trend (This Year)
-                            </span>
+                            ENROLLMENT TREND (Yearly)
                         </div>
                         <div
                             className="card-body p-4"
@@ -392,19 +435,11 @@ export default function Dashboard() {
                             <Line
                                 data={trendData}
                                 options={{
-                                    ...chartOptions,
+                                    ...commonOptions,
                                     scales: {
-                                        x: {
-                                            grid: {
-                                                color: "#000",
-                                                lineWidth: 0.5,
-                                            },
-                                        },
                                         y: {
-                                            grid: {
-                                                color: "#000",
-                                                lineWidth: 0.5,
-                                            },
+                                            beginAtZero: true,
+                                            ticks: { stepSize: 1 },
                                         },
                                     },
                                 }}
@@ -417,13 +452,13 @@ export default function Dashboard() {
     );
 }
 
-// RETRO STAT CARD COMPONENT
+// STAT CARD COMPONENT
 function StatCard({
     title,
     value,
     icon,
     bgColor,
-    textColor = "#fff",
+    textColor = "#000",
     isTextIcon,
 }) {
     return (
@@ -435,8 +470,8 @@ function StatCard({
                 <div className="d-flex align-items-center justify-content-between">
                     <div>
                         <p
-                            className="mb-1 fw-bold font-monospace text-uppercase"
-                            style={{ fontSize: "0.75rem", color: "#555" }}
+                            className="mb-1 fw-bold font-monospace text-uppercase text-muted"
+                            style={{ fontSize: "0.7rem" }}
                         >
                             {title}
                         </p>
@@ -450,12 +485,11 @@ function StatCard({
                             {value}
                         </h2>
                     </div>
-
                     <div
                         className="d-flex align-items-center justify-content-center border border-2 border-dark"
                         style={{
-                            width: "50px",
-                            height: "50px",
+                            width: "45px",
+                            height: "45px",
                             backgroundColor: bgColor,
                             color: textColor,
                             borderRadius: "8px",
@@ -463,7 +497,7 @@ function StatCard({
                         }}
                     >
                         {isTextIcon ? (
-                            <span className="fw-bold fs-4">{icon}</span>
+                            <span className="fw-bold fs-5">{icon}</span>
                         ) : (
                             <i className={`bi ${icon} fs-4`}></i>
                         )}

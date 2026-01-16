@@ -20,6 +20,7 @@ import Students from "./pages/admin/Students";
 import Strands from "./pages/admin/Strands";
 import Sections from "./pages/admin/Sections";
 import Subjects from "./pages/admin/Subjects";
+import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
 
 // Placeholder Component (Para sa mga modules na gagawin pa lang)
@@ -100,7 +101,7 @@ function App() {
                     {/* 7. Reports (Placeholder) */}
                     <Route
                         path="reports"
-                        element={<Placeholder title="System Reports" />}
+                        element={<Reports title="System Reports" />}
                     />
 
                     {/* 8. Settings */}
