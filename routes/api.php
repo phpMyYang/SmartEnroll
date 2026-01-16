@@ -15,6 +15,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\EnrollmentSettingController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CORController;
+use App\Http\Controllers\ReportController;
 use App\Models\User; 
 
 /*
@@ -59,7 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // COR (Certificate of Registration)
     Route::get('/students/{id}/cor-data', [CORController::class, 'getCORData']); 
-    Route::post('/cor/generate-url', [CORController::class, 'generateUrl']); 
+    Route::post('/cor/generate-url', [CORController::class, 'generateUrl']);
+
+    // --- Reports ---
+    Route::get('/reports/summary', [ReportController::class, 'generateSummary']);
+    Route::get('/reports/masterlist', [ReportController::class, 'exportMasterlist']);
 
     // --- SYSTEM SETTINGS & LOGS ---
     Route::get('/settings', [EnrollmentSettingController::class, 'index']);
