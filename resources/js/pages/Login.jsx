@@ -17,19 +17,18 @@ export default function Login() {
 
     // VERIFICATION STATES
     const [needsVerification, setNeedsVerification] = useState(false);
-    const [isResending, setIsResending] = useState(false);
+    const [isResending, setIsResending] = useState(false); // Ito ang state para sa spinner ng resend
 
     // HOOKS
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // 1. CHECK URL STATUS (Galing sa Email Link o Reset Password)
+    // 1. CHECK URL STATUS
     useEffect(() => {
         const status = searchParams.get("status");
         const verificationNeeded = searchParams.get("needs_verification");
         const emailParam = searchParams.get("email");
 
-        // Logic A: Email Verification Status
         if (status === "verified") {
             Toast.fire({
                 icon: "success",
@@ -48,14 +47,13 @@ export default function Login() {
             });
         }
 
-        // Logic B: Galing sa Reset Password pero Unverified pa
         if (verificationNeeded === "1" && emailParam) {
             setEmail(emailParam);
-            setNeedsVerification(true); // Buksan agad ang Verification UI
+            setNeedsVerification(true);
         }
     }, [searchParams]);
 
-    // 2. LOGIN LOGIC
+    // 2. LOGIN LOGIC (Strict Redirection)
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -69,7 +67,7 @@ export default function Login() {
             });
 
             if (response.status === 200) {
-                // 1. Save Token & User
+                // A. Save Credentials
                 localStorage.setItem("token", response.data.access_token);
                 localStorage.setItem(
                     "user",
@@ -80,21 +78,21 @@ export default function Login() {
 
                 const role = response.data.role;
 
-                // 2. DELAY & REDIRECT (Updated Logic)
+                // B. STRICT REDIRECT LOGIC
                 setTimeout(() => {
-                    // Check kung Admin OR Staff (parehas silang pupunta sa Admin Dashboard sa ngayon)
-                    if (role === "admin" || role === "staff") {
-                        // Gagamit tayo ng window.location.href para ma-force reload
-                        // at kumagat ang Token sa bootstrap.js
+                    if (role === "admin") {
                         window.location.href = "/admin/dashboard";
+                    } else if (role === "staff") {
+                        window.location.href = "/staff/dashboard";
                     } else {
-                        // Students (Wala pa tayong route nito, pero ready na)
-                        window.location.href = "/student/dashboard";
+                        Toast.fire({
+                            icon: "error",
+                            title: "Unauthorized Access.",
+                        });
                     }
                 }, 1000);
             }
         } catch (error) {
-            // CATCH: Account exists but NOT Verified
             if (
                 error.response &&
                 error.response.status === 403 &&
@@ -118,9 +116,9 @@ export default function Login() {
         }
     };
 
-    // 3. RESEND VERIFICATION LOGIC
+    // 3. RESEND VERIFICATION (May Toga Spinner na!)
     const handleResend = async () => {
-        setIsResending(true);
+        setIsResending(true); // Start Loading
         try {
             await axios.post("/api/email/resend", { email });
             Toast.fire({
@@ -133,7 +131,7 @@ export default function Login() {
                 title: "Failed to send verification email.",
             });
         } finally {
-            setIsResending(false);
+            setIsResending(false); // Stop Loading
         }
     };
 
@@ -164,16 +162,15 @@ export default function Login() {
             {/* RIGHT SIDE */}
             <div className="split-right">
                 <div className="auth-form-container">
-                    {/* MOBILE LOGO (Visible only on small screens) */}
+                    {/* MOBILE LOGO */}
                     <div className="text-center mb-4 d-md-none">
                         <img src="/images/logo.png" alt="Logo" width="60" />
                     </div>
 
                     {!needsVerification ? (
-                        // === STANDARD LOGIN FORM ===
                         <>
+                            {/* LOGIN FORM */}
                             <div className="mb-4">
-                                {/* DESKTOP LOGO (Next to Sign In Text) */}
                                 <img
                                     src="/images/logo.png"
                                     alt="Logo"
@@ -204,7 +201,7 @@ export default function Login() {
                                         onChange={(e) =>
                                             setEmail(e.target.value)
                                         }
-                                        placeholder="ex. juan.delacruz@student.com"
+                                        placeholder="ex. admin@smartenroll.com"
                                         required
                                         disabled={isLoading}
                                     />
@@ -310,10 +307,10 @@ export default function Login() {
                                 Your account <strong>{email}</strong> is not yet
                                 verified.
                                 <br />
-                                Please check your email inbox or click the
-                                button below to send a new link.
+                                Please check your email inbox.
                             </p>
 
+                            {/* RESEND BUTTON WITH TOGA SPINNER */}
                             <button
                                 onClick={handleResend}
                                 className="btn btn-retro w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2"
@@ -355,7 +352,6 @@ export default function Login() {
                     </div>
                 </div>
             </div>
-
             <TermsModal
                 show={showTerms}
                 handleClose={() => setShowTerms(false)}

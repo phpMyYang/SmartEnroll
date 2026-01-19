@@ -1,25 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import Toast from "../utils/toast"; // Gamitin ang Toast utility
+import Toast from "../utils/toast";
 
 export default function ResetPassword() {
-    // 1. GET DATA FROM URL
     const { token } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    // 2. STATES
     const [email] = useState(searchParams.get("email") || "");
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
-    // UI STATES
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // 3. SUBMIT LOGIC
     const handleReset = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -32,58 +28,45 @@ export default function ResetPassword() {
                 password_confirmation: passwordConfirmation,
             });
 
-            // Debugging
-            console.log("BACKEND RESPONSE:", response.data);
-
             if (response.status === 200) {
                 const { token, user, role, verified } = response.data;
 
                 if (verified && token) {
                     // CASE A: SUCCESS & AUTO-LOGIN
-
-                    // 1. Save Credentials
                     localStorage.setItem("token", token);
                     localStorage.setItem("user", JSON.stringify(user));
-
-                    // 2. Set Header Agad
                     axios.defaults.headers.common[
                         "Authorization"
                     ] = `Bearer ${token}`;
 
-                    // 3. Success Alert
                     Toast.fire({
                         icon: "success",
                         title: "Password updated! Entering Dashboard...",
                         timer: 2000,
                     });
 
-                    // 4. HARD REDIRECT (UPDATED PATHS)
+                    // STRICT REDIRECT SA RESET
                     setTimeout(() => {
-                        let targetPath = "/login"; // Default fallback
-
                         if (role === "admin") {
-                            targetPath = "/admin/dashboard";
+                            window.location.href = "/admin/dashboard";
                         } else if (role === "staff") {
-                            targetPath = "/staff/dashboard"; // DITO TAYO NAG-CORRECT PARTNER
+                            window.location.href = "/staff/dashboard";
+                        } else {
+                            window.location.href = "/login";
                         }
-
-                        // Hard refresh para kumagat ang token
-                        window.location.href = targetPath;
                     }, 2000);
                 } else {
-                    // CASE B: HINDI PA VERIFIED
+                    // CASE B: SUCCESS PERO DI PA VERIFIED
                     Toast.fire({
                         icon: "warning",
                         title: "Password updated. Please verify email first.",
                     });
-
                     setTimeout(() => {
                         navigate(`/login?email=${email}&needs_verification=1`);
                     }, 2000);
                 }
             }
         } catch (error) {
-            // ERROR HANDLING
             let errorMessage = "Failed to reset password.";
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
@@ -92,11 +75,7 @@ export default function ResetPassword() {
                     .flat()
                     .join(" ");
             }
-
-            Toast.fire({
-                icon: "error",
-                title: errorMessage,
-            });
+            Toast.fire({ icon: "error", title: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -104,7 +83,6 @@ export default function ResetPassword() {
 
     return (
         <div className="split-layout">
-            {/* LEFT SIDE (Retro Red Banner) */}
             <div className="split-left" style={{ backgroundColor: "#F96E5B" }}>
                 <h2
                     className="fw-bold mb-3 font-monospace"
@@ -126,16 +104,9 @@ export default function ResetPassword() {
                 />
             </div>
 
-            {/* RIGHT SIDE (Form) */}
             <div className="split-right">
                 <div className="auth-form-container card-retro p-4 bg-white">
-                    {/* MOBILE LOGO */}
-                    <div className="text-center mb-4 d-md-none">
-                        <img src="/images/logo.png" alt="Logo" width="60" />
-                    </div>
-
                     <div className="mb-4">
-                        {/* DESKTOP LOGO */}
                         <img
                             src="/images/logo.png"
                             alt="Logo"
@@ -253,7 +224,7 @@ export default function ResetPassword() {
                             {isLoading ? (
                                 <>
                                     <i className="bi bi-mortarboard-fill fs-5 toga-spin"></i>
-                                    <span>UPDATING...</span>
+                                    <span>PROCESSING...</span>
                                 </>
                             ) : (
                                 <span>UPDATE PASSWORD</span>
