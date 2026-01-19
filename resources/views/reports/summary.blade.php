@@ -92,7 +92,7 @@
         @if(isset($logo_path))
             <img src="{{ $logo_path }}" class="logo"><br>
         @endif
-        <div class="school-name uppercase">SMARTENROLL ACADEMY</div>
+        <div class="school-name uppercase">HOLY FACE OF JESUS LYCEUM OF SAN JOSE INC.</div>
         <div class="school-addr uppercase">
             R AND J BUILDING LOT 6 AND 8 BLOCK 9 MAYON AVENUE,<br>
             AMITYVILLE, SAN JOSE, RODRIGUEZ, RIZAL
@@ -112,7 +112,7 @@
     </div>
 
     <p style="text-align: justify; text-indent: 40px;">
-        This document serves as the official report regarding the <strong>{{ strtolower($title) }}</strong> of SmartEnroll Academy for the School Year <strong>{{ $school_year }}</strong>. 
+        This document serves as the official report regarding the <strong>{{ strtolower($title) }}</strong> of HFJLSJI for the School Year <strong>{{ $school_year }}</strong>. 
         {{ $description ?? 'Please find the detailed statistical breakdown below.' }}
     </p>
 

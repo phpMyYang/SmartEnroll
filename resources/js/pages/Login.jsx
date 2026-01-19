@@ -84,7 +84,7 @@ export default function Login() {
                 setTimeout(() => {
                     // Check kung Admin OR Staff (parehas silang pupunta sa Admin Dashboard sa ngayon)
                     if (role === "admin" || role === "staff") {
-                        // ⚠️ Gagamit tayo ng window.location.href para ma-force reload
+                        // Gagamit tayo ng window.location.href para ma-force reload
                         // at kumagat ang Token sa bootstrap.js
                         window.location.href = "/admin/dashboard";
                     } else {
@@ -148,7 +148,7 @@ export default function Login() {
                     SMARTENROLL
                 </h1>
                 <p className="lead fw-bold mb-4">
-                    Official SHS Enrollment System
+                    Official HFJLSJI Enrollment System
                 </p>
                 <img
                     src="/images/login.svg"
