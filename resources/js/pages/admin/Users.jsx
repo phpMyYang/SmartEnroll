@@ -46,7 +46,7 @@ export default function Users() {
     const filteredUsers = users.filter(
         (user) =>
             user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -196,7 +196,6 @@ export default function Users() {
                         </span>
                         <input
                             type="text"
-                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search user..."
                             value={searchTerm}
@@ -211,8 +210,8 @@ export default function Users() {
                 {/* TABLE */}
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover align-middle mb-0">
-                            {/* TABLE HEAD: Added bg-info (Teal Light) and Py-3 for height */}
+                        {/* ADDED: "text-nowrap" class to force horizontal scroll on small screens */}
+                        <table className="table table-hover align-middle mb-0 text-nowrap">
                             <thead
                                 style={{
                                     backgroundColor: "var(--color-secondary)",
@@ -220,40 +219,22 @@ export default function Users() {
                                 }}
                             >
                                 <tr className="text-uppercase small fw-bold">
-                                    <th
-                                        className="ps-4 py-3 font-monospace text-dark"
-                                        width="5%"
-                                    >
+                                    <th className="ps-4 py-3 font-monospace text-dark">
                                         #
                                     </th>
-                                    <th
-                                        className="py-3 font-monospace text-dark"
-                                        width="30%"
-                                    >
+                                    <th className="py-3 font-monospace text-dark">
                                         User Details
                                     </th>
-                                    <th
-                                        className="py-3 font-monospace text-dark"
-                                        width="10%"
-                                    >
+                                    <th className="py-3 font-monospace text-dark">
                                         Role
                                     </th>
-                                    <th
-                                        className="py-3 font-monospace text-dark"
-                                        width="10%"
-                                    >
+                                    <th className="py-3 font-monospace text-dark">
                                         Gender
                                     </th>
-                                    <th
-                                        className="py-3 font-monospace text-dark"
-                                        width="15%"
-                                    >
+                                    <th className="py-3 font-monospace text-dark">
                                         Birthday
                                     </th>
-                                    <th
-                                        className="py-3 font-monospace text-dark"
-                                        width="10%"
-                                    >
+                                    <th className="py-3 font-monospace text-dark">
                                         Status
                                     </th>
                                     <th className="text-end pe-4 py-3 font-monospace text-dark">
@@ -293,7 +274,6 @@ export default function Users() {
                                             user.id === currentUser.id;
 
                                         return (
-                                            // ROW STYLE: Added border-bottom per row
                                             <tr
                                                 key={user.id}
                                                 className={
@@ -306,14 +286,12 @@ export default function Users() {
                                                         "1px solid #000",
                                                 }}
                                             >
-                                                {/* 1. NUMBER: Added ps-4 for spacing */}
                                                 <td className="ps-4 py-3 fw-bold font-monospace">
                                                     {indexOfFirstItem +
                                                         index +
                                                         1}
                                                 </td>
 
-                                                {/* 2. USER DETAILS: Added py-3 */}
                                                 <td className="py-3">
                                                     <div className="d-flex align-items-center">
                                                         <img
@@ -345,39 +323,25 @@ export default function Users() {
                                                     </div>
                                                 </td>
 
-                                                {/* 3. ROLE */}
                                                 <td className="py-3">
                                                     <span
-                                                        className={`badge rounded-0 border border-dark text-dark px-3 py-2 ${
-                                                            user.role ===
-                                                            "admin"
-                                                                ? "bg-warning"
-                                                                : "bg-white"
-                                                        }`}
+                                                        className={`badge rounded-0 border border-dark text-dark px-3 py-2 ${user.role === "admin" ? "bg-warning" : "bg-white"}`}
                                                     >
                                                         {user.role.toUpperCase()}
                                                     </span>
                                                 </td>
 
-                                                {/* 4. GENDER */}
                                                 <td className="py-3 font-monospace">
                                                     {user.gender || "-"}
                                                 </td>
 
-                                                {/* 5. BIRTHDAY */}
                                                 <td className="py-3 font-monospace small">
                                                     {user.birthday || "-"}
                                                 </td>
 
-                                                {/* 6. STATUS */}
                                                 <td className="py-3">
                                                     <span
-                                                        className={`badge rounded-0 border border-dark px-3 py-1 ${
-                                                            user.status ===
-                                                            "active"
-                                                                ? "bg-success text-white"
-                                                                : "bg-danger text-white"
-                                                        }`}
+                                                        className={`badge rounded-0 border border-dark px-3 py-1 ${user.status === "active" ? "bg-success text-white" : "bg-danger text-white"}`}
                                                     >
                                                         {user.status
                                                             ? user.status.toUpperCase()
@@ -385,11 +349,9 @@ export default function Users() {
                                                     </span>
                                                 </td>
 
-                                                {/* 7. ACTIONS: Added pe-4 for spacing */}
                                                 <td className="text-end pe-4 py-3">
-                                                    {/* NEW DESIGN: Hiwalay na buttons na may Gap at Retro Shadow */}
                                                     <div className="d-flex justify-content-end gap-2">
-                                                        {/* 1. VIEW BUTTON (White) */}
+                                                        {/* VIEW */}
                                                         <button
                                                             className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                             style={{
@@ -399,68 +361,47 @@ export default function Users() {
                                                                     "#ffffff",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
-                                                                transition:
-                                                                    "transform 0.1s",
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenView(
-                                                                    user
+                                                                    user,
                                                                 )
                                                             }
                                                             title="View Details"
-                                                            onMouseEnter={(e) =>
-                                                                (e.currentTarget.style.transform =
-                                                                    "translate(-1px, -1px)")
-                                                            }
-                                                            onMouseLeave={(e) =>
-                                                                (e.currentTarget.style.transform =
-                                                                    "translate(0, 0)")
-                                                            }
                                                         >
                                                             <i className="bi bi-eye-fill text-dark"></i>
                                                         </button>
 
-                                                        {/* 2. EDIT BUTTON (Mustard Yellow) */}
+                                                        {/* EDIT */}
                                                         <button
                                                             className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                             style={{
                                                                 width: "32px",
                                                                 height: "32px",
                                                                 backgroundColor:
-                                                                    "#F4D03F", // Mustard
+                                                                    "#F4D03F",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
-                                                                transition:
-                                                                    "transform 0.1s",
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenEdit(
-                                                                    user
+                                                                    user,
                                                                 )
                                                             }
                                                             title="Edit User"
-                                                            onMouseEnter={(e) =>
-                                                                (e.currentTarget.style.transform =
-                                                                    "translate(-1px, -1px)")
-                                                            }
-                                                            onMouseLeave={(e) =>
-                                                                (e.currentTarget.style.transform =
-                                                                    "translate(0, 0)")
-                                                            }
                                                         >
                                                             <i className="bi bi-pencil-fill text-dark"></i>
                                                         </button>
 
-                                                        {/* 3. DELETE BUTTON (Retro Red) */}
+                                                        {/* DELETE */}
                                                         {isSelf ? (
-                                                            // DISABLED STATE (Grayed out)
                                                             <button
                                                                 className="btn btn-sm rounded-0 border-2 border-dark d-flex align-items-center justify-content-center"
                                                                 style={{
                                                                     width: "32px",
                                                                     height: "32px",
                                                                     backgroundColor:
-                                                                        "#e0e0e0", // Gray
+                                                                        "#e0e0e0",
                                                                     cursor: "not-allowed",
                                                                     opacity: 0.6,
                                                                 }}
@@ -470,37 +411,22 @@ export default function Users() {
                                                                 <i className="bi bi-slash-circle text-muted"></i>
                                                             </button>
                                                         ) : (
-                                                            // ACTIVE DELETE
                                                             <button
                                                                 className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                                 style={{
                                                                     width: "32px",
                                                                     height: "32px",
                                                                     backgroundColor:
-                                                                        "#F96E5B", // Retro Red
+                                                                        "#F96E5B",
                                                                     boxShadow:
                                                                         "2px 2px 0 #000",
-                                                                    transition:
-                                                                        "transform 0.1s",
                                                                 }}
                                                                 onClick={() =>
                                                                     handleDelete(
-                                                                        user.id
+                                                                        user.id,
                                                                     )
                                                                 }
                                                                 title="Delete User"
-                                                                onMouseEnter={(
-                                                                    e
-                                                                ) =>
-                                                                    (e.currentTarget.style.transform =
-                                                                        "translate(-1px, -1px)")
-                                                                }
-                                                                onMouseLeave={(
-                                                                    e
-                                                                ) =>
-                                                                    (e.currentTarget.style.transform =
-                                                                        "translate(0, 0)")
-                                                                }
                                                             >
                                                                 <i className="bi bi-trash-fill text-white"></i>
                                                             </button>
@@ -536,9 +462,7 @@ export default function Users() {
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${
-                                    currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -556,12 +480,7 @@ export default function Users() {
                             </li>
 
                             <li
-                                className={`page-item ${
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                        ? "disabled"
-                                        : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
