@@ -1,62 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Account Updated</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Updated | SmartEnroll</title>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 20px;">
+<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f9; color: #333333;">
     
-    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <h2 style="color: #2980b9; text-align: center;">Account Details Updated</h2>
-        
-        <p>Hello <strong>{{ $user->name }}</strong>,</p>
-        
-        <p>Your account information has been updated by the administrator. Below are the specific details that were changed:</p>
-        
-        <div style="background-color: #f8f9fa; border-left: 4px solid #2980b9; padding: 15px; margin: 20px 0;">
-            <h3 style="margin-top: 0; font-size: 16px; color: #555;">Summary of Changes:</h3>
-            
-            <ul style="padding-left: 20px; color: #333;">
-                @foreach($changes as $field => $newValue)
-                    <li style="margin-bottom: 10px; line-height: 1.5;">
-                        <strong style="text-transform: capitalize; color: #555;">
-                            {{ str_replace('_', ' ', $field) }}:
-                        </strong> 
-                        
-                        @if($field === 'password')
-                            <div style="display: inline-block; background: #e8f0fe; border: 1px solid #b3d7ff; color: #004085; padding: 4px 10px; border-radius: 4px; font-family: monospace; font-weight: bold; margin-left: 5px;">
-                                {{ $newValue }}
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td style="padding: 20px 0; text-align: center;">
+                
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e1e4e8;">
+                    
+                    <tr>
+                        <td style="background-color: #3F9AAE; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">HFJLSJI</h1>
+                            <p style="color: #e6f7f8; margin: 5px 0 0 0; font-size: 14px;">Account Update Notification</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 15px 0; font-size: 16px; color: #555;">Dear <strong>{{ $user->name }}</strong>,</p>
+                            
+                            <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555;">
+                                This is an automated notification to inform you that your account profile has been modified by an administrator.
+                            </p>
+
+                            <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555;">
+                                Please review the summary of changes below:
+                            </p>
+
+                            <div style="background-color: #f8f9fa; border-left: 4px solid #3F9AAE; padding: 20px; margin: 25px 0; border-radius: 4px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    @foreach($changes as $field => $newValue)
+                                        <tr>
+                                            <td width="35%" style="padding: 8px 0; font-size: 13px; text-transform: uppercase; color: #888; font-weight: bold; vertical-align: top;">
+                                                {{ str_replace('_', ' ', $field) }}
+                                            </td>
+                                            <td style="padding: 8px 0; font-size: 14px; color: #333; vertical-align: top;">
+                                                @if($field === 'password')
+                                                    <span style="background-color: #e2e6ea; color: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 15px;">
+                                                        {{ $newValue }}
+                                                    </span>
+                                                    <div style="margin-top: 5px; font-size: 11px; color: #e74c3c;">
+                                                        * Please keep your new password secure.
+                                                    </div>
+
+                                                @elseif($field === 'status')
+                                                    <span style="font-weight: bold; padding: 2px 6px; border-radius: 3px; font-size: 12px; text-transform: uppercase; background-color: {{ $newValue == 'active' ? '#d4edda' : '#f8d7da' }}; color: {{ $newValue == 'active' ? '#155724' : '#721c24' }};">
+                                                        {{ $newValue }}
+                                                    </span>
+
+                                                @else
+                                                    <strong>{{ $newValue }}</strong>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </table>
                             </div>
-                            <span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(Keep this safe!)</span>
 
-                        @elseif($field === 'status')
-                            <span style="font-weight: bold; color: {{ $newValue == 'active' ? 'green' : 'red' }}; text-transform: uppercase;">
-                                {{ $newValue }}
-                            </span>
-                        @else
-                            <span style="color: #333;">{{ $newValue }}</span>
-                        @endif
-                    </li>
-                @endforeach
-            </ul>
-        </div>
+                            @if($user->status === 'inactive')
+                                <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; font-size: 14px; border: 1px solid #ffeeba; margin-top: 20px;">
+                                    <strong>⚠️ Important Notice:</strong> Your account is currently set to <strong>INACTIVE</strong>. You will not be able to access the system until your status is reactivated.
+                                </div>
+                            @endif
 
-        <p>Current Account Status: <strong style="text-transform: uppercase;">{{ $user->status }}</strong></p>
+                            <p style="margin: 30px 0 0 0; line-height: 1.6; color: #555; font-size: 14px;">
+                                If you did not authorize these changes, please contact the System Administrator immediately to secure your account.
+                            </p>
+                        </td>
+                    </tr>
 
-        @if($user->status === 'inactive')
-            <div style="background-color: #ffeeba; color: #856404; padding: 10px; border-radius: 4px; font-size: 13px;">
-                <strong>Notice:</strong> Your account is currently inactive. You will not be able to log in until it is reactivated.
-            </div>
-        @endif
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
+                                <strong>Confidentiality Notice:</strong> This email contains sensitive account information intended solely for the recipient.
+                            </p>
+                            <p style="margin: 0; font-size: 12px; color: #aaa;">
+                                &copy; {{ date('Y') }} SmartEnroll System. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p style="margin: 20px 0 0 0; font-size: 12px; color: #aaa;">This is an automated system message. Please do not reply.</p>
 
-        <div style="margin-top: 30px; font-size: 12px; color: #7f8c8d;">
-            <p>If you did not request these changes, please contact the System Administrator immediately.</p>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
-        <p style="text-align: center; font-size: 11px; color: #aaa;">
-            © {{ date('Y') }} SmartEnroll System
-        </p>
-    </div>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>

@@ -67,7 +67,7 @@
     {{-- HEADER --}}
     <div class="text-center">
         @if($logo) <img src="{{ $logo }}" class="logo"><br> @endif
-        <div class="school-name uppercase">SMARTENROLL ACADEMY</div>
+        <div class="school-name uppercase">HOLY FACE OF JESUS LYCEUM OF SAN JOSE INC.</div>
         <div class="school-addr uppercase">R AND J BUILDING LOT 6 AND 8 BLOCK 9 MAYON AVENUE,<br>AMITYVILLE, SAN JOSE, RODRIGUEZ, RIZAL</div>
         <div class="school-addr">Contact No.: 09164369291</div>
     </div>
