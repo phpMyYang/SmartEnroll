@@ -283,3 +283,58 @@ div:where(.swal2-container) button.swal2-confirm {
     transform: translate(4px, 4px);
     box-shadow: 0px 0px 0px #000 !important;
 }
+
+/* SCROLLBAR FIX 
+   Targetin natin yung mismong navigation area 
+*/
+.sidebar-scroll-area::-webkit-scrollbar {
+    width: 5px; /* Mas manipis para sleek */
+}
+
+.sidebar-scroll-area::-webkit-scrollbar-track {
+    background: transparent; /* Walang background */
+}
+
+.sidebar-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white (hindi agaw pansin) */
+    border-radius: 10px; /* Round edges */
+}
+
+.sidebar-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5); /* Lilitaw ng konti pag tinutok */
+}
+
+/* Firefox Support (Optional) */
+.sidebar-scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* --- CUSTOM TABLE SCROLLBAR (Horizontal) --- */
+/* Targetin natin yung wrapper ng table */
+.table-responsive::-webkit-scrollbar {
+    height: 10px; /* Height ang kailangan pag horizontal scroll */
+    width: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05); /* Sobrang light gray na track */
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--color-dark); /* Black/Dark Gray na hawakan */
+    border: 2px solid #fff; /* White border para may "gap" effect */
+    border-radius: 10px; /* Round edges */
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary); /* Magiging Teal pag tinutok ang mouse */
+    cursor: pointer;
+}
+
+/* Firefox Support */
+.table-responsive {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-dark) transparent;
+}

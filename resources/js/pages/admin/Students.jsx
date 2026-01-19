@@ -8,7 +8,6 @@ import StudentDrawer from "../../components/StudentDrawer";
 import CORModal from "../../components/CORModal";
 
 export default function Students(props) {
-    // KUNIN ANG AUTH USER GALING SA PROPS
     const { auth } = props;
 
     // --- STATES ---
@@ -29,19 +28,35 @@ export default function Students(props) {
     });
     const [corState, setCorState] = useState({ show: false, data: null });
 
-    // UI States
+    // UI States (Dropdown)
     const [openActionId, setOpenActionId] = useState(null);
+
+    // NEW: Dinagdagan natin ng 'bottom' property para sa auto-flip
+    const [dropdownPos, setDropdownPos] = useState({
+        top: "auto",
+        right: 0,
+        bottom: "auto",
+    });
 
     // --- EFFECTS ---
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (!event.target.closest(".dropdown-container")) {
+            if (!event.target.closest(".custom-dropdown-trigger")) {
                 setOpenActionId(null);
             }
         };
+        const handleScroll = () => {
+            if (openActionId) setOpenActionId(null);
+        };
+
         document.addEventListener("click", handleClickOutside);
-        return () => document.removeEventListener("click", handleClickOutside);
-    }, []);
+        window.addEventListener("scroll", handleScroll, true);
+
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+            window.removeEventListener("scroll", handleScroll, true);
+        };
+    }, [openActionId]);
 
     const fetchData = async () => {
         try {
@@ -69,15 +84,47 @@ export default function Students(props) {
         setOpenActionId(null);
     };
 
+    // UPDATED: AUTO-FLIP LOGIC
+    // Dito natin chine-check kung kakasya pa ba sa baba o dapat sa taas na bumukas
     const toggleDropdown = (id, e) => {
         e.stopPropagation();
-        setOpenActionId(openActionId === id ? null : id);
+
+        if (openActionId === id) {
+            setOpenActionId(null);
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+
+            // Kwentahin ang space sa ilalim ng button
+            const spaceBelow = viewportHeight - rect.bottom;
+            const dropdownHeightEstimate = 320; // Tantya natin sa height ng dropdown menu
+
+            let newPos = {};
+
+            if (spaceBelow < dropdownHeightEstimate) {
+                // KUNG MASIKIP SA BABA: Buksan PATAAS (Flip Up)
+                newPos = {
+                    bottom: viewportHeight - rect.top, // Didikit sa taas ng button
+                    right: window.innerWidth - rect.right,
+                    top: "auto", // I-disable ang top
+                };
+            } else {
+                // KUNG MALUWAG SA BABA: Buksan PABABA (Default)
+                newPos = {
+                    top: rect.bottom, // Didikit sa ilalim ng button
+                    right: window.innerWidth - rect.right,
+                    bottom: "auto", // I-disable ang bottom
+                };
+            }
+
+            setDropdownPos(newPos);
+            setOpenActionId(id);
+        }
     };
 
-    // --- STATUS CHANGE (RELEASED/ENROLLED/ETC) ---
+    // --- STATUS CHANGE ---
     const handleChangeStatus = async (student, newStatus) => {
         setOpenActionId(null);
-
         if (newStatus === "released") {
             const res = await Swal.fire({
                 title: "CONFIRM RELEASE?",
@@ -161,13 +208,13 @@ export default function Students(props) {
     const filteredStudents = students.filter(
         (s) =>
             s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.lrn.includes(searchTerm)
+            s.lrn.includes(searchTerm),
     );
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredStudents.slice(
         indexOfFirstItem,
-        indexOfLastItem
+        indexOfLastItem,
     );
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -241,206 +288,180 @@ export default function Students(props) {
                 </div>
 
                 <div className="card-body p-0">
-                    {/* <div className="table-responsive"> */}
-                    <table className="table table-hover align-middle mb-0">
-                        <thead
-                            style={{
-                                backgroundColor: "var(--color-secondary)",
-                                borderBottom: "2px solid black",
-                            }}
-                        >
-                            <tr className="text-uppercase small fw-bold">
-                                <th className="ps-4 py-3 font-monospace text-dark">
-                                    #
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Name / Email
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    LRN
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Strand
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Grade/Sec
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Gender
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Contact
-                                </th>
-                                <th className="py-3 font-monospace text-dark">
-                                    Status
-                                </th>
-                                <th className="text-end pe-4 py-3 font-monospace text-dark">
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td
-                                        colSpan="9"
-                                        className="text-center py-5"
-                                    >
-                                        <div
-                                            className="spinner-border"
-                                            style={{
-                                                borderWidth: "3px",
-                                                color: "black",
-                                            }}
-                                        ></div>
-                                    </td>
+                    <div className="table-responsive">
+                        <table className="table table-hover align-middle mb-0 text-nowrap">
+                            <thead
+                                style={{
+                                    backgroundColor: "var(--color-secondary)",
+                                    borderBottom: "2px solid black",
+                                }}
+                            >
+                                <tr className="text-uppercase small fw-bold">
+                                    <th className="ps-4 py-3 font-monospace text-dark">
+                                        #
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Name / Email
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        LRN
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Strand
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Grade/Sec
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Gender
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Contact
+                                    </th>
+                                    <th className="py-3 font-monospace text-dark">
+                                        Status
+                                    </th>
+                                    <th className="text-end pe-4 py-3 font-monospace text-dark">
+                                        Action
+                                    </th>
                                 </tr>
-                            ) : currentItems.length === 0 ? (
-                                <tr>
-                                    <td
-                                        colSpan="9"
-                                        className="text-center py-5 fw-bold font-monospace"
-                                    >
-                                        NO RECORDS FOUND
-                                    </td>
-                                </tr>
-                            ) : (
-                                currentItems.map((s, index) => (
-                                    <tr
-                                        key={s.id}
-                                        style={{
-                                            borderBottom: "1px solid #000",
-                                        }}
-                                    >
-                                        <td className="ps-4 py-3 fw-bold font-monospace">
-                                            {indexOfFirstItem + index + 1}
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td
+                                            colSpan="9"
+                                            className="text-center py-5"
+                                        >
+                                            <div
+                                                className="spinner-border"
+                                                style={{
+                                                    borderWidth: "3px",
+                                                    color: "black",
+                                                }}
+                                            ></div>
                                         </td>
-                                        <td className="py-3">
-                                            <div className="d-flex align-items-center">
-                                                <img
-                                                    src={`https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name}&background=random&color=fff&size=40`}
-                                                    className="rounded-circle me-3 border border-2 border-dark"
-                                                    alt="Avatar"
-                                                />
-                                                <div>
-                                                    <div className="fw-bold text-dark text-uppercase">
-                                                        {s.last_name},{" "}
-                                                        {s.first_name}
-                                                    </div>
-                                                    <div className="small text-muted font-monospace">
-                                                        {s.email}
+                                    </tr>
+                                ) : currentItems.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan="9"
+                                            className="text-center py-5 fw-bold font-monospace"
+                                        >
+                                            NO RECORDS FOUND
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    currentItems.map((s, index) => (
+                                        <tr
+                                            key={s.id}
+                                            style={{
+                                                borderBottom: "1px solid #000",
+                                            }}
+                                        >
+                                            <td className="ps-4 py-3 fw-bold font-monospace">
+                                                {indexOfFirstItem + index + 1}
+                                            </td>
+                                            <td className="py-3">
+                                                <div className="d-flex align-items-center">
+                                                    <img
+                                                        src={`https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name}&background=random&color=fff&size=40`}
+                                                        className="rounded-circle me-3 border border-2 border-dark"
+                                                        alt="Avatar"
+                                                    />
+                                                    <div>
+                                                        <div className="fw-bold text-dark text-uppercase">
+                                                            {s.last_name},{" "}
+                                                            {s.first_name}
+                                                        </div>
+                                                        <div className="small text-muted font-monospace">
+                                                            {s.email}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 font-monospace fw-bold">
-                                            {s.lrn}
-                                        </td>
-                                        <td className="py-3">
-                                            <span className="badge bg-white text-dark border border-dark rounded-0 px-2 py-1">
-                                                {s.strand?.code}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 font-monospace fw-bold">
-                                            G{s.grade_level}{" "}
-                                            <span className="fw-normal text-muted">
-                                                / {s.section?.name || "-"}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 font-monospace small">
-                                            {s.gender}
-                                        </td>
-                                        <td className="py-3 font-monospace small">
-                                            {s.contact_number}
-                                        </td>
-                                        <td className="py-3">
-                                            <span
-                                                className={`badge rounded-0 border border-dark px-3 py-1 text-uppercase text-dark ${
-                                                    s.status === "enrolled"
-                                                        ? "bg-success text-white"
-                                                        : s.status === "pending"
-                                                        ? "bg-warning"
-                                                        : s.status ===
-                                                          "released"
-                                                        ? "bg-secondary text-white"
-                                                        : "bg-light"
-                                                }`}
-                                            >
-                                                {s.status}
-                                            </span>
-                                        </td>
-
-                                        {/* ACTIONS COLUMN - CONSISTENT DESIGN */}
-                                        <td className="text-end pe-4 py-3">
-                                            <div className="d-flex justify-content-end gap-2 dropdown-container position-relative">
-                                                {/* VIEW BUTTON */}
-                                                <button
-                                                    className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                    style={{
-                                                        width: "32px",
-                                                        height: "32px",
-                                                        backgroundColor:
-                                                            "#ffffff",
-                                                        boxShadow:
-                                                            "2px 2px 0 #000",
-                                                        transition:
-                                                            "transform 0.1s",
-                                                    }}
-                                                    onClick={() =>
-                                                        handleOpenDrawer(
-                                                            "view",
-                                                            s
-                                                        )
-                                                    }
-                                                    title="View"
-                                                    onMouseEnter={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(-1px, -1px)")
-                                                    }
-                                                    onMouseLeave={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(0, 0)")
-                                                    }
+                                            </td>
+                                            <td className="py-3 font-monospace fw-bold">
+                                                {s.lrn}
+                                            </td>
+                                            <td className="py-3">
+                                                <span className="badge bg-white text-dark border border-dark rounded-0 px-2 py-1">
+                                                    {s.strand?.code}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 font-monospace fw-bold">
+                                                G{s.grade_level}{" "}
+                                                <span className="fw-normal text-muted">
+                                                    / {s.section?.name || "-"}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 font-monospace small">
+                                                {s.gender}
+                                            </td>
+                                            <td className="py-3 font-monospace small">
+                                                {s.contact_number}
+                                            </td>
+                                            <td className="py-3">
+                                                <span
+                                                    className={`badge rounded-0 border border-dark px-3 py-1 text-uppercase text-dark ${
+                                                        s.status === "enrolled"
+                                                            ? "bg-success text-white"
+                                                            : s.status ===
+                                                                "pending"
+                                                              ? "bg-warning"
+                                                              : s.status ===
+                                                                  "released"
+                                                                ? "bg-secondary text-white"
+                                                                : "bg-light"
+                                                    }`}
                                                 >
-                                                    <i className="bi bi-eye-fill text-dark"></i>
-                                                </button>
+                                                    {s.status}
+                                                </span>
+                                            </td>
 
-                                                {/* EDIT BUTTON */}
-                                                <button
-                                                    className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                    style={{
-                                                        width: "32px",
-                                                        height: "32px",
-                                                        backgroundColor:
-                                                            "#F4D03F",
-                                                        boxShadow:
-                                                            "2px 2px 0 #000",
-                                                        transition:
-                                                            "transform 0.1s",
-                                                    }}
-                                                    onClick={() =>
-                                                        handleOpenDrawer(
-                                                            "edit",
-                                                            s
-                                                        )
-                                                    }
-                                                    title="Edit"
-                                                    onMouseEnter={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(-1px, -1px)")
-                                                    }
-                                                    onMouseLeave={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(0, 0)")
-                                                    }
-                                                >
-                                                    <i className="bi bi-pencil-fill text-dark"></i>
-                                                </button>
-
-                                                {/* MORE ACTIONS (DROPDOWN) */}
-                                                <div className="position-relative">
+                                            <td className="text-end pe-4 py-3">
+                                                <div className="d-flex justify-content-end gap-2 position-relative">
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                        style={{
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            backgroundColor:
+                                                                "#ffffff",
+                                                            boxShadow:
+                                                                "2px 2px 0 #000",
+                                                        }}
+                                                        onClick={() =>
+                                                            handleOpenDrawer(
+                                                                "view",
+                                                                s,
+                                                            )
+                                                        }
+                                                        title="View"
+                                                    >
+                                                        <i className="bi bi-eye-fill text-dark"></i>
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                        style={{
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            backgroundColor:
+                                                                "#F4D03F",
+                                                            boxShadow:
+                                                                "2px 2px 0 #000",
+                                                        }}
+                                                        onClick={() =>
+                                                            handleOpenDrawer(
+                                                                "edit",
+                                                                s,
+                                                            )
+                                                        }
+                                                        title="Edit"
+                                                    >
+                                                        <i className="bi bi-pencil-fill text-dark"></i>
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center custom-dropdown-trigger"
                                                         style={{
                                                             width: "32px",
                                                             height: "32px",
@@ -448,177 +469,44 @@ export default function Students(props) {
                                                                 "#34495e",
                                                             boxShadow:
                                                                 "2px 2px 0 #000",
-                                                            transition:
-                                                                "transform 0.1s",
                                                         }}
                                                         onClick={(e) =>
                                                             toggleDropdown(
                                                                 s.id,
-                                                                e
+                                                                e,
                                                             )
                                                         }
                                                         title="More Actions"
-                                                        onMouseEnter={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(-1px, -1px)")
-                                                        }
-                                                        onMouseLeave={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(0, 0)")
-                                                        }
                                                     >
                                                         <i className="bi bi-three-dots text-white"></i>
                                                     </button>
-
-                                                    {openActionId === s.id && (
-                                                        <div
-                                                            className="dropdown-menu show border-2 border-dark rounded-0 shadow p-0"
-                                                            style={{
-                                                                position:
-                                                                    "absolute",
-                                                                right: 0,
-                                                                top: "100%",
-                                                                zIndex: 9999,
-                                                                minWidth:
-                                                                    "200px",
-                                                            }}
-                                                        >
-                                                            <div className="bg-light border-bottom border-dark p-2 text-center small fw-bold font-monospace">
-                                                                STATUS ACTIONS
-                                                            </div>
-
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-success"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "passed"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-check-circle me-2"></i>{" "}
-                                                                Passed
-                                                            </button>
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-primary"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "enrolled"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-person-check me-2"></i>{" "}
-                                                                Enrolled
-                                                            </button>
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-danger"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "dropped"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-x-circle me-2"></i>{" "}
-                                                                Dropped
-                                                            </button>
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-info"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "graduate"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-mortarboard me-2"></i>{" "}
-                                                                Graduate
-                                                            </button>
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-dark"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "released"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-box-arrow-right me-2"></i>{" "}
-                                                                Released
-                                                            </button>
-
-                                                            <div className="dropdown-divider border-dark m-0"></div>
-
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2"
-                                                                onClick={() =>
-                                                                    setCorState(
-                                                                        {
-                                                                            show: true,
-                                                                            data: s,
-                                                                        }
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-file-earmark-arrow-down me-2"></i>{" "}
-                                                                Download COR
-                                                            </button>
-                                                            <button
-                                                                className="dropdown-item font-monospace small fw-bold py-2 text-secondary"
-                                                                onClick={() =>
-                                                                    handleChangeStatus(
-                                                                        s,
-                                                                        "reset"
-                                                                    )
-                                                                }
-                                                            >
-                                                                <i className="bi bi-arrow-counterclockwise me-2"></i>{" "}
-                                                                Reset Status
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                    <button
+                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                        style={{
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            backgroundColor:
+                                                                "#F96E5B",
+                                                            boxShadow:
+                                                                "2px 2px 0 #000",
+                                                        }}
+                                                        onClick={() =>
+                                                            handleDelete(s.id)
+                                                        }
+                                                        title="Delete"
+                                                    >
+                                                        <i className="bi bi-trash-fill text-white"></i>
+                                                    </button>
                                                 </div>
-
-                                                {/* DELETE BUTTON */}
-                                                <button
-                                                    className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                    style={{
-                                                        width: "32px",
-                                                        height: "32px",
-                                                        backgroundColor:
-                                                            "#F96E5B",
-                                                        boxShadow:
-                                                            "2px 2px 0 #000",
-                                                        transition:
-                                                            "transform 0.1s",
-                                                    }}
-                                                    onClick={() =>
-                                                        handleDelete(s.id)
-                                                    }
-                                                    title="Delete"
-                                                    onMouseEnter={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(-1px, -1px)")
-                                                    }
-                                                    onMouseLeave={(e) =>
-                                                        (e.currentTarget.style.transform =
-                                                            "translate(0, 0)")
-                                                    }
-                                                >
-                                                    <i className="bi bi-trash-fill text-white"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                    {/* </div> */}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                {/* PAGINATION FOOTER */}
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
@@ -634,13 +522,10 @@ export default function Students(props) {
                         </strong>{" "}
                         of <strong>{filteredStudents.length}</strong>
                     </small>
-
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${
-                                    currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -650,20 +535,13 @@ export default function Students(props) {
                                     &laquo; PREV
                                 </button>
                             </li>
-
                             <li className="page-item disabled">
                                 <span className="page-link border-2 border-dark text-dark fw-bold rounded-0 mx-1 bg-warning">
                                     PAGE {currentPage}
                                 </span>
                             </li>
-
                             <li
-                                className={`page-item ${
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                        ? "disabled"
-                                        : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
@@ -680,6 +558,99 @@ export default function Students(props) {
                     </nav>
                 </div>
             </div>
+
+            {/* UPDATED: FLOATING DROPDOWN MENU (Auto-Flip Supported) */}
+            {openActionId && (
+                <div
+                    className="dropdown-menu show border-2 border-dark rounded-0 shadow p-0 fade-in"
+                    style={{
+                        position: "fixed",
+                        // Dynamic positioning (top or bottom)
+                        top: dropdownPos.top,
+                        bottom: dropdownPos.bottom,
+                        right: `${dropdownPos.right}px`,
+                        zIndex: 9999,
+                        minWidth: "200px",
+                    }}
+                >
+                    {(() => {
+                        const s = students.find((st) => st.id === openActionId);
+                        if (!s) return null;
+
+                        return (
+                            <>
+                                <div className="bg-light border-bottom border-dark p-2 text-center small fw-bold font-monospace">
+                                    STATUS ACTIONS
+                                </div>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-success"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "passed")
+                                    }
+                                >
+                                    <i className="bi bi-check-circle me-2"></i>{" "}
+                                    Passed
+                                </button>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-primary"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "enrolled")
+                                    }
+                                >
+                                    <i className="bi bi-person-check me-2"></i>{" "}
+                                    Enrolled
+                                </button>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-danger"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "dropped")
+                                    }
+                                >
+                                    <i className="bi bi-x-circle me-2"></i>{" "}
+                                    Dropped
+                                </button>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-info"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "graduate")
+                                    }
+                                >
+                                    <i className="bi bi-mortarboard me-2"></i>{" "}
+                                    Graduate
+                                </button>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-dark"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "released")
+                                    }
+                                >
+                                    <i className="bi bi-box-arrow-right me-2"></i>{" "}
+                                    Released
+                                </button>
+                                <div className="dropdown-divider border-dark m-0"></div>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2"
+                                    onClick={() =>
+                                        setCorState({ show: true, data: s })
+                                    }
+                                >
+                                    <i className="bi bi-file-earmark-arrow-down me-2"></i>{" "}
+                                    Download COR
+                                </button>
+                                <button
+                                    className="dropdown-item font-monospace small fw-bold py-2 text-secondary"
+                                    onClick={() =>
+                                        handleChangeStatus(s, "reset")
+                                    }
+                                >
+                                    <i className="bi bi-arrow-counterclockwise me-2"></i>{" "}
+                                    Reset Status
+                                </button>
+                            </>
+                        );
+                    })()}
+                </div>
+            )}
 
             <StudentDrawer
                 show={drawerState.show}

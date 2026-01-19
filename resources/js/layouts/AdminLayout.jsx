@@ -26,7 +26,7 @@ export default function AdminLayout() {
         semester: "",
     });
 
-    // FUNCTION: Fetch Settings (Extracted para reusable)
+    // FUNCTION: Fetch Settings
     const fetchSettings = async () => {
         try {
             const res = await axios.get("/api/settings");
@@ -52,19 +52,17 @@ export default function AdminLayout() {
         // 2. Initial Fetch
         fetchSettings();
 
-        // 3. LISTEN FOR UPDATES (Para realtime magbago ang Header)
+        // 3. Listen for updates
         const handleSettingsUpdate = () => {
-            console.log("Settings updated! Refreshing header...");
             fetchSettings();
         };
 
         window.addEventListener("settings-updated", handleSettingsUpdate);
 
-        // Cleanup listener when component unmounts
         return () => {
             window.removeEventListener(
                 "settings-updated",
-                handleSettingsUpdate
+                handleSettingsUpdate,
             );
         };
     }, []);
@@ -88,7 +86,11 @@ export default function AdminLayout() {
     return (
         <div
             className="d-flex"
-            style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)" }}
+            style={{
+                height: "100vh",
+                overflow: "hidden",
+                backgroundColor: "var(--color-bg)",
+            }}
         >
             {/* RETRO SIDEBAR */}
             <div
@@ -96,16 +98,22 @@ export default function AdminLayout() {
                 style={{
                     width: isSidebarOpen ? "280px" : "90px",
                     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    height: "100vh",
                     position: "relative",
                     zIndex: 1000,
+                    // NOTE: Wala na ditong overflow para makalabas ang dropdown sa baba
                 }}
             >
-                {/* 1. BRAND / LOGO */}
+                {/* 1. BRAND / LOGO (Fixed at Top) */}
                 <div
                     className={`d-flex align-items-center mb-4 text-white text-decoration-none ${
                         !isSidebarOpen ? "justify-content-center" : ""
                     }`}
-                    style={{ height: "60px", overflow: "hidden" }}
+                    style={{
+                        height: "60px",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                    }}
                 >
                     <div
                         className="bg-white p-1 border border-2 border-dark rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center"
@@ -139,76 +147,87 @@ export default function AdminLayout() {
 
                 <hr className="border-dark opacity-100" />
 
-                {/* NAVIGATION LINKS */}
-                <ul className="nav nav-pills flex-column mb-auto">
-                    {[
-                        {
-                            path: "/admin/dashboard",
-                            icon: "bi-speedometer2",
-                            label: "Dashboard",
-                        },
-                        {
-                            path: "/admin/users",
-                            icon: "bi-people-fill",
-                            label: "Users Management",
-                        },
-                        {
-                            path: "/admin/students",
-                            icon: "bi-mortarboard-fill",
-                            label: "Students",
-                        },
-                        {
-                            path: "/admin/strands",
-                            icon: "bi-diagram-3-fill",
-                            label: "Strands",
-                        },
-                        {
-                            path: "/admin/sections",
-                            icon: "bi-grid-3x3-gap-fill",
-                            label: "Sections",
-                        },
-                        {
-                            path: "/admin/subjects",
-                            icon: "bi-book-fill",
-                            label: "Subjects",
-                        },
-                        {
-                            path: "/admin/reports",
-                            icon: "bi-file-earmark-bar-graph-fill",
-                            label: "Reports",
-                        },
-                        {
-                            path: "/admin/settings",
-                            icon: "bi-gear-fill",
-                            label: "Settings",
-                        },
-                        {
-                            path: "/admin/recycle-bin",
-                            icon: "bi-trash-fill",
-                            label: "Recycle Bin",
-                        },
-                    ].map((item) => (
-                        <li className="nav-item mb-2" key={item.path}>
-                            <Link
-                                to={item.path}
-                                className={`nav-link nav-link-retro d-flex align-items-center ${
-                                    isSidebarOpen
-                                        ? "gap-3 px-3"
-                                        : "justify-content-center px-0"
-                                } ${isActive(item.path)}`}
-                                title={!isSidebarOpen ? item.label : ""}
-                            >
-                                <i className={`bi ${item.icon} fs-5`}></i>
-                                {isSidebarOpen && <span>{item.label}</span>}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                {/* 2. NAVIGATION LINKS (SCROLLABLE AREA) */}
+                {/* Dito natin nilagay ang SCROLL class para sa gitna lang gumalaw */}
+                <div
+                    className="flex-grow-1 mb-auto sidebar-scroll-area"
+                    style={{
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        paddingRight: "5px", // Space para sa scrollbar
+                    }}
+                >
+                    <ul className="nav nav-pills flex-column">
+                        {[
+                            {
+                                path: "/admin/dashboard",
+                                icon: "bi-speedometer2",
+                                label: "Dashboard",
+                            },
+                            {
+                                path: "/admin/users",
+                                icon: "bi-people-fill",
+                                label: "Users Management",
+                            },
+                            {
+                                path: "/admin/students",
+                                icon: "bi-mortarboard-fill",
+                                label: "Students",
+                            },
+                            {
+                                path: "/admin/strands",
+                                icon: "bi-diagram-3-fill",
+                                label: "Strands",
+                            },
+                            {
+                                path: "/admin/sections",
+                                icon: "bi-grid-3x3-gap-fill",
+                                label: "Sections",
+                            },
+                            {
+                                path: "/admin/subjects",
+                                icon: "bi-book-fill",
+                                label: "Subjects",
+                            },
+                            {
+                                path: "/admin/reports",
+                                icon: "bi-file-earmark-bar-graph-fill",
+                                label: "Reports",
+                            },
+                            {
+                                path: "/admin/settings",
+                                icon: "bi-gear-fill",
+                                label: "Settings",
+                            },
+                            {
+                                path: "/admin/recycle-bin",
+                                icon: "bi-trash-fill",
+                                label: "Recycle Bin",
+                            },
+                        ].map((item) => (
+                            <li className="nav-item mb-2" key={item.path}>
+                                <Link
+                                    to={item.path}
+                                    className={`nav-link nav-link-retro d-flex align-items-center ${
+                                        isSidebarOpen
+                                            ? "gap-3 px-3"
+                                            : "justify-content-center px-0"
+                                    } ${isActive(item.path)}`}
+                                    title={!isSidebarOpen ? item.label : ""}
+                                >
+                                    <i className={`bi ${item.icon} fs-5`}></i>
+                                    {isSidebarOpen && <span>{item.label}</span>}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
 
                 <hr className="border-dark opacity-100" />
 
-                {/* 2. USER PROFILE & DROPDOWN */}
-                <div className="dropdown position-relative">
+                {/* 3. USER PROFILE (Fixed at Bottom) */}
+                {/* Flex-shrink-0 para hindi mapisa, at walang overflow para lumabas ang dropdown */}
+                <div className="dropdown position-relative flex-shrink-0">
                     <div
                         className={`d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded border border-2 border-transparent hover-border-dark ${
                             !isSidebarOpen ? "justify-content-center" : ""
@@ -322,7 +341,6 @@ export default function AdminLayout() {
                         <i className="bi bi-list fs-1 fw-bold"></i>
                     </button>
 
-                    {/* DYNAMIC SCHOOL YEAR DISPLAY */}
                     <div
                         className="fw-bold d-flex align-items-center gap-2 px-3 py-1 rounded"
                         style={{

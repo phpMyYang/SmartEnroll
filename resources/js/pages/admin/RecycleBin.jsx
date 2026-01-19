@@ -80,10 +80,11 @@ export default function RecycleBin() {
         }
 
         if (activeTab === "sections") return item.name || "Unknown Section";
-        if (activeTab === "strands")
-            return `${item.code || "?"} - ${item.description || ""}`;
-        if (activeTab === "subjects")
-            return `${item.code || "?"} - ${item.description || ""}`;
+
+        // UPDATE: Code lang ang ilalabas dito para malinis (e.g. "STEM")
+        // Ang description ay ililipat natin sa "Details" column
+        if (activeTab === "strands") return item.code || "Unknown Strand";
+        if (activeTab === "subjects") return item.code || "Unknown Subject";
 
         return item.name || item.id?.toString() || "";
     };
@@ -93,9 +94,11 @@ export default function RecycleBin() {
     // 1. FILTER
     const filteredItems = items.filter((item) => {
         const name = getDisplayName(item);
-        return name
-            ? name.toString().toLowerCase().includes(searchTerm.toLowerCase())
-            : false;
+        // Isama rin sa search ang description para madaling hanapin
+        const desc = item.description || "";
+        const searchStr = `${name} ${desc}`.toLowerCase();
+
+        return searchStr.includes(searchTerm.toLowerCase());
     });
 
     // 2. PAGINATION
@@ -115,7 +118,7 @@ export default function RecycleBin() {
         } else {
             const visibleIds = currentItems.map((item) => item.id);
             setSelectedIds(
-                selectedIds.filter((id) => !visibleIds.includes(id))
+                selectedIds.filter((id) => !visibleIds.includes(id)),
             );
         }
     };
@@ -128,7 +131,7 @@ export default function RecycleBin() {
         }
     };
 
-    // BULK RESTORE (UPDATED MODAL STYLE)
+    // BULK RESTORE
     const handleRestore = async () => {
         if (selectedIds.length === 0) return;
 
@@ -137,15 +140,15 @@ export default function RecycleBin() {
             text: "Data will return to the active list.",
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#27ae60", // Green for restore
+            confirmButtonColor: "#27ae60",
             cancelButtonColor: "#2d3436",
             confirmButtonText: "YES, RESTORE IT!",
-            background: "#FFE2AF", // Retro Cream BG
+            background: "#FFE2AF",
             color: "#000",
             customClass: {
                 popup: "card-retro",
-                confirmButton: "btn-retro bg-success border-dark", // Retro Green Button
-                cancelButton: "btn-retro bg-dark border-dark", // Retro Dark Button
+                confirmButton: "btn-retro bg-success border-dark",
+                cancelButton: "btn-retro bg-dark border-dark",
             },
         }).then(async (result) => {
             if (result.isConfirmed) {
@@ -163,7 +166,7 @@ export default function RecycleBin() {
         });
     };
 
-    // BULK FORCE DELETE (UPDATED MODAL STYLE)
+    // BULK FORCE DELETE
     const handleForceDelete = async () => {
         if (selectedIds.length === 0) return;
 
@@ -172,15 +175,15 @@ export default function RecycleBin() {
             text: "This action cannot be undone. Data will be gone forever.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#F96E5B", // Retro Red
+            confirmButtonColor: "#F96E5B",
             cancelButtonColor: "#2d3436",
             confirmButtonText: "YES, DELETE FOREVER",
-            background: "#FFE2AF", // Retro Cream BG
+            background: "#FFE2AF",
             color: "#000",
             customClass: {
                 popup: "card-retro",
-                confirmButton: "btn-retro bg-danger border-dark", // Retro Red Button
-                cancelButton: "btn-retro bg-dark border-dark", // Retro Dark Button
+                confirmButton: "btn-retro bg-danger border-dark",
+                cancelButton: "btn-retro bg-dark border-dark",
             },
         }).then(async (result) => {
             if (result.isConfirmed) {
@@ -405,7 +408,7 @@ export default function RecycleBin() {
                                                     type="checkbox"
                                                     className="form-check-input border-dark rounded-0"
                                                     checked={selectedIds.includes(
-                                                        item.id
+                                                        item.id,
                                                     )}
                                                     onChange={() =>
                                                         handleSelectOne(item.id)
@@ -416,27 +419,42 @@ export default function RecycleBin() {
                                                 {getDisplayName(item)}
                                             </td>
                                             <td className="py-3 small">
+                                                {/* SECTION DETAILS */}
                                                 {activeTab === "sections" &&
                                                     item.strand && (
                                                         <span className="badge bg-light text-dark border border-dark rounded-0">
                                                             {item.strand.code}
                                                         </span>
                                                     )}
+
+                                                {/* USER DETAILS */}
                                                 {activeTab === "users" && (
                                                     <span className="badge bg-light text-dark border border-dark rounded-0">
                                                         {item.role || "User"}
                                                     </span>
                                                 )}
+
+                                                {/* STUDENT DETAILS */}
                                                 {activeTab === "students" && (
                                                     <span className="text-muted">
                                                         LRN: {item.lrn || "N/A"}
+                                                    </span>
+                                                )}
+
+                                                {/* STRAND & SUBJECT DETAILS (DESCRIPTION) */}
+                                                {(activeTab === "strands" ||
+                                                    activeTab ===
+                                                        "subjects") && (
+                                                    <span className="text-muted fst-italic text-uppercase">
+                                                        {item.description ||
+                                                            "No description provided"}
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="py-3 small text-muted">
                                                 <i className="bi bi-clock me-1"></i>
                                                 {new Date(
-                                                    item.deleted_at
+                                                    item.deleted_at,
                                                 ).toLocaleString()}
                                             </td>
                                             <td className="text-end pe-4 py-3 text-muted small">
