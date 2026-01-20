@@ -17,10 +17,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CORController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RecycleBinController;
-use App\Models\User; 
-
-// CONTROLLERS IMPORT FOR ADMIN
-use App\Http\Controllers\StaffController;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,7 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckMaintenanceMode::class])->group(function () {
         // Example: Staff specific routes that are blocked during maintenance
         // Route::apiResource('students', StudentController::class);
-        Route::get('/staff/analytics', [StaffController::class, 'getAnalytics']);
+        Route::get('/staff/analytics', [AdminController::class, 'getAnalytics']);
     });
 });
 
