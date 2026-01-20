@@ -69,11 +69,16 @@ export default function StaffLayout() {
     const isActive = (path) => location.pathname === path;
 
     return (
+        // 1. FIXED HEIGHT CONTAINER (No Page Scroll)
         <div
             className="d-flex flex-column"
-            style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)" }}
+            style={{
+                height: "100vh", // Lock height to screen
+                overflow: "hidden", // Disable body scroll
+                backgroundColor: "var(--color-bg)",
+            }}
         >
-            {/* 1. PROFESSIONAL HEADER (Teal Background) */}
+            {/* 2. FIXED HEADER (flexShrink: 0 prevents shrinking) */}
             <nav
                 className="navbar navbar-expand-lg py-0 px-4 border-bottom border-2 border-dark"
                 style={{
@@ -81,6 +86,7 @@ export default function StaffLayout() {
                     zIndex: 1000,
                     boxShadow: "0 4px 0 rgba(0,0,0,0.1)",
                     height: "80px",
+                    flexShrink: 0, // IMPORTANT: Prevents squishing
                 }}
             >
                 <div className="container-fluid h-100 d-flex align-items-center justify-content-between">
@@ -238,10 +244,13 @@ export default function StaffLayout() {
                 </div>
             </nav>
 
-            {/* 2. NAVIGATION BAR (Horizontal Tabs) */}
+            {/* 3. FIXED MENU BAR (Horizontal Tabs) */}
             <div
                 className="bg-dark border-bottom border-2 border-dark shadow-sm pt-3"
-                style={{ paddingBottom: "0" }}
+                style={{
+                    paddingBottom: "0",
+                    flexShrink: 0, // IMPORTANT: Prevents shrinking
+                }}
             >
                 <div className="container-fluid px-4">
                     <ul
@@ -324,29 +333,39 @@ export default function StaffLayout() {
                 </div>
             </div>
 
-            {/* 3. MAIN CONTENT */}
-            <main className="flex-grow-1 p-4 overflow-auto">
-                <div className="container-fluid fade-in">
-                    <Outlet />
-                </div>
-            </main>
-
-            {/* 4. FOOTER */}
-            <footer
-                className="py-3 bg-white text-center small mt-auto"
-                style={{ borderTop: "2px solid black" }}
+            {/* 4. SCROLLABLE CONTENT AREA */}
+            <div
+                className="d-flex flex-column flex-grow-1"
+                style={{
+                    overflowY: "auto", // Allows scrolling only in this area
+                }}
             >
-                <div className="container font-monospace">
-                    <span>© {new Date().getFullYear()} SmartEnroll System</span>
-                    <span className="mx-2">|</span>
-                    <button
-                        className="btn btn-link text-dark text-decoration-none fw-bold p-0"
-                        onClick={() => setShowTerms(true)}
-                    >
-                        Terms & Policy
-                    </button>
-                </div>
-            </footer>
+                {/* MAIN CONTENT */}
+                <main className="flex-grow-1 p-4">
+                    <div className="container-fluid fade-in">
+                        <Outlet />
+                    </div>
+                </main>
+
+                {/* FOOTER (Inside scrollable area) */}
+                <footer
+                    className="py-3 bg-white text-center small mt-auto"
+                    style={{ borderTop: "2px solid black" }}
+                >
+                    <div className="container font-monospace">
+                        <span>
+                            © {new Date().getFullYear()} SmartEnroll System
+                        </span>
+                        <span className="mx-2">|</span>
+                        <button
+                            className="btn btn-link text-dark text-decoration-none fw-bold p-0"
+                            onClick={() => setShowTerms(true)}
+                        >
+                            Terms & Policy
+                        </button>
+                    </div>
+                </footer>
+            </div>
 
             <TermsModal
                 show={showTerms}
