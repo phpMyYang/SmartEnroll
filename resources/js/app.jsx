@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Maintenance from "./pages/Maintenance";
 
 // --- ADMIN PAGES ---
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -65,6 +66,7 @@ function App() {
                     path="/password-reset/:token"
                     element={<ResetPassword />}
                 />
+                <Route path="/maintenance" element={<Maintenance />} />
 
                 {/* ==============================
                     ADMIN ROUTES
