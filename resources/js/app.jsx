@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // --- LAYOUTS ---
 import AdminLayout from "./layouts/AdminLayout";
+import StaffLayout from "./layouts/StaffLayout";
 
 // --- PUBLIC PAGES ---
 import Landing from "./pages/Landing";
@@ -14,7 +15,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 // --- ADMIN PAGES ---
-import Dashboard from "./pages/admin/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
 import Students from "./pages/admin/Students";
 import Strands from "./pages/admin/Strands";
@@ -24,15 +25,24 @@ import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
 import RecycleBin from "./pages/admin/RecycleBin";
 
-// Placeholder Component (Para sa mga modules na gagawin pa lang)
+// --- STAFF PAGES ---
+import StaffDashboard from "./pages/staff/Dashboard";
+
+// Placeholder Component
 const Placeholder = ({ title }) => (
     <div className="container-fluid p-4 fade-in">
-        <h2 className="fw-bold text-dark mb-3">{title}</h2>
-        <div className="card shadow-sm border-0">
+        <h2 className="fw-bold text-dark mb-3 font-monospace">{title}</h2>
+        <div
+            className="card shadow-sm border-0"
+            style={{ backgroundColor: "#FFE2AF", border: "2px solid black" }}
+        >
             <div className="card-body text-center py-5">
-                <i className="bi bi-cone-striped fs-1 text-warning mb-3"></i>
-                <h4 className="text-muted">Work in Progress</h4>
-                <p>
+                <i
+                    className="bi bi-cone-striped fs-1 text-warning mb-3"
+                    style={{ textShadow: "2px 2px 0 #000" }}
+                ></i>
+                <h4 className="text-muted font-monospace">Work in Progress</h4>
+                <p className="font-monospace">
                     This module (<strong>{title}</strong>) is currently under
                     development.
                 </p>
@@ -57,64 +67,77 @@ function App() {
                 />
 
                 {/* ==============================
-                    ADMIN PROTECTED ROUTES
+                    ADMIN ROUTES
                 ============================== */}
                 <Route path="/admin" element={<AdminLayout />}>
-                    {/* Default Redirect: /admin -> /admin/dashboard */}
                     <Route
                         index
                         element={<Navigate to="/admin/dashboard" replace />}
                     />
-
-                    {/* 1. Dashboard */}
-                    <Route path="dashboard" element={<Dashboard />} />
-
-                    {/* 2. User Management */}
+                    <Route path="dashboard" element={<AdminDashboard />} />
                     <Route
                         path="users"
                         element={<Users title="Users Management" />}
                     />
-
-                    {/* 3. Student Management */}
                     <Route
                         path="students"
                         element={<Students title="Student Management" />}
                     />
-
-                    {/* 4. Strand Management */}
                     <Route
                         path="strands"
                         element={<Strands title="Strand Management" />}
                     />
-
-                    {/* 5. Section Management */}
                     <Route
                         path="sections"
                         element={<Sections title="Section Management" />}
                     />
-
-                    {/* 6. Subject Management */}
                     <Route
                         path="subjects"
                         element={<Subjects title="Subject Management" />}
                     />
-
-                    {/* 7. Reports (Placeholder) */}
                     <Route
                         path="reports"
                         element={<Reports title="System Reports" />}
                     />
-
-                    {/* 8. Settings */}
                     <Route
                         path="settings"
                         element={<Settings title="Enrollment Settings" />}
                     />
-
-                    {/* 9. Recycle Bin (Placeholder) */}
                     <Route
                         path="recycle-bin"
                         element={<RecycleBin title="Recycle Bin" />}
+                    />
+                </Route>
+
+                {/* ==============================
+                    STAFF ROUTES (NEW)
+                ============================== */}
+                <Route path="/staff" element={<StaffLayout />}>
+                    <Route
+                        index
+                        element={<Navigate to="/staff/dashboard" replace />}
+                    />
+
+                    <Route path="dashboard" element={<StaffDashboard />} />
+                    <Route
+                        path="students"
+                        element={<Placeholder title="Student Records" />}
+                    />
+                    <Route
+                        path="strands"
+                        element={<Placeholder title="Strands" />}
+                    />
+                    <Route
+                        path="sections"
+                        element={<Placeholder title="Sections" />}
+                    />
+                    <Route
+                        path="subjects"
+                        element={<Placeholder title="Subjects" />}
+                    />
+                    <Route
+                        path="reports"
+                        element={<Placeholder title="Reports" />}
                     />
                 </Route>
 

@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Auth\Events\Verified;
 
-// CONTROLLERS IMPORT
+// CONTROLLERS IMPORT FOR ADMIN
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
@@ -18,6 +18,9 @@ use App\Http\Controllers\CORController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RecycleBinController;
 use App\Models\User; 
+
+// CONTROLLERS IMPORT FOR ADMIN
+use App\Http\Controllers\StaffController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckMaintenanceMode::class])->group(function () {
         // Example: Staff specific routes that are blocked during maintenance
         // Route::apiResource('students', StudentController::class);
+        Route::get('/staff/analytics', [StaffController::class, 'getAnalytics']);
     });
 });
 
