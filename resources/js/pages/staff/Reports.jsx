@@ -148,7 +148,7 @@ export default function StaffReports() {
                         className="fw-bold mb-0 font-monospace text-uppercase"
                         style={{ textShadow: "2px 2px 0 #fff" }}
                     >
-                        SYSTEM REPORTS (STAFF)
+                        SYSTEM REPORTS
                     </h2>
                     <p className="text-muted small mb-0 font-monospace fw-bold">
                         Generate Official Documents & Exports

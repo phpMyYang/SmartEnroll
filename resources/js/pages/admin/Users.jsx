@@ -314,8 +314,11 @@ export default function Users() {
                                                             : "ACTIVE"}
                                                     </span>
                                                 </td>
+
+                                                {/* ACTION BUTTONS WITH EFFECTS */}
                                                 <td className="text-end pe-4 py-3">
                                                     <div className="d-flex justify-content-end gap-2">
+                                                        {/* VIEW */}
                                                         <button
                                                             className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                             style={{
@@ -325,16 +328,28 @@ export default function Users() {
                                                                     "#ffffff",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s", // Added
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenView(
                                                                     user,
                                                                 )
                                                             }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            } // Added
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            } // Added
                                                             title="View Details"
                                                         >
                                                             <i className="bi bi-eye-fill text-dark"></i>
                                                         </button>
+
+                                                        {/* EDIT */}
                                                         <button
                                                             className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                             style={{
@@ -344,16 +359,28 @@ export default function Users() {
                                                                     "#F4D03F",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s", // Added
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenEdit(
                                                                     user,
                                                                 )
                                                             }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            } // Added
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            } // Added
                                                             title="Edit User"
                                                         >
                                                             <i className="bi bi-pencil-fill text-dark"></i>
                                                         </button>
+
+                                                        {/* DELETE (Disabled for Self) */}
                                                         {isSelf ? (
                                                             <button
                                                                 className="btn btn-sm rounded-0 border-2 border-dark d-flex align-items-center justify-content-center"
@@ -380,12 +407,26 @@ export default function Users() {
                                                                         "#F96E5B",
                                                                     boxShadow:
                                                                         "2px 2px 0 #000",
+                                                                    transition:
+                                                                        "transform 0.1s", // Added
                                                                 }}
                                                                 onClick={() =>
                                                                     handleDelete(
                                                                         user.id,
                                                                     )
                                                                 }
+                                                                onMouseEnter={(
+                                                                    e,
+                                                                ) =>
+                                                                    (e.currentTarget.style.transform =
+                                                                        "translate(-1px, -1px)")
+                                                                } // Added
+                                                                onMouseLeave={(
+                                                                    e,
+                                                                ) =>
+                                                                    (e.currentTarget.style.transform =
+                                                                        "translate(0, 0)")
+                                                                } // Added
                                                                 title="Delete User"
                                                             >
                                                                 <i className="bi bi-trash-fill text-white"></i>

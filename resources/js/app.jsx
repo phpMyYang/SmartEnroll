@@ -84,11 +84,11 @@ function App() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route
                         path="users"
-                        element={<Users title="Users Management" />}
+                        element={<Users title="User Records" />}
                     />
                     <Route
                         path="students"
-                        element={<Students title="Student Management" />}
+                        element={<Students title="Student Records" />}
                     />
                     <Route
                         path="strands"
@@ -132,19 +132,19 @@ function App() {
                     />
                     <Route
                         path="strands"
-                        element={<StaffStrands title="Strands" />}
+                        element={<StaffStrands title="Strands Management" />}
                     />
                     <Route
                         path="sections"
-                        element={<StaffSections title="Sections" />}
+                        element={<StaffSections title="Sections Management" />}
                     />
                     <Route
                         path="subjects"
-                        element={<StaffSubjects title="Subjects" />}
+                        element={<StaffSubjects title="Subjects Management" />}
                     />
                     <Route
                         path="reports"
-                        element={<StaffReports title="Reports" />}
+                        element={<StaffReports title="System Reports" />}
                     />
                 </Route>
 

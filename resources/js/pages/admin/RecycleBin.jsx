@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast"; // ✅ Using Toast
+import Toast from "../../utils/toast"; // Using Toast
 
 export default function RecycleBin() {
     const [activeTab, setActiveTab] = useState("students");
@@ -59,7 +59,7 @@ export default function RecycleBin() {
             setSearchTerm("");
         } catch (error) {
             console.error(error);
-            // ✅ ERROR TOAST
+            // ERROR TOAST
             Toast.fire({ icon: "error", title: "Failed to load trash." });
         } finally {
             setLoading(false);
@@ -134,7 +134,7 @@ export default function RecycleBin() {
     const handleRestore = async () => {
         if (selectedIds.length === 0) return;
 
-        // ✅ CONFIRMATION: Swal Center
+        // CONFIRMATION: Swal Center
         Swal.fire({
             title: `RESTORE ${selectedIds.length} ITEMS?`,
             text: "Data will return to the active list.",
@@ -157,11 +157,11 @@ export default function RecycleBin() {
                         type: activeTab,
                         ids: selectedIds,
                     });
-                    // ✅ SUCCESS TOAST
+                    // SUCCESS TOAST
                     Toast.fire({ icon: "success", title: "Items Restored!" });
                     fetchTrash();
                 } catch (error) {
-                    // ✅ ERROR TOAST
+                    // ERROR TOAST
                     Toast.fire({ icon: "error", title: "Restore Failed" });
                 }
             }
@@ -172,7 +172,7 @@ export default function RecycleBin() {
     const handleForceDelete = async () => {
         if (selectedIds.length === 0) return;
 
-        // ✅ CONFIRMATION: Swal Center (Warning)
+        // CONFIRMATION: Swal Center (Warning)
         Swal.fire({
             title: "PERMANENTLY DELETE?",
             text: "This action cannot be undone. Data will be gone forever.",
@@ -194,14 +194,14 @@ export default function RecycleBin() {
                     await axios.delete("/api/recycle-bin/force-delete", {
                         data: { type: activeTab, ids: selectedIds },
                     });
-                    // ✅ SUCCESS TOAST
+                    // SUCCESS TOAST
                     Toast.fire({
                         icon: "success",
                         title: "Items Permanently Deleted!",
                     });
                     fetchTrash();
                 } catch (error) {
-                    // ✅ ERROR TOAST
+                    // ERROR TOAST
                     Toast.fire({ icon: "error", title: "Delete Failed" });
                 }
             }

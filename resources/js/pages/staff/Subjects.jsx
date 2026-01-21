@@ -119,7 +119,7 @@ export default function StaffSubjects() {
                         className="fw-bold text-dark mb-0 font-monospace"
                         style={{ textShadow: "2px 2px 0 #fff" }}
                     >
-                        SUBJECT MANAGEMENT (STAFF)
+                        SUBJECT MANAGEMENT
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
                         Curriculum & Subjects List

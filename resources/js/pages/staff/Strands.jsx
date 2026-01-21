@@ -105,7 +105,7 @@ export default function StaffStrands() {
                         STRANDS MANAGEMENT
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
-                        Manage Senior High School Strands (Staff View)
+                        Manage Senior High School Strands
                     </p>
                 </div>
                 <button

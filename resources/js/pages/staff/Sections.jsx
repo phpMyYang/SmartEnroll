@@ -143,7 +143,7 @@ export default function StaffSections() {
                         SECTION MANAGEMENT
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
-                        Organize Classes & Capacity (Staff View)
+                        Organize Classes & Capacity
                     </p>
                 </div>
                 <button

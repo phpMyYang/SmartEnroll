@@ -78,7 +78,7 @@ export default function StaffLayout() {
                 backgroundColor: "var(--color-bg)",
             }}
         >
-            {/* 2. FIXED HEADER (flexShrink: 0 prevents shrinking) */}
+            {/* 2. FIXED HEADER */}
             <nav
                 className="navbar navbar-expand-lg py-0 px-4 border-bottom border-2 border-dark"
                 style={{
@@ -86,7 +86,7 @@ export default function StaffLayout() {
                     zIndex: 1000,
                     boxShadow: "0 4px 0 rgba(0,0,0,0.1)",
                     height: "80px",
-                    flexShrink: 0, // IMPORTANT: Prevents squishing
+                    flexShrink: 0,
                 }}
             >
                 <div className="container-fluid h-100 d-flex align-items-center justify-content-between">
@@ -155,89 +155,106 @@ export default function StaffLayout() {
                     {/* RIGHT: USER PROFILE */}
                     <div className="position-relative">
                         <div
-                            className="d-flex align-items-center cursor-pointer gap-3 px-3 py-2 rounded bg-white border border-2 border-dark"
+                            className="d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded justify-content-between" // Added justify-content-between
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             style={{
                                 cursor: "pointer",
-                                boxShadow: "3px 3px 0 #000",
+                                border: "2px solid white",
+                                backgroundColor: isDropdownOpen
+                                    ? "rgba(255,255,255,0.1)"
+                                    : "transparent",
                                 transition: "all 0.1s",
+                                minWidth: "180px", // Optional: Ensure enough width
                             }}
-                            onMouseDown={(e) => {
-                                e.currentTarget.style.transform =
-                                    "translate(2px, 2px)";
-                                e.currentTarget.style.boxShadow =
-                                    "1px 1px 0 #000";
+                            onMouseEnter={(e) => {
+                                if (!isDropdownOpen)
+                                    e.currentTarget.style.backgroundColor =
+                                        "rgba(255,255,255,0.1)";
                             }}
-                            onMouseUp={(e) => {
-                                e.currentTarget.style.transform =
-                                    "translate(0, 0)";
-                                e.currentTarget.style.boxShadow =
-                                    "3px 3px 0 #000";
+                            onMouseLeave={(e) => {
+                                if (!isDropdownOpen)
+                                    e.currentTarget.style.backgroundColor =
+                                        "transparent";
                             }}
                         >
-                            <div
-                                className="text-end d-none d-md-block"
-                                style={{ lineHeight: "1.2" }}
-                            >
-                                <span className="d-block fw-bold text-dark font-monospace">
-                                    {user.name}
-                                </span>
-                                <span
-                                    className="d-block text-muted text-uppercase small"
-                                    style={{
-                                        fontSize: "0.7rem",
-                                        fontWeight: "800",
-                                    }}
+                            {/* LEFT SIDE: Avatar + Info */}
+                            <div className="d-flex align-items-center">
+                                {/* AVATAR */}
+                                <img
+                                    src={`https://ui-avatars.com/api/?name=${user.name}&background=000000&color=fff&bold=true`}
+                                    alt="User"
+                                    width="40"
+                                    height="40"
+                                    className="rounded-circle border border-2 border-white flex-shrink-0"
+                                />
+
+                                <div
+                                    className="ms-2 d-none d-md-block"
+                                    style={{ lineHeight: "1.2" }}
                                 >
-                                    {user.role}
-                                </span>
+                                    <strong
+                                        className="d-block text-truncate font-monospace"
+                                        style={{ maxWidth: "150px" }}
+                                    >
+                                        {user.name}
+                                    </strong>
+                                    <small
+                                        className="d-block text-uppercase"
+                                        style={{
+                                            fontSize: "0.7rem",
+                                            letterSpacing: "1px",
+                                            fontWeight: "800",
+                                            color: "rgba(255,255,255,0.7)",
+                                        }}
+                                    >
+                                        {user.role}
+                                    </small>
+                                </div>
                             </div>
-                            <img
-                                src={`https://ui-avatars.com/api/?name=${user.name}&background=000000&color=fff`}
-                                alt="User"
-                                width="40"
-                                height="40"
-                                className="rounded-circle border border-2 border-dark"
-                            />
+
+                            {/* RIGHT SIDE: Chevron (With proper spacing) */}
                             <i
-                                className={`bi bi-chevron-${isDropdownOpen ? "up" : "down"} small text-dark ms-1`}
+                                className={`bi bi-chevron-${isDropdownOpen ? "up" : "down"} ms-4 small text-white`} // Changed ms-2 to ms-4 for wider gap
                             ></i>
                         </div>
 
                         {/* DROPDOWN MENU */}
                         {isDropdownOpen && (
                             <div
-                                className="position-absolute bg-white border border-2 border-dark p-0 rounded shadow fade-in"
+                                className="bg-white text-dark rounded p-2 fade-in"
                                 style={{
+                                    position: "absolute",
                                     top: "125%",
-                                    right: 0,
-                                    minWidth: "240px",
+                                    right: "0",
+                                    minWidth: "260px",
+                                    border: "2px solid black",
+                                    boxShadow: "4px 4px 0px #000",
                                     zIndex: 1050,
-                                    boxShadow: "5px 5px 0 #000",
                                 }}
                             >
-                                <div className="p-3 border-bottom border-dark bg-retro-bg">
-                                    <small
-                                        className="fw-bold text-muted d-block font-monospace"
-                                        style={{ fontSize: "0.7rem" }}
-                                    >
+                                <div className="px-3 py-2 border-bottom border-dark mb-2 bg-retro-bg rounded">
+                                    <span className="d-block small fw-bold text-muted font-monospace">
                                         SIGNED IN AS
-                                    </small>
-                                    <span className="fw-bold text-dark text-truncate d-block font-monospace">
+                                    </span>
+                                    <span
+                                        className="d-block text-truncate fw-bold text-dark font-monospace"
+                                        title={user.email}
+                                    >
                                         {user.email}
                                     </span>
                                 </div>
 
-                                <div className="p-2">
-                                    <button
-                                        onClick={handleLogout}
-                                        className="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2 fw-bold border-2 border-dark rounded-1 font-monospace"
-                                        style={{ boxShadow: "2px 2px 0 #000" }}
-                                    >
-                                        <i className="bi bi-box-arrow-right"></i>{" "}
-                                        SIGN OUT
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2 fw-bold font-monospace"
+                                    style={{
+                                        border: "2px solid black",
+                                        boxShadow: "2px 2px 0 #000",
+                                    }}
+                                >
+                                    <i className="bi bi-box-arrow-right"></i>{" "}
+                                    SIGN OUT
+                                </button>
                             </div>
                         )}
                     </div>
@@ -249,7 +266,7 @@ export default function StaffLayout() {
                 className="bg-dark border-bottom border-2 border-dark shadow-sm pt-3"
                 style={{
                     paddingBottom: "0",
-                    flexShrink: 0, // IMPORTANT: Prevents shrinking
+                    flexShrink: 0,
                 }}
             >
                 <div className="container-fluid px-4">
@@ -337,7 +354,7 @@ export default function StaffLayout() {
             <div
                 className="d-flex flex-column flex-grow-1"
                 style={{
-                    overflowY: "auto", // Allows scrolling only in this area
+                    overflowY: "auto",
                 }}
             >
                 {/* MAIN CONTENT */}
@@ -347,7 +364,7 @@ export default function StaffLayout() {
                     </div>
                 </main>
 
-                {/* FOOTER (Inside scrollable area) */}
+                {/* FOOTER */}
                 <footer
                     className="py-3 bg-white text-center small mt-auto"
                     style={{ borderTop: "2px solid black" }}

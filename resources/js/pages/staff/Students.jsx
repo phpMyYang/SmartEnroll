@@ -229,7 +229,7 @@ export default function StaffStudents(props) {
                         className="fw-bold text-dark mb-0 font-monospace"
                         style={{ textShadow: "2px 2px 0 #fff" }}
                     >
-                        STUDENT MANAGEMENT (STAFF)
+                        STUDENT MANAGEMENT
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
                         Manage Enrollment Records
