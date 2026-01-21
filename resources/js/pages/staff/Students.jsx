@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // Using Toast
 
 // Modals
 import StudentDrawer from "../../components/StudentDrawer";
@@ -61,12 +61,13 @@ export default function StaffStudents(props) {
         try {
             const [std, str] = await Promise.all([
                 axios.get("/api/staff/students"), // Staff API
-                axios.get("/api/staff/strands"), // staff API
+                axios.get("/api/staff/strands"), // Staff API
             ]);
             setStudents(std.data);
             setStrands(str.data);
         } catch (e) {
             console.error(e);
+            // ERROR TOAST
             Toast.fire({ icon: "error", title: "Failed to load data." });
         } finally {
             setLoading(false);
@@ -118,9 +119,11 @@ export default function StaffStudents(props) {
         }
     };
 
-    // STATUS CHANGE
+    // --- STATUS CHANGE (Swal Confirmation + Toast Result) ---
     const handleChangeStatus = async (student, newStatus) => {
         setOpenActionId(null);
+
+        // CONFIRMATION (Swal - Center Modal)
         if (newStatus === "released") {
             const res = await Swal.fire({
                 title: "CONFIRM RELEASE?",
@@ -147,25 +150,22 @@ export default function StaffStudents(props) {
             });
             fetchData();
 
-            // SUCCESS MODAL (Swal, not Toast - to match Admin)
-            Swal.fire({
-                title: "UPDATED",
-                text: `Status changed to: ${newStatus.toUpperCase()}`,
+            // SUCCESS TOAST
+            Toast.fire({
                 icon: "success",
-                timer: 1500,
-                showConfirmButton: false,
-                background: "#FFE2AF",
-                color: "#000",
-                customClass: { popup: "card-retro" },
+                title: `Status: ${newStatus.toUpperCase()}`,
             });
         } catch (e) {
-            Swal.fire("Error", "Failed to update status.", "error");
+            // ERROR TOAST
+            Toast.fire({ icon: "error", title: "Failed to update status." });
         }
     };
 
-    // DELETE HANDLER
+    // --- DELETE HANDLER (Swal Confirmation + Toast Result) ---
     const handleDelete = (id) => {
         setOpenActionId(null);
+
+        // CONFIRMATION (Swal - Center Modal)
         Swal.fire({
             title: "DELETE RECORD?",
             text: "This action cannot be undone.",
@@ -185,19 +185,18 @@ export default function StaffStudents(props) {
                 try {
                     await axios.delete(`/api/staff/students/${id}`); // Staff API
                     fetchData();
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "Record removed.",
+
+                    // SUCCESS TOAST
+                    Toast.fire({
                         icon: "success",
-                        background: "#FFE2AF",
-                        color: "#000",
-                        customClass: {
-                            popup: "card-retro",
-                            confirmButton: "btn-retro bg-success border-dark",
-                        },
+                        title: "Record removed successfully.",
                     });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete.", "error");
+                    // ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete record.",
+                    });
                 }
             }
         });
@@ -401,7 +400,7 @@ export default function StaffStudents(props) {
                                                 </span>
                                             </td>
 
-                                            {/* ACTION BUTTONS WITH RETRO LIFT EFFECT */}
+                                            {/* ACTION BUTTONS (With Retro Lift Effect) */}
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2 position-relative">
                                                     {/* VIEW */}
@@ -466,7 +465,7 @@ export default function StaffStudents(props) {
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
-                                                    {/* MENU */}
+                                                    {/* MENU (Dark Blue) */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center custom-dropdown-trigger"
                                                         style={{
@@ -548,7 +547,7 @@ export default function StaffStudents(props) {
                         <strong>
                             {Math.min(indexOfLastItem, filteredStudents.length)}
                         </strong>{" "}
-                        of <strong>{filteredStudents.length}</strong>
+                        of <strong>{filteredStudents.length}</strong> entries
                     </small>
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
@@ -678,6 +677,7 @@ export default function StaffStudents(props) {
                 </div>
             )}
 
+            {/* PASSING STAFF PREFIX */}
             <StudentDrawer
                 show={drawerState.show}
                 type={drawerState.type}
