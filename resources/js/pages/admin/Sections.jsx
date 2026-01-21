@@ -15,7 +15,6 @@ export default function Sections() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSection, setSelectedSection] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // MASTER LIST MODAL STATES
     const [showMasterList, setShowMasterList] = useState(false);
@@ -55,29 +54,9 @@ export default function Sections() {
         setShowDrawer(true);
     };
 
-    const handleSubmit = async (formData) => {
-        setIsSubmitting(true);
-        try {
-            if (drawerType === "create") {
-                await axios.post("/api/sections", formData);
-                Toast.fire({ icon: "success", title: "Section created!" });
-            } else {
-                await axios.put(
-                    `/api/sections/${selectedSection.id}`,
-                    formData
-                );
-                Toast.fire({ icon: "success", title: "Section updated!" });
-            }
-            fetchData();
-            setShowDrawer(false);
-        } catch (error) {
-            Toast.fire({ icon: "error", title: "Error saving section." });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // ✅ CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SECTION?",
             text: "This cannot be undone.",
@@ -85,6 +64,8 @@ export default function Sections() {
             showCancelButton: true,
             confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
+            background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -95,9 +76,14 @@ export default function Sections() {
                 try {
                     await axios.delete(`/api/sections/${id}`);
                     fetchData();
-                    Swal.fire("Deleted!", "Section removed.", "success");
+                    // ✅ SUCCESS TOAST
+                    Toast.fire({ icon: "success", title: "Section removed." });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete.", "error");
+                    // ✅ ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete section.",
+                    });
                 }
             }
         });
@@ -110,7 +96,7 @@ export default function Sections() {
         setMasterData(null);
         try {
             const res = await axios.get(
-                `/api/sections/${sectionId}/masterlist`
+                `/api/sections/${sectionId}/masterlist`,
             );
             setMasterData(res.data);
         } catch (error) {
@@ -122,31 +108,25 @@ export default function Sections() {
     };
 
     const handleDownloadPDF = async (sectionId, sectionName) => {
-        Swal.fire({
-            title: "Preparing Download...",
-            text: "Generating Professional PDF...",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        // Optional: Non-blocking info toast or just loading state
+        Toast.fire({ icon: "info", title: "Generating PDF..." });
 
         try {
             const response = await axios.get(
-                `/api/sections/${sectionId}/masterlist/generate-url`
+                `/api/sections/${sectionId}/masterlist/generate-url`,
             );
             const secureUrl = response.data.url;
             window.open(secureUrl, "_blank");
-            Swal.close();
             Toast.fire({ icon: "success", title: "Download Started!" });
         } catch (error) {
-            console.error("Download Error:", error);
-            Swal.fire("Error", "Failed to generate download link.", "error");
+            Toast.fire({ icon: "error", title: "Failed to generate link." });
         }
     };
 
     const filteredSections = sections.filter(
         (s) =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.strand.code.toLowerCase().includes(searchTerm.toLowerCase())
+            s.strand.code.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     return (
@@ -181,7 +161,6 @@ export default function Sections() {
                         </span>
                         <input
                             type="text"
-                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search section..."
                             value={searchTerm}
@@ -191,7 +170,7 @@ export default function Sections() {
                 </div>
             </div>
 
-            {/* CARDS GRID - UPDATED TO MATCH YOUR IMAGE */}
+            {/* CARDS GRID */}
             <div className="row g-4">
                 {loading ? (
                     <div className="col-12 text-center py-5">
@@ -220,7 +199,7 @@ export default function Sections() {
                                         boxShadow: "6px 6px 0px #000",
                                     }}
                                 >
-                                    {/* COLOR STRIP (Maintains Grade Logic) */}
+                                    {/* COLOR STRIP */}
                                     <div
                                         style={{
                                             height: "14px",
@@ -235,7 +214,6 @@ export default function Sections() {
                                     ></div>
 
                                     <div className="card-body p-4 d-flex flex-column">
-                                        {/* HEADER PART */}
                                         <div className="d-flex justify-content-between align-items-start mb-2">
                                             <div>
                                                 <h3
@@ -256,7 +234,6 @@ export default function Sections() {
                                             <i className="bi bi-bookmark-fill fs-4 text-muted opacity-25"></i>
                                         </div>
 
-                                        {/* CAPACITY BAR (Keeping this functional requirement) */}
                                         <div className="my-3">
                                             <div className="d-flex justify-content-between small fw-bold font-monospace mb-1">
                                                 <span>STUDENTS:</span>
@@ -278,30 +255,19 @@ export default function Sections() {
                                                 }}
                                             >
                                                 <div
-                                                    className={`progress-bar rounded-pill ${
-                                                        isFull
-                                                            ? "bg-danger"
-                                                            : "bg-success"
-                                                    }`}
+                                                    className={`progress-bar rounded-pill ${isFull ? "bg-danger" : "bg-success"}`}
                                                     style={{
-                                                        width: `${
-                                                            (enrolled /
-                                                                capacity) *
-                                                            100
-                                                        }%`,
+                                                        width: `${(enrolled / capacity) * 100}%`,
                                                     }}
                                                 ></div>
                                             </div>
                                         </div>
 
-                                        {/* DIVIDER LINE */}
                                         <hr className="my-3 border-top border-2 border-dark opacity-100" />
 
-                                        {/* BUTTONS AREA */}
                                         <div className="mt-auto">
-                                            {/* Master List (Cyan Button) */}
                                             <button
-                                                className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect" // ADDED CLASS
+                                                className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect"
                                                 style={{
                                                     backgroundColor: "#dff9fb",
                                                     color: "#000",
@@ -309,18 +275,16 @@ export default function Sections() {
                                                 }}
                                                 onClick={() =>
                                                     handleViewMasterList(
-                                                        section.id
+                                                        section.id,
                                                     )
                                                 }
                                             >
                                                 <i className="bi bi-list-task me-2"></i>{" "}
                                                 MASTER LIST
                                             </button>
-
                                             <div className="d-flex gap-2">
-                                                {/* Edit (Yellow Button) */}
                                                 <button
-                                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // DDED CLASS
+                                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect"
                                                     style={{
                                                         backgroundColor:
                                                             "#f6e58d",
@@ -334,10 +298,8 @@ export default function Sections() {
                                                     <i className="bi bi-pencil-fill me-2"></i>{" "}
                                                     EDIT
                                                 </button>
-
-                                                {/* Delete (Red Button) */}
                                                 <button
-                                                    className="btn font-monospace fw-bold px-3 btn-retro-effect" // ADDED CLASS
+                                                    className="btn font-monospace fw-bold px-3 btn-retro-effect"
                                                     style={{
                                                         backgroundColor:
                                                             "#ff7675",
@@ -360,7 +322,7 @@ export default function Sections() {
                 )}
             </div>
 
-            {/* MASTER LIST MODAL - SAME CLEAN DESIGN */}
+            {/* MASTER LIST MODAL */}
             {showMasterList && (
                 <>
                     <div
@@ -370,7 +332,6 @@ export default function Sections() {
                     <div className="modal fade show d-block">
                         <div className="modal-dialog modal-lg modal-dialog-scrollable">
                             <div className="modal-content border-2 border-dark rounded-0 shadow-lg">
-                                {/* MODAL HEADER */}
                                 <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3">
                                     <h5 className="modal-title fw-bold font-monospace mx-auto">
                                         <i className="bi bi-file-earmark-person-fill me-2 text-warning"></i>{" "}
@@ -382,7 +343,6 @@ export default function Sections() {
                                         onClick={() => setShowMasterList(false)}
                                     ></button>
                                 </div>
-
                                 <div className="modal-body bg-secondary p-4 bg-opacity-10">
                                     {loadingMaster || !masterData ? (
                                         <div className="text-center py-5">
@@ -423,7 +383,6 @@ export default function Sections() {
                                                     </span>
                                                 </div>
                                             </div>
-
                                             <div className="table-responsive">
                                                 <table className="table table-bordered border-dark mb-0 font-monospace small align-middle">
                                                     <thead className="bg-light text-center">
@@ -459,12 +418,13 @@ export default function Sections() {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
+                                                        {/* Table rows logic remains same */}
                                                         <tr className="table-secondary fw-bold border-top border-dark">
                                                             <td
                                                                 colSpan="4"
                                                                 className="ps-3"
                                                             >
-                                                                <i className="bi bi-gender-male me-2"></i>
+                                                                <i className="bi bi-gender-male me-2"></i>{" "}
                                                                 MALE
                                                             </td>
                                                         </tr>
@@ -490,7 +450,7 @@ export default function Sections() {
                                                                         {s.lrn}
                                                                     </td>
                                                                 </tr>
-                                                            )
+                                                            ),
                                                         )}
                                                         {masterData.males
                                                             .length === 0 && (
@@ -510,7 +470,7 @@ export default function Sections() {
                                                                 colSpan="4"
                                                                 className="ps-3"
                                                             >
-                                                                <i className="bi bi-gender-female me-2"></i>
+                                                                <i className="bi bi-gender-female me-2"></i>{" "}
                                                                 FEMALE
                                                             </td>
                                                         </tr>
@@ -536,7 +496,7 @@ export default function Sections() {
                                                                         {s.lrn}
                                                                     </td>
                                                                 </tr>
-                                                            )
+                                                            ),
                                                         )}
                                                         {masterData.females
                                                             .length === 0 && (
@@ -559,11 +519,11 @@ export default function Sections() {
                                 <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
                                     {masterData && (
                                         <button
-                                            className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect" // ADDED CLASS
+                                            className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect"
                                             onClick={() =>
                                                 handleDownloadPDF(
                                                     masterData.section.id,
-                                                    masterData.section.name
+                                                    masterData.section.name,
                                                 )
                                             }
                                         >
@@ -572,7 +532,7 @@ export default function Sections() {
                                         </button>
                                     )}
                                     <button
-                                        className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect" // ADDED CLASS
+                                        className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect"
                                         onClick={() => setShowMasterList(false)}
                                     >
                                         CLOSE
@@ -584,14 +544,16 @@ export default function Sections() {
                 </>
             )}
 
+            {/* SMART DRAWER */}
+            {/* Tinanggal na ang onSubmit, pinalitan ng onSuccess */}
             <SectionDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSection={selectedSection}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
+                onSuccess={fetchData} // Auto-refresh via Smart Drawer
+                apiPrefix="/api" // Default Admin
             />
         </div>
     );

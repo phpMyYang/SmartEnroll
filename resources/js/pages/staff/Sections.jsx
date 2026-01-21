@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // ✅ Using Toast
 import SectionDrawer from "../../components/SectionDrawer";
 
 export default function StaffSections() {
@@ -15,7 +15,6 @@ export default function StaffSections() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSection, setSelectedSection] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // MASTER LIST MODAL STATES
     const [showMasterList, setShowMasterList] = useState(false);
@@ -55,31 +54,9 @@ export default function StaffSections() {
         setShowDrawer(true);
     };
 
-    const handleSubmit = async (formData) => {
-        setIsSubmitting(true);
-        try {
-            if (drawerType === "create") {
-                // UPDATED: Staff Endpoint
-                await axios.post("/api/staff/sections", formData);
-                Toast.fire({ icon: "success", title: "Section created!" });
-            } else {
-                // UPDATED: Staff Endpoint
-                await axios.put(
-                    `/api/staff/sections/${selectedSection.id}`,
-                    formData,
-                );
-                Toast.fire({ icon: "success", title: "Section updated!" });
-            }
-            fetchData();
-            setShowDrawer(false);
-        } catch (error) {
-            Toast.fire({ icon: "error", title: "Error saving section." });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // ✅ CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SECTION?",
             text: "This cannot be undone.",
@@ -87,6 +64,8 @@ export default function StaffSections() {
             showCancelButton: true,
             confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
+            background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -98,9 +77,14 @@ export default function StaffSections() {
                     // UPDATED: Staff Endpoint
                     await axios.delete(`/api/staff/sections/${id}`);
                     fetchData();
-                    Swal.fire("Deleted!", "Section removed.", "success");
+                    // ✅ SUCCESS TOAST
+                    Toast.fire({ icon: "success", title: "Section removed." });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete.", "error");
+                    // ✅ ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete section.",
+                    });
                 }
             }
         });
@@ -126,12 +110,7 @@ export default function StaffSections() {
     };
 
     const handleDownloadPDF = async (sectionId, sectionName) => {
-        Swal.fire({
-            title: "Preparing Download...",
-            text: "Generating Professional PDF...",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
+        Toast.fire({ icon: "info", title: "Generating PDF..." });
 
         try {
             // UPDATED: Staff Endpoint
@@ -140,11 +119,9 @@ export default function StaffSections() {
             );
             const secureUrl = response.data.url;
             window.open(secureUrl, "_blank");
-            Swal.close();
             Toast.fire({ icon: "success", title: "Download Started!" });
         } catch (error) {
-            console.error("Download Error:", error);
-            Swal.fire("Error", "Failed to generate download link.", "error");
+            Toast.fire({ icon: "error", title: "Failed to generate link." });
         }
     };
 
@@ -239,7 +216,6 @@ export default function StaffSections() {
                                     ></div>
 
                                     <div className="card-body p-4 d-flex flex-column">
-                                        {/* HEADER PART */}
                                         <div className="d-flex justify-content-between align-items-start mb-2">
                                             <div>
                                                 <h3
@@ -260,7 +236,6 @@ export default function StaffSections() {
                                             <i className="bi bi-bookmark-fill fs-4 text-muted opacity-25"></i>
                                         </div>
 
-                                        {/* CAPACITY BAR */}
                                         <div className="my-3">
                                             <div className="d-flex justify-content-between small fw-bold font-monospace mb-1">
                                                 <span>STUDENTS:</span>
@@ -282,28 +257,17 @@ export default function StaffSections() {
                                                 }}
                                             >
                                                 <div
-                                                    className={`progress-bar rounded-pill ${
-                                                        isFull
-                                                            ? "bg-danger"
-                                                            : "bg-success"
-                                                    }`}
+                                                    className={`progress-bar rounded-pill ${isFull ? "bg-danger" : "bg-success"}`}
                                                     style={{
-                                                        width: `${
-                                                            (enrolled /
-                                                                capacity) *
-                                                            100
-                                                        }%`,
+                                                        width: `${(enrolled / capacity) * 100}%`,
                                                     }}
                                                 ></div>
                                             </div>
                                         </div>
 
-                                        {/* DIVIDER LINE */}
                                         <hr className="my-3 border-top border-2 border-dark opacity-100" />
 
-                                        {/* BUTTONS AREA */}
                                         <div className="mt-auto">
-                                            {/* Master List (Cyan Button) */}
                                             <button
                                                 className="btn w-100 mb-2 font-monospace fw-bold btn-retro-effect"
                                                 style={{
@@ -320,9 +284,7 @@ export default function StaffSections() {
                                                 <i className="bi bi-list-task me-2"></i>{" "}
                                                 MASTER LIST
                                             </button>
-
                                             <div className="d-flex gap-2">
-                                                {/* Edit (Yellow Button) */}
                                                 <button
                                                     className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect"
                                                     style={{
@@ -338,8 +300,6 @@ export default function StaffSections() {
                                                     <i className="bi bi-pencil-fill me-2"></i>{" "}
                                                     EDIT
                                                 </button>
-
-                                                {/* Delete (Red Button) */}
                                                 <button
                                                     className="btn font-monospace fw-bold px-3 btn-retro-effect"
                                                     style={{
@@ -374,7 +334,6 @@ export default function StaffSections() {
                     <div className="modal fade show d-block">
                         <div className="modal-dialog modal-lg modal-dialog-scrollable">
                             <div className="modal-content border-2 border-dark rounded-0 shadow-lg">
-                                {/* MODAL HEADER */}
                                 <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3">
                                     <h5 className="modal-title fw-bold font-monospace mx-auto">
                                         <i className="bi bi-file-earmark-person-fill me-2 text-warning"></i>{" "}
@@ -386,7 +345,6 @@ export default function StaffSections() {
                                         onClick={() => setShowMasterList(false)}
                                     ></button>
                                 </div>
-
                                 <div className="modal-body bg-secondary p-4 bg-opacity-10">
                                     {loadingMaster || !masterData ? (
                                         <div className="text-center py-5">
@@ -427,7 +385,6 @@ export default function StaffSections() {
                                                     </span>
                                                 </div>
                                             </div>
-
                                             <div className="table-responsive">
                                                 <table className="table table-bordered border-dark mb-0 font-monospace small align-middle">
                                                     <thead className="bg-light text-center">
@@ -463,13 +420,12 @@ export default function StaffSections() {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {/* MALES */}
                                                         <tr className="table-secondary fw-bold border-top border-dark">
                                                             <td
                                                                 colSpan="4"
                                                                 className="ps-3"
                                                             >
-                                                                <i className="bi bi-gender-male me-2"></i>
+                                                                <i className="bi bi-gender-male me-2"></i>{" "}
                                                                 MALE
                                                             </td>
                                                         </tr>
@@ -510,13 +466,12 @@ export default function StaffSections() {
                                                             </tr>
                                                         )}
 
-                                                        {/* FEMALES */}
                                                         <tr className="table-secondary fw-bold border-top border-dark">
                                                             <td
                                                                 colSpan="4"
                                                                 className="ps-3"
                                                             >
-                                                                <i className="bi bi-gender-female me-2"></i>
+                                                                <i className="bi bi-gender-female me-2"></i>{" "}
                                                                 FEMALE
                                                             </td>
                                                         </tr>
@@ -590,14 +545,15 @@ export default function StaffSections() {
                 </>
             )}
 
+            {/* SMART DRAWER with apiPrefix */}
             <SectionDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSection={selectedSection}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
+                onSuccess={fetchData} // 👈 Auto-refresh
+                apiPrefix="/api/staff" // 👈 PASSING STAFF PREFIX
             />
         </div>
     );
