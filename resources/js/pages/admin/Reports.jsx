@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Modal } from "react-bootstrap";
-import Toast from "../../utils/toast"; // ✅ Using Toast
+import Toast from "../../utils/toast"; // Using Toast
 
 export default function Reports() {
     const [showModal, setShowModal] = useState(false);
@@ -118,14 +118,14 @@ export default function Reports() {
 
             setShowModal(false); // Close modal
 
-            // ✅ SUCCESS TOAST
+            // SUCCESS TOAST
             Toast.fire({
                 icon: "success",
                 title: "Report Generated! Download starting...",
             });
         } catch (error) {
             console.error(error);
-            // ✅ ERROR TOAST
+            // ERROR TOAST
             Toast.fire({
                 icon: "error",
                 title: "No data found or server error.",

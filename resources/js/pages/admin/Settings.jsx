@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // ✅ Using Toast
 import moment from "moment";
 
 // Components
@@ -70,6 +70,7 @@ export default function Settings() {
 
     // HANDLE RESET SCHEDULE
     const handleDeleteSchedule = () => {
+        // ✅ CONFIRMATION: Swal Center
         Swal.fire({
             title: "RESET SCHEDULE?",
             text: "This will remove the current enrollment dates.",
@@ -93,8 +94,10 @@ export default function Settings() {
                     // TRIGGER EVENT: Update Header Agad!
                     window.dispatchEvent(new Event("settings-updated"));
 
+                    // ✅ SUCCESS: Toast
                     Toast.fire({ icon: "success", title: "Schedule reset." });
                 } catch (error) {
+                    // ✅ ERROR: Toast
                     Toast.fire({ icon: "error", title: "Action failed." });
                 }
             }
@@ -104,6 +107,8 @@ export default function Settings() {
     // HANDLE MAINTENANCE MODE
     const handleToggleMaintenance = async () => {
         const newStatus = !settings?.maintenance_mode;
+
+        // ✅ CONFIRMATION: Swal Center
         const result = await Swal.fire({
             title: newStatus ? "LOCK SYSTEM?" : "UNLOCK SYSTEM?",
             html: newStatus
@@ -133,16 +138,17 @@ export default function Settings() {
                 // TRIGGER EVENT: Update Header Agad!
                 window.dispatchEvent(new Event("settings-updated"));
 
-                Swal.fire({
-                    title: newStatus ? "SYSTEM LOCKED" : "ONLINE",
+                // ✅ SUCCESS: Toast (Imbis na Swal)
+                Toast.fire({
                     icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false,
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
+                    title: newStatus ? "SYSTEM LOCKED" : "SYSTEM UNLOCKED",
                 });
             } catch (error) {
-                Swal.fire("Error", "Failed to update.", "error");
+                // ✅ ERROR: Toast
+                Toast.fire({
+                    icon: "error",
+                    title: "Failed to update status.",
+                });
             }
         }
     };
@@ -249,7 +255,7 @@ export default function Settings() {
                                             <div className="d-flex justify-content-between small fw-bold mb-1">
                                                 <span>
                                                     {moment(
-                                                        settings.start_date
+                                                        settings.start_date,
                                                     ).format("MMM D")}
                                                 </span>
                                                 <span
@@ -265,7 +271,7 @@ export default function Settings() {
                                                 </span>
                                                 <span>
                                                     {moment(
-                                                        settings.end_date
+                                                        settings.end_date,
                                                     ).format("MMM D")}
                                                 </span>
                                             </div>
@@ -377,7 +383,7 @@ export default function Settings() {
                                     </span>
                                     <span className="d-block ps-3 text-primary fw-bold">
                                         {currentTime.format(
-                                            "YYYY-MM-DD HH:mm:ss"
+                                            "YYYY-MM-DD HH:mm:ss",
                                         )}
                                     </span>
                                     <span className="d-block mt-1">
@@ -456,7 +462,7 @@ export default function Settings() {
                                         </h2>
                                         <div className="display-4 fw-bold text-warning my-2">
                                             {formatCountdown(
-                                                maintenanceCounter
+                                                maintenanceCounter,
                                             )}
                                         </div>
                                         <p className="small text-white-50 mb-0">
