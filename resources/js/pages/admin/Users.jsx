@@ -19,7 +19,6 @@ export default function Users() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedUser, setSelectedUser] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // INITIAL LOAD
     const fetchUsers = async () => {
@@ -42,20 +41,6 @@ export default function Users() {
         }
     }, []);
 
-    // FILTERING & PAGINATION
-    const filteredUsers = users.filter(
-        (user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
     // HANDLERS
     const handleOpenCreate = () => {
         setDrawerType("create");
@@ -75,36 +60,7 @@ export default function Users() {
         setShowDrawer(true);
     };
 
-    // SUBMIT LOGIC
-    const handleSubmit = async (formData) => {
-        setIsSubmitting(true);
-        try {
-            if (drawerType === "create") {
-                await axios.post("/api/users", formData);
-                Toast.fire({
-                    icon: "success",
-                    title: "User created & credentials sent!",
-                });
-            } else {
-                await axios.put(`/api/users/${selectedUser.id}`, formData);
-                Toast.fire({
-                    icon: "success",
-                    title: "User updated successfully!",
-                });
-            }
-            fetchUsers();
-            setShowDrawer(false);
-        } catch (error) {
-            Toast.fire({
-                icon: "error",
-                title: error.response?.data?.message || "Error occurred.",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    // DELETE LOGIC
+    // DELETE LOGIC (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
         Swal.fire({
             title: "DELETE USER?",
@@ -126,16 +82,34 @@ export default function Users() {
                 try {
                     await axios.delete(`/api/users/${id}`);
                     fetchUsers();
-                    Swal.fire("Deleted!", "User has been removed.", "success");
+                    // Success is Toast
+                    Toast.fire({
+                        icon: "success",
+                        title: "User removed successfully.",
+                    });
                 } catch (error) {
                     const msg =
                         error.response?.data?.message ||
                         "Failed to delete user.";
-                    Swal.fire("Error", msg, "error");
+                    // Error is Toast
+                    Toast.fire({ icon: "error", title: msg });
                 }
             }
         });
     };
+
+    // FILTERING & PAGINATION
+    const filteredUsers = users.filter(
+        (user) =>
+            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div className="container-fluid fade-in mb-5">
@@ -163,9 +137,8 @@ export default function Users() {
                 </button>
             </div>
 
-            {/* MAIN CARD (RETRO STYLE) */}
+            {/* MAIN CARD */}
             <div className="card-retro">
-                {/* TOOLBAR */}
                 <div
                     className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
                     style={{ borderBottom: "2px solid black" }}
@@ -210,7 +183,6 @@ export default function Users() {
                 {/* TABLE */}
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        {/* ADDED: "text-nowrap" class to force horizontal scroll on small screens */}
                         <table className="table table-hover align-middle mb-0 text-nowrap">
                             <thead
                                 style={{
@@ -272,7 +244,6 @@ export default function Users() {
                                         const isSelf =
                                             currentUser &&
                                             user.id === currentUser.id;
-
                                         return (
                                             <tr
                                                 key={user.id}
@@ -291,7 +262,6 @@ export default function Users() {
                                                         index +
                                                         1}
                                                 </td>
-
                                                 <td className="py-3">
                                                     <div className="d-flex align-items-center">
                                                         <img
@@ -322,7 +292,6 @@ export default function Users() {
                                                         </div>
                                                     </div>
                                                 </td>
-
                                                 <td className="py-3">
                                                     <span
                                                         className={`badge rounded-0 border border-dark text-dark px-3 py-2 ${user.role === "admin" ? "bg-warning" : "bg-white"}`}
@@ -330,15 +299,12 @@ export default function Users() {
                                                         {user.role.toUpperCase()}
                                                     </span>
                                                 </td>
-
                                                 <td className="py-3 font-monospace">
                                                     {user.gender || "-"}
                                                 </td>
-
                                                 <td className="py-3 font-monospace small">
                                                     {user.birthday || "-"}
                                                 </td>
-
                                                 <td className="py-3">
                                                     <span
                                                         className={`badge rounded-0 border border-dark px-3 py-1 ${user.status === "active" ? "bg-success text-white" : "bg-danger text-white"}`}
@@ -349,6 +315,7 @@ export default function Users() {
                                                     </span>
                                                 </td>
 
+                                                {/* ACTION BUTTONS WITH EFFECTS */}
                                                 <td className="text-end pe-4 py-3">
                                                     <div className="d-flex justify-content-end gap-2">
                                                         {/* VIEW */}
@@ -361,12 +328,22 @@ export default function Users() {
                                                                     "#ffffff",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s", // Added
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenView(
                                                                     user,
                                                                 )
                                                             }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            } // Added
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            } // Added
                                                             title="View Details"
                                                         >
                                                             <i className="bi bi-eye-fill text-dark"></i>
@@ -382,18 +359,28 @@ export default function Users() {
                                                                     "#F4D03F",
                                                                 boxShadow:
                                                                     "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s", // Added
                                                             }}
                                                             onClick={() =>
                                                                 handleOpenEdit(
                                                                     user,
                                                                 )
                                                             }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            } // Added
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            } // Added
                                                             title="Edit User"
                                                         >
                                                             <i className="bi bi-pencil-fill text-dark"></i>
                                                         </button>
 
-                                                        {/* DELETE */}
+                                                        {/* DELETE (Disabled for Self) */}
                                                         {isSelf ? (
                                                             <button
                                                                 className="btn btn-sm rounded-0 border-2 border-dark d-flex align-items-center justify-content-center"
@@ -420,12 +407,26 @@ export default function Users() {
                                                                         "#F96E5B",
                                                                     boxShadow:
                                                                         "2px 2px 0 #000",
+                                                                    transition:
+                                                                        "transform 0.1s", // Added
                                                                 }}
                                                                 onClick={() =>
                                                                     handleDelete(
                                                                         user.id,
                                                                     )
                                                                 }
+                                                                onMouseEnter={(
+                                                                    e,
+                                                                ) =>
+                                                                    (e.currentTarget.style.transform =
+                                                                        "translate(-1px, -1px)")
+                                                                } // Added
+                                                                onMouseLeave={(
+                                                                    e,
+                                                                ) =>
+                                                                    (e.currentTarget.style.transform =
+                                                                        "translate(0, 0)")
+                                                                } // Added
                                                                 title="Delete User"
                                                             >
                                                                 <i className="bi bi-trash-fill text-white"></i>
@@ -442,7 +443,7 @@ export default function Users() {
                     </div>
                 </div>
 
-                {/* PAGINATION FOOTER */}
+                {/* PAGINATION */}
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
@@ -458,7 +459,6 @@ export default function Users() {
                         </strong>{" "}
                         of <strong>{filteredUsers.length}</strong>
                     </small>
-
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
@@ -472,13 +472,11 @@ export default function Users() {
                                     &laquo; PREV
                                 </button>
                             </li>
-
                             <li className="page-item disabled">
                                 <span className="page-link border-2 border-dark text-dark fw-bold rounded-0 mx-1 bg-warning">
                                     PAGE {currentPage}
                                 </span>
                             </li>
-
                             <li
                                 className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
@@ -498,13 +496,14 @@ export default function Users() {
                 </div>
             </div>
 
+            {/* SMART DRAWER */}
             <UserDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedUser={selectedUser}
                 onClose={() => setShowDrawer(false)}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
+                onSuccess={fetchUsers} // Auto refresh
+                apiPrefix="/api"
             />
         </div>
     );

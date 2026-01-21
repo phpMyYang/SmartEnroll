@@ -14,7 +14,6 @@ export default function Strands() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedStrand, setSelectedStrand] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 1. FETCH STRANDS
     const fetchStrands = async () => {
@@ -45,35 +44,9 @@ export default function Strands() {
         setShowDrawer(true);
     };
 
-    const handleSubmit = async (formData) => {
-        setIsSubmitting(true);
-        try {
-            if (drawerType === "create") {
-                await axios.post("/api/strands", formData);
-                Toast.fire({
-                    icon: "success",
-                    title: "Strand created successfully!",
-                });
-            } else {
-                await axios.put(`/api/strands/${selectedStrand.id}`, formData);
-                Toast.fire({
-                    icon: "success",
-                    title: "Strand updated successfully!",
-                });
-            }
-            fetchStrands();
-            setShowDrawer(false);
-        } catch (error) {
-            Toast.fire({
-                icon: "error",
-                title: error.response?.data?.message || "Error occurred.",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE STRAND?",
             text: "This action cannot be undone.",
@@ -81,6 +54,8 @@ export default function Strands() {
             showCancelButton: true,
             confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
+            background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -91,13 +66,17 @@ export default function Strands() {
                 try {
                     await axios.delete(`/api/strands/${id}`);
                     fetchStrands();
-                    Swal.fire(
-                        "Deleted!",
-                        "Strand has been removed.",
-                        "success"
-                    );
+                    // RESULT: TOAST
+                    Toast.fire({
+                        icon: "success",
+                        title: "Strand has been removed.",
+                    });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete strand.", "error");
+                    // ERROR: TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete strand.",
+                    });
                 }
             }
         });
@@ -107,7 +86,7 @@ export default function Strands() {
     const filteredStrands = strands.filter(
         (s) =>
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.description.toLowerCase().includes(searchTerm.toLowerCase())
+            s.description.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     return (
@@ -117,7 +96,7 @@ export default function Strands() {
                 <div>
                     <h2
                         className="fw-bold text-dark mb-0 font-monospace"
-                        style={{ textShadow: "2px 2px 0 #FFFFFF" }} // White Shadow (Retro Style)
+                        style={{ textShadow: "2px 2px 0 #FFFFFF" }}
                     >
                         STRANDS MANAGEMENT
                     </h2>
@@ -142,7 +121,6 @@ export default function Strands() {
                         </span>
                         <input
                             type="text"
-                            // PINALITAN KO: ps-0 -> ps-2
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
                             placeholder="Search strand code or description..."
                             value={searchTerm}
@@ -152,7 +130,7 @@ export default function Strands() {
                 </div>
             </div>
 
-            {/* GRID CARDS LAYOUT (RETRO STYLE MATCHING SECTIONS) */}
+            {/* GRID CARDS LAYOUT */}
             <div className="row g-4">
                 {loading ? (
                     <div className="col-12 text-center py-5">
@@ -178,11 +156,11 @@ export default function Strands() {
                                     boxShadow: "6px 6px 0px #000",
                                 }}
                             >
-                                {/* DECORATIVE STRIP (Light Blue for all Strands) */}
+                                {/* DECORATIVE STRIP */}
                                 <div
                                     style={{
                                         height: "14px",
-                                        backgroundColor: "#48dbfb", // Retro Cyan/Light Blue
+                                        backgroundColor: "#48dbfb",
                                         borderBottom: "3px solid #000",
                                         borderTopLeftRadius: "9px",
                                         borderTopRightRadius: "9px",
@@ -190,7 +168,6 @@ export default function Strands() {
                                 ></div>
 
                                 <div className="card-body p-4 d-flex flex-column">
-                                    {/* HEADER: Code & Icon */}
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <h3
                                             className="fw-bold mb-1 text-uppercase font-monospace"
@@ -203,25 +180,20 @@ export default function Strands() {
                                         </h3>
                                         <i className="bi bi-bookmark-fill text-muted opacity-25 fs-4"></i>
                                     </div>
-
-                                    {/* DESCRIPTION */}
                                     <p
                                         className="text-muted small font-monospace flex-grow-1"
                                         style={{ lineHeight: "1.5" }}
                                     >
                                         {strand.description}
                                     </p>
-
-                                    {/* DIVIDER LINE */}
                                     <hr className="my-3 border-top border-2 border-dark opacity-100" />
 
                                     {/* ACTION BUTTONS */}
                                     <div className="d-flex gap-2 mt-auto">
-                                        {/* Edit Button */}
                                         <button
-                                            className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect" // ADDED CLASS
+                                            className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect"
                                             style={{
-                                                backgroundColor: "#f6e58d", // Retro Yellow
+                                                backgroundColor: "#f6e58d",
                                                 color: "#000",
                                                 borderRadius: "6px",
                                             }}
@@ -232,12 +204,10 @@ export default function Strands() {
                                             <i className="bi bi-pencil-fill me-2"></i>{" "}
                                             EDIT
                                         </button>
-
-                                        {/* Delete Button */}
                                         <button
-                                            className="btn font-monospace fw-bold px-3 btn-retro-effect" // ADDED CLASS
+                                            className="btn font-monospace fw-bold px-3 btn-retro-effect"
                                             style={{
-                                                backgroundColor: "#ff7675", // Retro Red
+                                                backgroundColor: "#ff7675",
                                                 color: "#fff",
                                                 borderRadius: "6px",
                                             }}
@@ -255,14 +225,14 @@ export default function Strands() {
                 )}
             </div>
 
-            {/* DRAWER */}
+            {/* SMART DRAWER */}
             <StrandDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedStrand={selectedStrand}
                 onClose={() => setShowDrawer(false)}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
+                onSuccess={fetchStrands} // Auto refresh
+                apiPrefix="/api"
             />
         </div>
     );

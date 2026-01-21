@@ -28,7 +28,7 @@ export default function Students(props) {
     });
     const [corState, setCorState] = useState({ show: false, data: null });
 
-    // UI States
+    // UI States (Dropdown)
     const [openActionId, setOpenActionId] = useState(null);
     const [dropdownPos, setDropdownPos] = useState({
         top: "auto",
@@ -107,8 +107,11 @@ export default function Students(props) {
         }
     };
 
+    // --- STATUS CHANGE (Swal Confirmation + Toast Result) ---
     const handleChangeStatus = async (student, newStatus) => {
         setOpenActionId(null);
+
+        // CONFIRMATION (Swal)
         if (newStatus === "released") {
             const res = await Swal.fire({
                 title: "CONFIRM RELEASE?",
@@ -116,7 +119,9 @@ export default function Students(props) {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "YES, RELEASE",
+                cancelButtonText: "CANCEL",
                 background: "#FFE2AF",
+                color: "#000",
                 customClass: {
                     popup: "card-retro",
                     confirmButton: "btn-retro bg-danger border-dark",
@@ -125,25 +130,23 @@ export default function Students(props) {
             });
             if (!res.isConfirmed) return;
         }
+
         try {
             await axios.put(`/api/students/${student.id}/status`, {
                 status: newStatus,
             });
             fetchData();
-            Swal.fire({
-                title: "UPDATED",
-                text: `Status changed to: ${newStatus.toUpperCase()}`,
+            // RESULT (Toast)
+            Toast.fire({
                 icon: "success",
-                timer: 1500,
-                showConfirmButton: false,
-                background: "#FFE2AF",
-                customClass: { popup: "card-retro" },
+                title: `Status changed to: ${newStatus.toUpperCase()}`,
             });
         } catch (e) {
-            Swal.fire("Error", "Failed to update status.", "error");
+            Toast.fire({ icon: "error", title: "Failed to update status." });
         }
     };
 
+    // --- DELETE HANDLER (Swal Confirmation + Toast Result) ---
     const handleDelete = (id) => {
         setOpenActionId(null);
         Swal.fire({
@@ -152,7 +155,9 @@ export default function Students(props) {
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "YES, DELETE IT!",
+            cancelButtonText: "CANCEL",
             background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -163,20 +168,21 @@ export default function Students(props) {
                 try {
                     await axios.delete(`/api/students/${id}`);
                     fetchData();
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "Record removed.",
+                    Toast.fire({
                         icon: "success",
-                        background: "#FFE2AF",
-                        customClass: { popup: "card-retro" },
+                        title: "Record removed successfully.",
                     });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete.", "error");
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete record.",
+                    });
                 }
             }
         });
     };
 
+    // FILTER & PAGINATION
     const filteredStudents = students.filter(
         (s) =>
             s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -193,6 +199,7 @@ export default function Students(props) {
 
     return (
         <div className="container-fluid fade-in mb-5">
+            {/* HEADER */}
             <div
                 className="d-flex justify-content-between align-items-center mb-4 pb-3"
                 style={{ borderBottom: "2px solid black" }}
@@ -216,6 +223,7 @@ export default function Students(props) {
                 </button>
             </div>
 
+            {/* TABLE */}
             <div className="card-retro">
                 <div
                     className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
@@ -370,8 +378,6 @@ export default function Students(props) {
                                                     {s.status}
                                                 </span>
                                             </td>
-
-                                            {/* ACTION BUTTONS (FIXED: WITH EFFECTS) */}
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2 position-relative">
                                                     <button
@@ -500,7 +506,7 @@ export default function Students(props) {
                         </table>
                     </div>
                 </div>
-                {/* Pagination Footer */}
+
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
@@ -514,7 +520,7 @@ export default function Students(props) {
                         <strong>
                             {Math.min(indexOfLastItem, filteredStudents.length)}
                         </strong>{" "}
-                        of <strong>{filteredStudents.length}</strong>
+                        of <strong>{filteredStudents.length}</strong> entries
                     </small>
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
@@ -553,7 +559,7 @@ export default function Students(props) {
                 </div>
             </div>
 
-            {/* Action Menu (Same as above) */}
+            {/* ACTION DROPDOWN */}
             {openActionId && (
                 <div
                     className="dropdown-menu show border-2 border-dark rounded-0 shadow p-0 fade-in"
@@ -644,6 +650,7 @@ export default function Students(props) {
                 </div>
             )}
 
+            {/* DRAWERS & MODALS */}
             <StudentDrawer
                 show={drawerState.show}
                 type={drawerState.type}
@@ -654,7 +661,7 @@ export default function Students(props) {
                     fetchData();
                     setDrawerState({ ...drawerState, show: false });
                 }}
-                apiPrefix="/api" // Admin API
+                apiPrefix="/api" // Default Admin
             />
 
             <CORModal

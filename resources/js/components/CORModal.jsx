@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
-import Toast from "../utils/toast";
+import Toast from "../utils/toast"; // Using Toast only
 
 export default function CORModal({
     show,
@@ -158,26 +157,28 @@ export default function CORModal({
         setFormData((prev) => ({ ...prev, subjects: updatedSubjects }));
     };
 
-    // 5. DOWNLOAD PDF
+    // 5. DOWNLOAD PDF (FIXED: TOAST LOADING, NO SUCCESS MODAL)
     const handleDownloadPDF = async () => {
-        try {
-            Swal.fire({
-                title: "Generating Document...",
-                text: "Please wait...",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
+        // LOADING STATE (TOAST)
+        Toast.fire({
+            icon: "info",
+            title: "Generating Document...",
+        });
 
-            // DYNAMIC GENERATE URL: Uses apiPrefix
+        try {
+            // DYNAMIC GENERATE URL
             const response = await axios.post(`${apiPrefix}/cor/generate-url`, {
                 ...formData,
-                printed_by: "Admin", // Pwede mo rin gawing dynamic ito kung gusto mo (e.g. currentUser.name)
+                printed_by: "Admin",
             });
 
+            // OPEN PDF
             window.open(response.data.url, "_blank");
-            Swal.close();
+
+            // NO SUCCESS ALERT (As requested)
         } catch (error) {
-            Swal.fire("Error", "Failed to generate PDF.", "error");
+            // ERROR STATE (TOAST)
+            Toast.fire({ icon: "error", title: "Failed to generate PDF." });
         }
     };
 

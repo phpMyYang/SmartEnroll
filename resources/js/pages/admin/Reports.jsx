@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Modal, Button } from "react-bootstrap";
-import Swal from "sweetalert2";
+import { Modal } from "react-bootstrap";
+import Toast from "../../utils/toast"; // Using Toast
 
 export default function Reports() {
     const [showModal, setShowModal] = useState(false);
@@ -73,27 +73,24 @@ export default function Reports() {
     };
 
     const handleGenerate = async () => {
-        // VALIDATION
+        // VALIDATION: Toast Warning
         if (!schoolYear) {
-            Swal.fire(
-                "Missing Input",
-                "Please enter a School Year.",
-                "warning"
-            );
+            Toast.fire({
+                icon: "warning",
+                title: "Please enter a School Year.",
+            });
             return;
         }
 
         if (selectedReport.format === "pdf" && !registrar) {
-            Swal.fire(
-                "Missing Input",
-                "Please enter the School Registrar's Name.",
-                "warning"
-            );
+            Toast.fire({
+                icon: "warning",
+                title: "Please enter the Registrar's Name.",
+            });
             return;
         }
 
         setLoading(true);
-        // Don't close modal immediately so user sees loading state
 
         try {
             let url = "";
@@ -101,11 +98,7 @@ export default function Reports() {
 
             // PASS PARAMETERS TO BACKEND
             if (selectedReport.format === "pdf") {
-                url = `/api/reports/summary?type=${
-                    selectedReport.type
-                }&school_year=${schoolYear}&registrar=${encodeURIComponent(
-                    registrar
-                )}`;
+                url = `/api/reports/summary?type=${selectedReport.type}&school_year=${schoolYear}&registrar=${encodeURIComponent(registrar)}`;
                 filename = `${selectedReport.title}_${schoolYear}.pdf`;
             } else {
                 url = `/api/reports/masterlist?school_year=${schoolYear}`;
@@ -114,7 +107,7 @@ export default function Reports() {
 
             const response = await axios.get(url, { responseType: "blob" });
             const downloadUrl = window.URL.createObjectURL(
-                new Blob([response.data])
+                new Blob([response.data]),
             );
             const link = document.createElement("a");
             link.href = downloadUrl;
@@ -123,18 +116,20 @@ export default function Reports() {
             link.click();
             link.remove();
 
-            setShowModal(false); // Close on success
+            setShowModal(false); // Close modal
 
-            Swal.fire({
+            // SUCCESS TOAST
+            Toast.fire({
                 icon: "success",
-                title: "Report Generated!",
-                text: "Your download should start automatically.",
-                background: "#FFE2AF",
-                customClass: { popup: "card-retro" },
+                title: "Report Generated! Download starting...",
             });
         } catch (error) {
             console.error(error);
-            Swal.fire("Failed", "No data found for this School Year.", "error");
+            // ERROR TOAST
+            Toast.fire({
+                icon: "error",
+                title: "No data found or server error.",
+            });
         } finally {
             setLoading(false);
         }
@@ -207,7 +202,7 @@ export default function Reports() {
             {/* GENERATE MODAL */}
             <Modal show={showModal} onHide={() => setShowModal(false)} centered>
                 <div className="card-retro border-0 shadow-lg">
-                    {/* MODAL HEADER - CENTERED TITLE */}
+                    {/* MODAL HEADER */}
                     <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3 position-relative justify-content-center">
                         <h5 className="modal-title fw-bold font-monospace text-center m-0">
                             <i className="bi bi-printer-fill me-2"></i>
@@ -275,7 +270,6 @@ export default function Reports() {
                         >
                             {loading ? (
                                 <>
-                                    {/* COPIED FROM USER MODAL: toga-spin */}
                                     <i className="bi bi-mortarboard-fill fs-5 me-2 toga-spin"></i>
                                     <span>PROCESSING...</span>
                                 </>

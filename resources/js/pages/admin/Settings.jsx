@@ -14,7 +14,7 @@ export default function Settings() {
 
     // Dynamic Time & Maintenance Timer
     const [currentTime, setCurrentTime] = useState(moment());
-    const [maintenanceCounter, setMaintenanceCounter] = useState(3600); // 1 Hour (in seconds)
+    const [maintenanceCounter, setMaintenanceCounter] = useState(3600); // 1 Hour
 
     // UI States
     const [showEnrollmentDrawer, setShowEnrollmentDrawer] = useState(false);
@@ -40,21 +40,17 @@ export default function Settings() {
     // 2. CLOCK & COUNTDOWN LOGIC
     useEffect(() => {
         const timer = setInterval(() => {
-            setCurrentTime(moment()); // Update Time every second
-
-            // Maintenance Countdown Loop (Only if Active)
+            setCurrentTime(moment());
             if (settings?.maintenance_mode) {
                 setMaintenanceCounter((prev) => {
-                    if (prev <= 0) return 3600; // Loop back to 1 hour
+                    if (prev <= 0) return 3600;
                     return prev - 1;
                 });
             }
         }, 1000);
-
         return () => clearInterval(timer);
     }, [settings?.maintenance_mode]);
 
-    // Formatter for Countdown (HH:MM:SS)
     const formatCountdown = (seconds) => {
         const h = Math.floor(seconds / 3600)
             .toString()
@@ -67,8 +63,6 @@ export default function Settings() {
     };
 
     // 3. HANDLERS
-
-    // HANDLE RESET SCHEDULE
     const handleDeleteSchedule = () => {
         Swal.fire({
             title: "RESET SCHEDULE?",
@@ -89,10 +83,7 @@ export default function Settings() {
                 try {
                     await axios.delete(`/api/settings/reset`);
                     fetchSettings();
-
-                    // TRIGGER EVENT: Update Header Agad!
                     window.dispatchEvent(new Event("settings-updated"));
-
                     Toast.fire({ icon: "success", title: "Schedule reset." });
                 } catch (error) {
                     Toast.fire({ icon: "error", title: "Action failed." });
@@ -101,7 +92,6 @@ export default function Settings() {
         });
     };
 
-    // HANDLE MAINTENANCE MODE
     const handleToggleMaintenance = async () => {
         const newStatus = !settings?.maintenance_mode;
         const result = await Swal.fire({
@@ -128,21 +118,17 @@ export default function Settings() {
                     maintenance_mode: newStatus,
                 });
                 fetchSettings();
-                setMaintenanceCounter(3600); // Reset timer on toggle
-
-                // TRIGGER EVENT: Update Header Agad!
+                setMaintenanceCounter(3600);
                 window.dispatchEvent(new Event("settings-updated"));
-
-                Swal.fire({
-                    title: newStatus ? "SYSTEM LOCKED" : "ONLINE",
+                Toast.fire({
                     icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false,
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
+                    title: newStatus ? "SYSTEM LOCKED" : "SYSTEM UNLOCKED",
                 });
             } catch (error) {
-                Swal.fire("Error", "Failed to update.", "error");
+                Toast.fire({
+                    icon: "error",
+                    title: "Failed to update status.",
+                });
             }
         }
     };
@@ -157,7 +143,7 @@ export default function Settings() {
             </div>
         );
 
-    // Helpers for Enrollment Progress
+    // Helpers
     const isActive =
         settings && moment().isBetween(settings.start_date, settings.end_date);
     const totalDays = settings
@@ -168,7 +154,7 @@ export default function Settings() {
         : 0;
     const progress = Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100);
 
-    // Common Card Style
+    // Styles
     const cardStyle = {
         border: "3px solid #000",
         borderRadius: "12px",
@@ -186,25 +172,26 @@ export default function Settings() {
         borderTopRightRadius: "9px",
     });
 
+    // ✅ STANDARD BUTTON CLASS (Ensures equal height & alignment)
+    const btnClass =
+        "btn font-monospace fw-bold btn-retro-effect border-2 border-dark rounded-0 py-2 d-flex align-items-center justify-content-center";
+
     return (
         <div className="container-fluid fade-in mb-5">
-            {/* PAGE HEADER */}
+            {/* HEADER */}
             <div
                 className="d-flex justify-content-between align-items-center mb-4 pb-3"
                 style={{ borderBottom: "2px solid black" }}
             >
                 <div>
-                    <h1
-                        className="fw-black text-dark mb-0 font-monospace"
-                        style={{
-                            textShadow: "2px 2px 0 #fff",
-                            fontSize: "2.5rem",
-                        }}
+                    <h2
+                        className="fw-bold mb-0 font-monospace text-uppercase"
+                        style={{ textShadow: "2px 2px 0 #fff" }}
                     >
                         SYSTEM CONTROL
-                    </h1>
+                    </h2>
                     <p className="text-muted small mb-0 font-monospace fw-bold">
-                        CONFIGURATION & LOGS PANEL
+                        Configuration & Logs Panel
                     </p>
                 </div>
             </div>
@@ -243,13 +230,11 @@ export default function Settings() {
                                         <div className="badge bg-dark text-white rounded-0 mb-3 border border-dark">
                                             {settings.semester}
                                         </div>
-
-                                        {/* PROGRESS INDICATOR */}
                                         <div className="px-2 mb-3">
                                             <div className="d-flex justify-content-between small fw-bold mb-1">
                                                 <span>
                                                     {moment(
-                                                        settings.start_date
+                                                        settings.start_date,
                                                     ).format("MMM D")}
                                                 </span>
                                                 <span
@@ -265,7 +250,7 @@ export default function Settings() {
                                                 </span>
                                                 <span>
                                                     {moment(
-                                                        settings.end_date
+                                                        settings.end_date,
                                                     ).format("MMM D")}
                                                 </span>
                                             </div>
@@ -274,11 +259,7 @@ export default function Settings() {
                                                 style={{ height: "10px" }}
                                             >
                                                 <div
-                                                    className={`progress-bar ${
-                                                        isActive
-                                                            ? "bg-success"
-                                                            : "bg-secondary"
-                                                    }`}
+                                                    className={`progress-bar ${isActive ? "bg-success" : "bg-secondary"}`}
                                                     style={{
                                                         width: `${progress}%`,
                                                     }}
@@ -297,12 +278,12 @@ export default function Settings() {
                             </div>
 
                             <div className="mt-auto d-flex gap-2">
+                                {/* EDIT BUTTON */}
                                 <button
-                                    className="btn flex-grow-1 font-monospace fw-bold btn-retro-effect"
+                                    className={`${btnClass} flex-grow-1`}
                                     style={{
                                         backgroundColor: "#f6e58d",
                                         color: "#000",
-                                        borderRadius: "6px",
                                     }}
                                     onClick={() =>
                                         setShowEnrollmentDrawer(true)
@@ -311,13 +292,14 @@ export default function Settings() {
                                     <i className="bi bi-pencil-fill me-2"></i>{" "}
                                     {settings?.start_date ? "EDIT" : "SETUP"}
                                 </button>
+
+                                {/* DELETE BUTTON */}
                                 {settings?.start_date && (
                                     <button
-                                        className="btn font-monospace fw-bold px-3 btn-retro-effect"
+                                        className={`${btnClass} px-3`}
                                         style={{
                                             backgroundColor: "#ff7675",
                                             color: "#fff",
-                                            borderRadius: "6px",
                                         }}
                                         onClick={handleDeleteSchedule}
                                     >
@@ -329,7 +311,7 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* 2. SYSTEM LOGS (Dynamic Time & DB Status) */}
+                {/* 2. SYSTEM LOGS */}
                 <div className="col-md-6 col-lg-4">
                     <div className="card" style={cardStyle}>
                         <div style={stripStyle("#71C9CE")}></div>
@@ -352,7 +334,6 @@ export default function Settings() {
                                 <i className="bi bi-terminal-fill fs-4 text-muted opacity-25"></i>
                             </div>
 
-                            {/* DYNAMIC CONSOLE */}
                             <div className="font-monospace text-center my-3 bg-light p-3 border border-dark rounded-0">
                                 <div
                                     className="text-start"
@@ -367,7 +348,7 @@ export default function Settings() {
                                         STATUS MONITOR
                                     </span>
                                     <span className="d-block">
-                                        &gt; Database connection:{" "}
+                                        &gt; Database:{" "}
                                         <span className="fw-bold">
                                             {loading ? "CHECKING..." : "OK"}
                                         </span>
@@ -377,7 +358,7 @@ export default function Settings() {
                                     </span>
                                     <span className="d-block ps-3 text-primary fw-bold">
                                         {currentTime.format(
-                                            "YYYY-MM-DD HH:mm:ss"
+                                            "YYYY-MM-DD HH:mm:ss",
                                         )}
                                     </span>
                                     <span className="d-block mt-1">
@@ -391,11 +372,10 @@ export default function Settings() {
 
                             <div className="mt-auto">
                                 <button
-                                    className="btn w-100 font-monospace fw-bold btn-retro-effect"
+                                    className={`${btnClass} w-100`}
                                     style={{
                                         backgroundColor: "#dff9fb",
                                         color: "#000",
-                                        borderRadius: "6px",
                                     }}
                                     onClick={() => setShowLogsModal(true)}
                                 >
@@ -407,7 +387,7 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* 3. MAINTENANCE MODE (Looping Countdown) */}
+                {/* 3. MAINTENANCE MODE */}
                 <div className="col-md-6 col-lg-4">
                     <div
                         className="card"
@@ -435,11 +415,7 @@ export default function Settings() {
                                         MAINTENANCE
                                     </h3>
                                     <div
-                                        className={`small font-monospace fw-bold ${
-                                            settings?.maintenance_mode
-                                                ? "text-white-50"
-                                                : "text-muted"
-                                        }`}
+                                        className={`small font-monospace fw-bold ${settings?.maintenance_mode ? "text-white-50" : "text-muted"}`}
                                     >
                                         Danger Zone
                                     </div>
@@ -456,7 +432,7 @@ export default function Settings() {
                                         </h2>
                                         <div className="display-4 fw-bold text-warning my-2">
                                             {formatCountdown(
-                                                maintenanceCounter
+                                                maintenanceCounter,
                                             )}
                                         </div>
                                         <p className="small text-white-50 mb-0">
@@ -478,14 +454,13 @@ export default function Settings() {
 
                             <div className="mt-auto">
                                 <button
-                                    className="btn w-100 font-monospace fw-bold btn-retro-effect"
+                                    className={`${btnClass} w-100`}
                                     style={{
                                         backgroundColor:
                                             settings?.maintenance_mode
                                                 ? "#2ecc71"
                                                 : "#ff7675",
                                         color: "#fff",
-                                        borderRadius: "6px",
                                     }}
                                     onClick={handleToggleMaintenance}
                                 >
@@ -506,8 +481,6 @@ export default function Settings() {
                 onSuccess={() => {
                     setShowEnrollmentDrawer(false);
                     fetchSettings();
-
-                    // TRIGGER EVENT: Update Header Agad!
                     window.dispatchEvent(new Event("settings-updated"));
                 }}
                 currentSettings={settings}

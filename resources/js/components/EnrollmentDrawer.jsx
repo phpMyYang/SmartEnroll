@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Toast from "../utils/toast"; // Using Toast
 
 export default function EnrollmentDrawer({
     show,
@@ -36,16 +36,17 @@ export default function EnrollmentDrawer({
         setIsLoading(true);
         try {
             await axios.post("/api/settings", form);
-            Swal.fire({
-                title: "Saved!",
-                text: "Enrollment settings updated successfully.",
+
+            // SUCCESS TOAST
+            Toast.fire({
                 icon: "success",
-                background: "#FFE2AF",
-                customClass: { popup: "card-retro" },
+                title: "Enrollment settings updated!",
             });
+
             onSuccess();
         } catch (error) {
-            Swal.fire("Error", "Failed to save settings.", "error");
+            // ERROR TOAST
+            Toast.fire({ icon: "error", title: "Failed to save settings." });
         } finally {
             setIsLoading(false);
         }
@@ -57,7 +58,6 @@ export default function EnrollmentDrawer({
     const backdropClass = show ? "offcanvas-backdrop fade show" : "";
     const inputStyle = "form-control border-dark rounded-0 font-monospace";
 
-    // FIX: Determine button text based on existing data
     const isUpdateMode = currentSettings && currentSettings.start_date;
 
     return (
@@ -102,7 +102,6 @@ export default function EnrollmentDrawer({
                         onSubmit={handleSubmit}
                         className="d-flex flex-column gap-3"
                     >
-                        {/* SINGLE CARD CONTAINER (Clean Look) */}
                         <div className="card-retro p-3 bg-white">
                             <h6 className="fw-bold border-bottom border-dark pb-2 mb-3 small font-monospace text-muted">
                                 CONFIGURATION
@@ -172,7 +171,6 @@ export default function EnrollmentDrawer({
                             </div>
                         </div>
 
-                        {/* TOGA SPINNER BUTTON */}
                         <button
                             type="submit"
                             className="btn btn-retro py-3 fw-bold w-100 d-flex align-items-center justify-content-center"

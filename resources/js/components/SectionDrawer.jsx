@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Toast from "../utils/toast"; // Using Toast
 
 export default function SectionDrawer({
     show,
     type,
     selectedSection,
-    strands, // List of strands passed from parent (Admin or Staff)
+    strands, // Passed from parent
     onClose,
-    onSubmit,
-    isLoading,
+    onSuccess, // Callback to refresh parent
+    apiPrefix = "/api", // Default Admin
 }) {
     const initialForm = {
         name: "",
@@ -17,6 +19,7 @@ export default function SectionDrawer({
     };
 
     const [formData, setFormData] = useState(initialForm);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (type === "edit" && selectedSection) {
@@ -34,9 +37,47 @@ export default function SectionDrawer({
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    // ✅ SMART SUBMIT HANDLER
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsLoading(true);
+
+        try {
+            if (type === "create") {
+                await axios.post(`${apiPrefix}/sections`, formData);
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Section Created Successfully!",
+                });
+            } else {
+                await axios.put(
+                    `${apiPrefix}/sections/${selectedSection.id}`,
+                    formData,
+                );
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Section Updated Successfully!",
+                });
+            }
+
+            if (onSuccess) onSuccess(); // Refresh parent
+            onClose(); // Close drawer
+        } catch (error) {
+            // ERROR TOAST
+            let msg = "Action Failed";
+            if (error.response && error.response.status === 422) {
+                msg = Object.values(error.response.data.errors)
+                    .flat()
+                    .join("\n");
+            } else if (error.response?.data?.message) {
+                msg = error.response.data.message;
+            }
+            Toast.fire({ icon: "error", title: msg });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const drawerClass = show
@@ -183,12 +224,10 @@ export default function SectionDrawer({
                                     <i className="bi bi-mortarboard-fill fs-5 me-2 toga-spin"></i>
                                     <span>PROCESSING...</span>
                                 </>
+                            ) : type === "create" ? (
+                                "CREATE SECTION"
                             ) : (
-                                <span>
-                                    {type === "create"
-                                        ? "CREATE SECTION"
-                                        : "SAVE CHANGES"}
-                                </span>
+                                "SAVE CHANGES"
                             )}
                         </button>
                     </form>

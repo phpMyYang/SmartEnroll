@@ -101,7 +101,6 @@ export default function AdminLayout() {
                     height: "100vh",
                     position: "relative",
                     zIndex: 1000,
-                    // NOTE: Wala na ditong overflow para makalabas ang dropdown sa baba
                 }}
             >
                 {/* 1. BRAND / LOGO (Fixed at Top) */}
@@ -148,13 +147,12 @@ export default function AdminLayout() {
                 <hr className="border-dark opacity-100" />
 
                 {/* 2. NAVIGATION LINKS (SCROLLABLE AREA) */}
-                {/* Dito natin nilagay ang SCROLL class para sa gitna lang gumalaw */}
                 <div
                     className="flex-grow-1 mb-auto sidebar-scroll-area"
                     style={{
                         overflowY: "auto",
                         overflowX: "hidden",
-                        paddingRight: "5px", // Space para sa scrollbar
+                        paddingRight: "5px",
                     }}
                 >
                     <ul className="nav nav-pills flex-column">
@@ -167,12 +165,12 @@ export default function AdminLayout() {
                             {
                                 path: "/admin/users",
                                 icon: "bi-people-fill",
-                                label: "Users Management",
+                                label: "User Records",
                             },
                             {
                                 path: "/admin/students",
                                 icon: "bi-mortarboard-fill",
-                                label: "Students",
+                                label: "Student Records",
                             },
                             {
                                 path: "/admin/strands",
@@ -225,43 +223,49 @@ export default function AdminLayout() {
 
                 <hr className="border-dark opacity-100" />
 
-                {/* 3. USER PROFILE (Fixed at Bottom) */}
-                {/* Flex-shrink-0 para hindi mapisa, at walang overflow para lumabas ang dropdown */}
+                {/* 3. USER PROFILE (Updated Style) */}
                 <div className="dropdown position-relative flex-shrink-0">
                     <div
-                        className={`d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded border border-2 border-transparent hover-border-dark ${
+                        className={`d-flex align-items-center text-white text-decoration-none cursor-pointer p-2 rounded ${
                             !isSidebarOpen ? "justify-content-center" : ""
                         }`}
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         style={{
                             cursor: "pointer",
+                            border: "2px solid white", // ✅ WHITE BORDER (Same as Staff)
                             backgroundColor: isDropdownOpen
-                                ? "rgba(0,0,0,0.2)"
+                                ? "rgba(255,255,255,0.1)"
                                 : "transparent",
-                            transition: "background 0.2s",
+                            transition: "all 0.1s",
                         }}
                     >
+                        {/* AVATAR: Black BG, White Text */}
                         <img
-                            src={`https://ui-avatars.com/api/?name=${user.name}&background=000000&color=fff`}
+                            src={`https://ui-avatars.com/api/?name=${user.name}&background=000000&color=fff&bold=true`}
                             alt="User"
                             width="40"
                             height="40"
-                            className="rounded-circle border border-2 border-dark flex-shrink-0"
+                            className="rounded-circle border border-2 border-white flex-shrink-0"
                         />
 
                         {isSidebarOpen && (
-                            <div className="ms-2 fade-in overflow-hidden">
+                            <div
+                                className="ms-2 fade-in overflow-hidden"
+                                style={{ lineHeight: "1.2" }}
+                            >
                                 <strong
-                                    className="d-block text-truncate"
+                                    className="d-block text-truncate font-monospace"
                                     style={{ maxWidth: "150px" }}
                                 >
                                     {user.name}
                                 </strong>
                                 <small
-                                    className="text-white-50 text-uppercase"
+                                    className="d-block text-uppercase"
                                     style={{
                                         fontSize: "0.7rem",
                                         letterSpacing: "1px",
+                                        fontWeight: "800",
+                                        color: "rgba(255,255,255,0.7)", // ✅ MUTED WHITE ROLE
                                     }}
                                 >
                                     {user.role}
@@ -284,7 +288,7 @@ export default function AdminLayout() {
                             className="bg-white text-dark rounded p-2 fade-in"
                             style={{
                                 position: "absolute",
-                                bottom: "120%",
+                                bottom: "120%", // Pops UP
                                 left: "0",
                                 width: isSidebarOpen ? "100%" : "260px",
                                 minWidth: "260px",
@@ -294,11 +298,11 @@ export default function AdminLayout() {
                             }}
                         >
                             <div className="px-3 py-2 border-bottom border-dark mb-2 bg-retro-bg rounded">
-                                <span className="d-block small fw-bold text-muted">
+                                <span className="d-block small fw-bold text-muted font-monospace">
                                     SIGNED IN AS
                                 </span>
                                 <span
-                                    className="d-block text-truncate fw-bold text-dark"
+                                    className="d-block text-truncate fw-bold text-dark font-monospace"
                                     title={user.email}
                                 >
                                     {user.email}
@@ -307,7 +311,7 @@ export default function AdminLayout() {
 
                             <button
                                 onClick={handleLogout}
-                                className="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2 fw-bold"
+                                className="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2 fw-bold font-monospace"
                                 style={{
                                     border: "2px solid black",
                                     boxShadow: "2px 2px 0 #000",

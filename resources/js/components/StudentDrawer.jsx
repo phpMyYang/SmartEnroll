@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Toast from "../utils/toast"; // Using Toast for alerts
 import moment from "moment";
 
 export default function StudentDrawer({
@@ -10,20 +10,16 @@ export default function StudentDrawer({
     strands,
     onClose,
     onSuccess,
-    apiPrefix = "/api", // DEFAULT: Admin (/api). Override for Staff (/api/staff).
+    apiPrefix = "/api", // Dynamic API prefix (Admin/Staff)
 }) {
-    // States
     const [isLoading, setIsLoading] = useState(false);
     const [sectionsList, setSectionsList] = useState([]);
-
-    // Default Settings (Fallback)
     const [activeSettings, setActiveSettings] = useState({
         semester: "1st Semester",
         school_year:
             new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
     });
 
-    // Initial Form State (ALL FIELDS INCLUDED)
     const initialForm = {
         // Personal
         last_name: "",
@@ -38,13 +34,11 @@ export default function StudentDrawer({
         citizenship: "Filipino",
         civil_status: "Single",
         religion: "Roman Catholic",
-
         // Contact
         home_address: "",
         provincial_address: "",
         email: "",
         contact_number: "",
-
         // Academic
         current_school_attended: "",
         strand_id: "",
@@ -52,7 +46,6 @@ export default function StudentDrawer({
         section_id: "",
         semester: "",
         school_year: "",
-
         // Family & Work
         employer_name: "",
         employer_contact: "",
@@ -65,7 +58,6 @@ export default function StudentDrawer({
         guardian_name: "",
         guardian_occupation: "",
         guardian_contact: "",
-
         // Requirements
         requirements: {
             psa: false,
@@ -73,8 +65,7 @@ export default function StudentDrawer({
             good_moral: false,
             diploma: false,
         },
-
-        // System Fields
+        // System
         status: "",
         released_by: "",
         released_at: "",
@@ -82,15 +73,12 @@ export default function StudentDrawer({
 
     const [form, setForm] = useState(initialForm);
 
-    // 1. FETCH DATA (Dynamic URL)
     useEffect(() => {
         const fetchInit = async () => {
             try {
-                // SMART FETCH: Uses apiPrefix to determine route
                 const sectionUrl = `${apiPrefix}/sections`;
-
                 const [setRes, secRes] = await Promise.all([
-                    axios.get("/api/settings").catch(() => ({ data: null })), // Settings usually global
+                    axios.get("/api/settings").catch(() => ({ data: null })),
                     axios.get(sectionUrl).catch(() => ({ data: [] })),
                 ]);
 
@@ -108,17 +96,14 @@ export default function StudentDrawer({
         if (show) fetchInit();
     }, [show, apiPrefix]);
 
-    // 2. LOAD DATA ON EDIT/VIEW
     useEffect(() => {
         if ((type === "edit" || type === "view") && selectedStudent) {
             setForm({
                 ...selectedStudent,
-                // Ensure date format is YYYY-MM-DD for input
                 date_of_birth: selectedStudent.date_of_birth
                     ? selectedStudent.date_of_birth.split("T")[0]
                     : "",
                 section_id: selectedStudent.section_id || "",
-                // Ensure requirements is an object
                 requirements:
                     typeof selectedStudent.requirements === "string"
                         ? JSON.parse(selectedStudent.requirements)
@@ -137,26 +122,30 @@ export default function StudentDrawer({
         }
     }, [show, selectedStudent, type, activeSettings]);
 
-    // 3. AUTO-AGE CALCULATION
     useEffect(() => {
         if (form.date_of_birth && type !== "view") {
             const birth = new Date(form.date_of_birth);
             const today = new Date();
             let age = today.getFullYear() - birth.getFullYear();
-            const m = today.getMonth() - birth.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            if (
+                today.getMonth() < birth.getMonth() ||
+                (today.getMonth() === birth.getMonth() &&
+                    today.getDate() < birth.getDate())
+            )
+                age--;
             setForm((prev) => ({ ...prev, age: age >= 0 ? age : 0 }));
         }
     }, [form.date_of_birth]);
 
-    // HANDLERS
     const handleChange = (e) => {
         const { name, value, checked } = e.target;
         if (name.startsWith("req_")) {
-            const reqKey = name.replace("req_", "");
             setForm((prev) => ({
                 ...prev,
-                requirements: { ...prev.requirements, [reqKey]: checked },
+                requirements: {
+                    ...prev.requirements,
+                    [name.replace("req_", "")]: checked,
+                },
             }));
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
@@ -167,36 +156,29 @@ export default function StudentDrawer({
         e.preventDefault();
         setIsLoading(true);
         try {
-            // DYNAMIC URL BASED ON API PREFIX
             if (type === "create") {
                 await axios.post(`${apiPrefix}/students`, form);
-                Swal.fire({
-                    title: "Success",
-                    text: "Application Sent!",
+                Toast.fire({
                     icon: "success",
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
+                    title: "Application Sent Successfully!",
                 });
             } else {
                 await axios.put(
                     `${apiPrefix}/students/${selectedStudent.id}`,
                     form,
                 );
-                Swal.fire({
-                    title: "Updated",
-                    text: "Student Record Updated!",
+                Toast.fire({
                     icon: "success",
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
+                    title: "Student Record Updated!",
                 });
             }
             onSuccess();
+            onClose();
         } catch (error) {
-            Swal.fire(
-                "Error",
-                error.response?.data?.message || "Action Failed",
-                "error",
-            );
+            let msg = "Action Failed";
+            if (error.response?.data?.message)
+                msg = error.response.data.message;
+            Toast.fire({ icon: "error", title: msg });
         } finally {
             setIsLoading(false);
         }
@@ -224,7 +206,6 @@ export default function StudentDrawer({
                     style={{ zIndex: 1045 }}
                 ></div>
             )}
-
             <div
                 className={drawerClass}
                 style={{
@@ -234,7 +215,6 @@ export default function StudentDrawer({
                     borderLeft: "2px solid black",
                 }}
             >
-                {/* HEADER */}
                 <div
                     className="offcanvas-header text-white"
                     style={{
@@ -243,24 +223,11 @@ export default function StudentDrawer({
                     }}
                 >
                     <h5 className="offcanvas-title fw-bold font-monospace">
-                        {type === "create" && (
-                            <>
-                                <i className="bi bi-person-plus-fill me-2"></i>{" "}
-                                NEW STUDENT APPLICATION
-                            </>
-                        )}
-                        {type === "edit" && (
-                            <>
-                                <i className="bi bi-pencil-square me-2"></i>{" "}
-                                UPDATE STUDENT RECORD
-                            </>
-                        )}
-                        {type === "view" && (
-                            <>
-                                <i className="bi bi-person-vcard me-2"></i>{" "}
-                                STUDENT PROFILE
-                            </>
-                        )}
+                        {type === "create"
+                            ? "NEW STUDENT APPLICATION"
+                            : type === "edit"
+                              ? "UPDATE STUDENT RECORD"
+                              : "STUDENT PROFILE"}
                     </h5>
                     <button
                         type="button"
@@ -268,8 +235,6 @@ export default function StudentDrawer({
                         onClick={onClose}
                     ></button>
                 </div>
-
-                {/* BODY */}
                 <div
                     className="offcanvas-body"
                     style={{ backgroundColor: "#f8f9fa" }}
@@ -293,7 +258,6 @@ export default function StudentDrawer({
                             </div>
                         </div>
                     )}
-
                     <form
                         onSubmit={handleSubmit}
                         className="d-flex flex-column gap-4"
@@ -648,7 +612,6 @@ export default function StudentDrawer({
                                 FAMILY & WORK
                             </h6>
                             <div className="row g-2 mb-3">
-                                {/* FATHER */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1">
                                     FATHER'S INFO
                                 </div>
@@ -685,8 +648,6 @@ export default function StudentDrawer({
                                         disabled={isReadOnly}
                                     />
                                 </div>
-
-                                {/* MOTHER */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
                                     MOTHER'S INFO
                                 </div>
@@ -723,8 +684,6 @@ export default function StudentDrawer({
                                         disabled={isReadOnly}
                                     />
                                 </div>
-
-                                {/* GUARDIAN */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
                                     GUARDIAN'S INFO
                                 </div>
@@ -762,8 +721,6 @@ export default function StudentDrawer({
                                     />
                                 </div>
                             </div>
-
-                            {/* WORKING STUDENT */}
                             <div className="row g-2">
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1">
                                     EMPLOYMENT (If Working Student)
@@ -831,7 +788,6 @@ export default function StudentDrawer({
                             </div>
                         </div>
 
-                        {/* ACTION BUTTONS */}
                         {!isReadOnly && (
                             <button
                                 type="submit"

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
-import Toast from "../utils/toast"; // Gamitin ang Toast utility
+import Toast from "../utils/toast"; // Using Toast
 
 export default function SubjectDrawer({
     show,
@@ -9,7 +8,7 @@ export default function SubjectDrawer({
     selectedSubject,
     strands,
     onClose,
-    onSuccess, // Callback para mag-auto refresh ang parent
+    onSuccess, // Callback para mag-refresh ang parent
     apiPrefix = "/api", // DEFAULT: Admin. Override sa Staff (/api/staff).
 }) {
     const initialForm = {
@@ -47,59 +46,45 @@ export default function SubjectDrawer({
         setIsLoading(true);
 
         // FIX: Convert empty string "" to null for database compatibility
-        // Ito ang solusyon para tanggapin ng server ang "ALL STRANDS" at iwas 422 Error
         const payload = {
             ...formData,
             strand_id: formData.strand_id === "" ? null : formData.strand_id,
         };
 
         try {
-            // 1. Perform API Request (Dynamic URL based on apiPrefix)
             if (type === "create") {
                 await axios.post(`${apiPrefix}/subjects`, payload);
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Subject Created Successfully!",
+                });
             } else {
                 await axios.put(
                     `${apiPrefix}/subjects/${selectedSubject.id}`,
                     payload,
                 );
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Subject Updated Successfully!",
+                });
             }
 
-            // 2. Show Success Toast (Hindi nakaka-block ng UI)
-            Toast.fire({
-                icon: "success",
-                title:
-                    type === "create" ? "Subject Created!" : "Subject Updated!",
-            });
-
-            // 3. Refresh Parent Data & Close
-            if (onSuccess) onSuccess();
-            onClose();
+            if (onSuccess) onSuccess(); // Refresh parent
+            onClose(); // Close drawer
         } catch (error) {
-            console.error(error);
-
-            // 4. Handle Errors (Validation vs Server Error)
+            // ERROR TOAST
+            let msg = "Action Failed";
             if (error.response && error.response.status === 422) {
-                const errors = error.response.data.errors;
-                const errorMessage = errors
-                    ? Object.values(errors).flat().join("\n")
-                    : "Validation Error. Please check inputs.";
-
-                Swal.fire({
-                    title: "Input Error",
-                    text: errorMessage, // Dito lalabas kung duplicate code o invalid input
-                    icon: "warning",
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
-                });
-            } else {
-                Swal.fire({
-                    title: "Error",
-                    text: "Something went wrong. Action failed.",
-                    icon: "error",
-                    background: "#FFE2AF",
-                    customClass: { popup: "card-retro" },
-                });
+                // Formatting validation errors for Toast
+                msg = Object.values(error.response.data.errors)
+                    .flat()
+                    .join("\n");
+            } else if (error.response?.data?.message) {
+                msg = error.response.data.message;
             }
+            Toast.fire({ icon: "error", title: msg });
         } finally {
             setIsLoading(false);
         }
