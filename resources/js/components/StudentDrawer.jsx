@@ -10,7 +10,7 @@ export default function StudentDrawer({
     strands,
     onClose,
     onSuccess,
-    apiPrefix = "/api", // ✅ DEFAULT: Admin (/api). Override for Staff (/api/staff).
+    apiPrefix = "/api", // DEFAULT: Admin (/api). Override for Staff (/api/staff).
 }) {
     // States
     const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +86,7 @@ export default function StudentDrawer({
     useEffect(() => {
         const fetchInit = async () => {
             try {
-                // ✅ SMART FETCH: Uses apiPrefix to determine route
+                // SMART FETCH: Uses apiPrefix to determine route
                 const sectionUrl = `${apiPrefix}/sections`;
 
                 const [setRes, secRes] = await Promise.all([
@@ -167,7 +167,7 @@ export default function StudentDrawer({
         e.preventDefault();
         setIsLoading(true);
         try {
-            // ✅ DYNAMIC URL BASED ON API PREFIX
+            // DYNAMIC URL BASED ON API PREFIX
             if (type === "create") {
                 await axios.post(`${apiPrefix}/students`, form);
                 Swal.fire({
