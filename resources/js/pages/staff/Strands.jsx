@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // Using Toast
 import StrandDrawer from "../../components/StrandDrawer";
 
 export default function StaffStrands() {
@@ -14,7 +14,6 @@ export default function StaffStrands() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedStrand, setSelectedStrand] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 1. FETCH STRANDS (Use Staff Endpoint)
     const fetchStrands = async () => {
@@ -23,6 +22,7 @@ export default function StaffStrands() {
             const res = await axios.get("/api/staff/strands");
             setStrands(res.data);
         } catch (error) {
+            // ERROR TOAST
             Toast.fire({ icon: "error", title: "Failed to load strands." });
         } finally {
             setLoading(false);
@@ -46,40 +46,9 @@ export default function StaffStrands() {
         setShowDrawer(true);
     };
 
-    const handleSubmit = async (formData) => {
-        setIsSubmitting(true);
-        try {
-            if (drawerType === "create") {
-                // UPDATED: Staff Endpoint
-                await axios.post("/api/staff/strands", formData);
-                Toast.fire({
-                    icon: "success",
-                    title: "Strand created successfully!",
-                });
-            } else {
-                // UPDATED: Staff Endpoint
-                await axios.put(
-                    `/api/staff/strands/${selectedStrand.id}`,
-                    formData,
-                );
-                Toast.fire({
-                    icon: "success",
-                    title: "Strand updated successfully!",
-                });
-            }
-            fetchStrands();
-            setShowDrawer(false);
-        } catch (error) {
-            Toast.fire({
-                icon: "error",
-                title: error.response?.data?.message || "Error occurred.",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE STRAND?",
             text: "This action cannot be undone.",
@@ -87,6 +56,8 @@ export default function StaffStrands() {
             showCancelButton: true,
             confirmButtonColor: "#d33",
             confirmButtonText: "YES, DELETE IT!",
+            background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -98,13 +69,18 @@ export default function StaffStrands() {
                     // UPDATED: Staff Endpoint
                     await axios.delete(`/api/staff/strands/${id}`);
                     fetchStrands();
-                    Swal.fire(
-                        "Deleted!",
-                        "Strand has been removed.",
-                        "success",
-                    );
+
+                    // SUCCESS TOAST
+                    Toast.fire({
+                        icon: "success",
+                        title: "Strand has been removed.",
+                    });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete strand.", "error");
+                    // ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete strand.",
+                    });
                 }
             }
         });
@@ -261,14 +237,14 @@ export default function StaffStrands() {
                 )}
             </div>
 
-            {/* DRAWER with apiPrefix */}
+            {/* SMART DRAWER with apiPrefix */}
+            {/* Tinanggal na ang onSubmit, pinalitan ng onSuccess */}
             <StrandDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedStrand={selectedStrand}
                 onClose={() => setShowDrawer(false)}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
+                onSuccess={fetchStrands} // Auto-refresh via Smart Drawer
                 apiPrefix="/api/staff" // PASSING STAFF PREFIX
             />
         </div>

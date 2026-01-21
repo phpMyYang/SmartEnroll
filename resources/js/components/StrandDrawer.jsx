@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios"; // Added axios import since we might move submit logic here or just for consistency
+import axios from "axios";
+import Toast from "../utils/toast"; // Using Toast
 
 export default function StrandDrawer({
     show,
     type, // 'create' or 'edit'
     selectedStrand,
     onClose,
-    onSubmit,
-    isLoading,
-    apiPrefix = "/api", // DEFAULT: Admin (/api). Override for Staff (/api/staff).
+    onSuccess, // Callback to refresh parent table
+    apiPrefix = "/api", // Default Admin
 }) {
     const initialForm = { code: "", description: "" };
     const [formData, setFormData] = useState(initialForm);
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Populate form kung Edit mode
+    // Populate form on Edit / Reset on Create
     useEffect(() => {
         if (type === "edit" && selectedStrand) {
             setFormData(selectedStrand);
@@ -25,15 +26,49 @@ export default function StrandDrawer({
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    // SMART SUBMIT HANDLER
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Ipapasa natin ang apiPrefix sa onSubmit handler ng parent component
-        // pero kung dito mo gusto i-handle ang axios, pwede rin.
-        // For now, susundin natin ang structure na parent ang naghahandle ng submit.
-        onSubmit(formData, apiPrefix);
+        setIsLoading(true);
+
+        try {
+            if (type === "create") {
+                await axios.post(`${apiPrefix}/strands`, formData);
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Strand Created Successfully!",
+                });
+            } else {
+                await axios.put(
+                    `${apiPrefix}/strands/${selectedStrand.id}`,
+                    formData,
+                );
+                // SUCCESS TOAST
+                Toast.fire({
+                    icon: "success",
+                    title: "Strand Updated Successfully!",
+                });
+            }
+
+            if (onSuccess) onSuccess(); // Refresh parent
+            onClose(); // Close drawer
+        } catch (error) {
+            // ERROR TOAST
+            let msg = "Action Failed";
+            if (error.response && error.response.status === 422) {
+                msg = Object.values(error.response.data.errors)
+                    .flat()
+                    .join("\n");
+            } else if (error.response?.data?.message) {
+                msg = error.response.data.message;
+            }
+            Toast.fire({ icon: "error", title: msg });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    // Drawer CSS Classes
     const drawerClass = show
         ? "offcanvas offcanvas-end show"
         : "offcanvas offcanvas-end";
@@ -55,7 +90,7 @@ export default function StrandDrawer({
                     zIndex: 1050,
                     visibility: show ? "visible" : "hidden",
                     width: "400px",
-                    borderLeft: "2px solid black", // Retro Border
+                    borderLeft: "2px solid black",
                 }}
             >
                 {/* HEADER */}
@@ -143,12 +178,10 @@ export default function StrandDrawer({
                                     <i className="bi bi-mortarboard-fill fs-5 me-2 toga-spin"></i>
                                     <span>PROCESSING...</span>
                                 </>
+                            ) : type === "create" ? (
+                                "CREATE STRAND"
                             ) : (
-                                <span>
-                                    {type === "create"
-                                        ? "CREATE STRAND"
-                                        : "SAVE CHANGES"}
-                                </span>
+                                "SAVE CHANGES"
                             )}
                         </button>
                     </form>
