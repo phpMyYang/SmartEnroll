@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Toast from "../utils/toast"; // Using Toast
 
 export default function UserDrawer({
     show,
     type,
     selectedUser,
     onClose,
-    onSubmit,
-    isLoading,
+    onSuccess, // Callback para mag-auto refresh ang parent table
+    apiPrefix = "/api", // Default Admin API
 }) {
     const initialForm = {
         name: "",
@@ -22,6 +24,7 @@ export default function UserDrawer({
 
     const [formData, setFormData] = useState(initialForm);
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if ((type === "edit" || type === "view") && selectedUser) {
@@ -45,9 +48,47 @@ export default function UserDrawer({
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    // SMART SUBMIT HANDLER
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsLoading(true);
+
+        try {
+            if (type === "create") {
+                await axios.post(`${apiPrefix}/users`, formData);
+                Toast.fire({
+                    icon: "success",
+                    title: "User Created Successfully!",
+                });
+            } else {
+                await axios.put(
+                    `${apiPrefix}/users/${selectedUser.id}`,
+                    formData,
+                );
+                Toast.fire({
+                    icon: "success",
+                    title: "User Updated Successfully!",
+                });
+            }
+
+            if (onSuccess) onSuccess(); // Refresh parent table
+            onClose(); // Close drawer
+        } catch (error) {
+            // Error is Toast
+            let msg = "Action Failed";
+            if (error.response && error.response.status === 422) {
+                // Combine validation errors into a single string
+                msg = Object.values(error.response.data.errors)
+                    .flat()
+                    .join("\n");
+            } else if (error.response?.data?.message) {
+                msg = error.response.data.message;
+            }
+
+            Toast.fire({ icon: "error", title: msg });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const drawerClass = show
@@ -66,14 +107,13 @@ export default function UserDrawer({
                 ></div>
             )}
 
-            {/* RETRO DRAWER */}
             <div
                 className={drawerClass}
                 style={{
                     zIndex: 1050,
                     visibility: show ? "visible" : "hidden",
-                    width: "450px", // Wider
-                    borderLeft: "2px solid black", // Retro Border
+                    width: "450px",
+                    borderLeft: "2px solid black",
                 }}
             >
                 {/* HEADER */}
@@ -106,7 +146,7 @@ export default function UserDrawer({
                     </h5>
                     <button
                         type="button"
-                        className="btn-close btn-close-white opacity-100" // Fully opaque for retro feel
+                        className="btn-close btn-close-white opacity-100"
                         onClick={onClose}
                     ></button>
                 </div>
@@ -119,10 +159,8 @@ export default function UserDrawer({
                         onSubmit={handleSubmit}
                         className="d-flex flex-column gap-4"
                     >
-                        {/* PERSONAL INFO CARD (RETRO) */}
+                        {/* PERSONAL INFO CARD */}
                         <div className="card-retro p-3 bg-retro-bg">
-                            {" "}
-                            {/* Cream Background */}
                             <h6 className="fw-bold mb-3 pb-2 border-bottom border-dark font-monospace">
                                 <i className="bi bi-person-lines-fill me-2"></i>
                                 PERSONAL INFORMATION
@@ -190,7 +228,7 @@ export default function UserDrawer({
                             </div>
                         </div>
 
-                        {/* ACCOUNT INFO CARD (RETRO) */}
+                        {/* ACCOUNT INFO CARD */}
                         <div className="card-retro p-3 bg-white">
                             <h6 className="fw-bold mb-3 pb-2 border-bottom border-dark font-monospace">
                                 <i className="bi bi-shield-lock-fill me-2"></i>
@@ -251,11 +289,7 @@ export default function UserDrawer({
                                     </label>
                                     <select
                                         name="status"
-                                        className={`form-select fw-bold ${
-                                            formData.status === "active"
-                                                ? "text-success"
-                                                : "text-danger"
-                                        }`}
+                                        className={`form-select fw-bold ${formData.status === "active" ? "text-success" : "text-danger"}`}
                                         value={formData.status}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -302,9 +336,7 @@ export default function UserDrawer({
                                             }
                                         >
                                             <i
-                                                className={`bi bi-eye${
-                                                    showPassword ? "-slash" : ""
-                                                }`}
+                                                className={`bi bi-eye${showPassword ? "-slash" : ""}`}
                                             ></i>
                                         </button>
                                     </div>
