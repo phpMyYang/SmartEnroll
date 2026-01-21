@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // ✅ Using Toast
 import SubjectDrawer from "../../components/SubjectDrawer";
 
 export default function StaffSubjects() {
@@ -53,7 +53,9 @@ export default function StaffSubjects() {
         setShowDrawer(true);
     };
 
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SUBJECT?",
             text: "This action cannot be undone.",
@@ -64,21 +66,26 @@ export default function StaffSubjects() {
             confirmButtonText: "YES, DELETE IT!",
             background: "#FFE2AF",
             color: "#000",
-            customClass: { popup: "card-retro" },
+            customClass: {
+                popup: "card-retro",
+                confirmButton: "btn-retro bg-danger border-dark",
+                cancelButton: "btn-retro bg-dark border-dark",
+            },
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`/api/staff/subjects/${id}`); // Staff API
+                    // UPDATED: Staff Endpoint
+                    await axios.delete(`/api/staff/subjects/${id}`);
                     fetchData(); // Auto Refresh
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "Subject has been removed.",
-                        icon: "success",
-                        background: "#FFE2AF",
-                        customClass: { popup: "card-retro" },
-                    });
+
+                    // SUCCESS TOAST
+                    Toast.fire({ icon: "success", title: "Subject removed." });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete subject.", "error");
+                    // ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete subject.",
+                    });
                 }
             }
         });
@@ -90,6 +97,7 @@ export default function StaffSubjects() {
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.description.toLowerCase().includes(searchTerm.toLowerCase()),
     );
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredSubjects.slice(
@@ -356,7 +364,9 @@ export default function StaffSubjects() {
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                                className={`page-item ${
+                                    currentPage === 1 ? "disabled" : ""
+                                }`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -375,7 +385,12 @@ export default function StaffSubjects() {
                                 </span>
                             </li>
                             <li
-                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
+                                className={`page-item ${
+                                    currentPage === totalPages ||
+                                    totalPages === 0
+                                        ? "disabled"
+                                        : ""
+                                }`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
@@ -400,7 +415,7 @@ export default function StaffSubjects() {
                 selectedSubject={selectedSubject}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // Auto-refresh
+                onSuccess={fetchData} // Auto-refresh via Smart Drawer
                 apiPrefix="/api/staff" // IMPORTANT
             />
         </div>

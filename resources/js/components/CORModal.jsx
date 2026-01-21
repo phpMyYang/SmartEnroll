@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Toast from "../utils/toast"; // ✅ Using Toast only
+import Toast from "../utils/toast"; // Using Toast only
 
 export default function CORModal({
     show,
@@ -159,7 +159,7 @@ export default function CORModal({
 
     // 5. DOWNLOAD PDF (FIXED: TOAST LOADING, NO SUCCESS MODAL)
     const handleDownloadPDF = async () => {
-        // ✅ LOADING STATE (TOAST)
+        // LOADING STATE (TOAST)
         Toast.fire({
             icon: "info",
             title: "Generating Document...",
@@ -175,9 +175,9 @@ export default function CORModal({
             // OPEN PDF
             window.open(response.data.url, "_blank");
 
-            // ❌ NO SUCCESS ALERT (As requested)
+            // NO SUCCESS ALERT (As requested)
         } catch (error) {
-            // ✅ ERROR STATE (TOAST)
+            // ERROR STATE (TOAST)
             Toast.fire({ icon: "error", title: "Failed to generate PDF." });
         }
     };

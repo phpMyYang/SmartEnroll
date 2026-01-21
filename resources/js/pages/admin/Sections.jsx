@@ -56,7 +56,7 @@ export default function Sections() {
 
     // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
-        // ✅ CONFIRMATION: Center Modal (Swal)
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SECTION?",
             text: "This cannot be undone.",
@@ -76,10 +76,10 @@ export default function Sections() {
                 try {
                     await axios.delete(`/api/sections/${id}`);
                     fetchData();
-                    // ✅ SUCCESS TOAST
+                    // SUCCESS TOAST
                     Toast.fire({ icon: "success", title: "Section removed." });
                 } catch (error) {
-                    // ✅ ERROR TOAST
+                    // ERROR TOAST
                     Toast.fire({
                         icon: "error",
                         title: "Failed to delete section.",

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Toast from "../utils/toast"; // ✅ Using Toast
+import Toast from "../utils/toast"; // Using Toast
 
 export default function SectionDrawer({
     show,
@@ -45,7 +45,7 @@ export default function SectionDrawer({
         try {
             if (type === "create") {
                 await axios.post(`${apiPrefix}/sections`, formData);
-                // ✅ SUCCESS TOAST
+                // SUCCESS TOAST
                 Toast.fire({
                     icon: "success",
                     title: "Section Created Successfully!",
@@ -55,7 +55,7 @@ export default function SectionDrawer({
                     `${apiPrefix}/sections/${selectedSection.id}`,
                     formData,
                 );
-                // ✅ SUCCESS TOAST
+                // SUCCESS TOAST
                 Toast.fire({
                     icon: "success",
                     title: "Section Updated Successfully!",
@@ -65,7 +65,7 @@ export default function SectionDrawer({
             if (onSuccess) onSuccess(); // Refresh parent
             onClose(); // Close drawer
         } catch (error) {
-            // ✅ ERROR TOAST
+            // ERROR TOAST
             let msg = "Action Failed";
             if (error.response && error.response.status === 422) {
                 msg = Object.values(error.response.data.errors)

@@ -19,7 +19,6 @@ export default function Subjects() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSubject, setSelectedSubject] = useState(null);
-    // Note: Inalis na natin ang isSubmitting dito kasi nasa Drawer na ang loading logic
 
     // 1. FETCH DATA (Ito ang tatawagin para mag-auto refresh)
     const fetchData = async () => {
@@ -54,7 +53,9 @@ export default function Subjects() {
         setShowDrawer(true);
     };
 
+    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
+        // ✅ CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SUBJECT?",
             text: "This action cannot be undone.",
@@ -75,13 +76,14 @@ export default function Subjects() {
                 try {
                     await axios.delete(`/api/subjects/${id}`);
                     fetchData(); // Auto Refresh after delete
-                    Swal.fire(
-                        "Deleted!",
-                        "Subject has been removed.",
-                        "success",
-                    );
+                    // SUCCESS TOAST
+                    Toast.fire({ icon: "success", title: "Subject removed." });
                 } catch (error) {
-                    Swal.fire("Error", "Failed to delete subject.", "error");
+                    // ERROR TOAST
+                    Toast.fire({
+                        icon: "error",
+                        title: "Failed to delete subject.",
+                    });
                 }
             }
         });
@@ -353,9 +355,7 @@ export default function Subjects() {
                     <small className="text-muted font-monospace">
                         Showing{" "}
                         <strong>
-                            {filteredSubjects.length > 0
-                                ? indexOfFirstItem + 1
-                                : 0}
+                            {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}
                         </strong>{" "}
                         to{" "}
                         <strong>
@@ -422,7 +422,7 @@ export default function Subjects() {
                 selectedSubject={selectedSubject}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // ITO ANG SUSI! Auto-refresh pagka-save.
+                onSuccess={fetchData} // Auto-refresh pagka-save
                 apiPrefix="/api" // Default is Admin
             />
         </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast"; // ✅ Using Toast
+import Toast from "../../utils/toast"; // Using Toast
 import SectionDrawer from "../../components/SectionDrawer";
 
 export default function StaffSections() {
@@ -77,10 +77,10 @@ export default function StaffSections() {
                     // UPDATED: Staff Endpoint
                     await axios.delete(`/api/staff/sections/${id}`);
                     fetchData();
-                    // ✅ SUCCESS TOAST
+                    // SUCCESS TOAST
                     Toast.fire({ icon: "success", title: "Section removed." });
                 } catch (error) {
-                    // ✅ ERROR TOAST
+                    // ERROR TOAST
                     Toast.fire({
                         icon: "error",
                         title: "Failed to delete section.",
@@ -552,8 +552,8 @@ export default function StaffSections() {
                 selectedSection={selectedSection}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // 👈 Auto-refresh
-                apiPrefix="/api/staff" // 👈 PASSING STAFF PREFIX
+                onSuccess={fetchData} // Auto-refresh
+                apiPrefix="/api/staff" // PASSING STAFF PREFIX
             />
         </div>
     );
