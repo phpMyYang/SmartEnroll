@@ -28,6 +28,11 @@ import RecycleBin from "./pages/admin/RecycleBin";
 
 // --- STAFF PAGES ---
 import StaffDashboard from "./pages/staff/Dashboard";
+import StaffStudents from "./pages/staff/Students";
+import StaffStrands from "./pages/staff/Strands";
+import StaffSections from "./pages/staff/Sections";
+import StaffSubjects from "./pages/staff/Subjects";
+import StaffReports from "./pages/staff/Reports";
 
 // Placeholder Component
 const Placeholder = ({ title }) => (
@@ -123,23 +128,23 @@ function App() {
                     <Route path="dashboard" element={<StaffDashboard />} />
                     <Route
                         path="students"
-                        element={<Placeholder title="Student Records" />}
+                        element={<StaffStudents title="Student Records" />}
                     />
                     <Route
                         path="strands"
-                        element={<Placeholder title="Strands" />}
+                        element={<StaffStrands title="Strands" />}
                     />
                     <Route
                         path="sections"
-                        element={<Placeholder title="Sections" />}
+                        element={<StaffSections title="Sections" />}
                     />
                     <Route
                         path="subjects"
-                        element={<Placeholder title="Subjects" />}
+                        element={<StaffSubjects title="Subjects" />}
                     />
                     <Route
                         path="reports"
-                        element={<Placeholder title="Reports" />}
+                        element={<StaffReports title="Reports" />}
                     />
                 </Route>
 

@@ -3,7 +3,12 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import Toast from "../utils/toast";
 
-export default function CORModal({ show, student, onClose }) {
+export default function CORModal({
+    show,
+    student,
+    onClose,
+    apiPrefix = "/api", // DEFAULT: Admin (/api). Override sa Staff (/api/staff).
+}) {
     if (!show || !student) return null;
 
     // --- STATES ---
@@ -36,19 +41,16 @@ export default function CORModal({ show, student, onClose }) {
     useEffect(() => {
         if (student) {
             setLoading(true);
+            // DYNAMIC FETCH URL: Uses apiPrefix
             axios
-                .get(`/api/students/${student.id}/cor-data`)
+                .get(`${apiPrefix}/students/${student.id}/cor-data`)
                 .then((res) => {
                     const { available_sections, suggested_subjects } = res.data;
                     setAvailableSections(available_sections);
 
                     setFormData({
                         info: {
-                            name: `${student.last_name}, ${
-                                student.first_name
-                            } ${student.middle_name || ""} ${
-                                student.suffix || ""
-                            }`.toUpperCase(),
+                            name: `${student.last_name}, ${student.first_name} ${student.middle_name || ""} ${student.suffix || ""}`.toUpperCase(),
                             lrn: student.lrn,
                             strand: student.strand?.code || "N/A",
                             grade_level: student.grade_level,
@@ -88,7 +90,7 @@ export default function CORModal({ show, student, onClose }) {
                 })
                 .finally(() => setLoading(false));
         }
-    }, [student]);
+    }, [student, apiPrefix]);
 
     // --- HANDLERS ---
 
@@ -166,9 +168,10 @@ export default function CORModal({ show, student, onClose }) {
                 didOpen: () => Swal.showLoading(),
             });
 
-            const response = await axios.post("/api/cor/generate-url", {
+            // DYNAMIC GENERATE URL: Uses apiPrefix
+            const response = await axios.post(`${apiPrefix}/cor/generate-url`, {
                 ...formData,
-                printed_by: "Admin",
+                printed_by: "Admin", // Pwede mo rin gawing dynamic ito kung gusto mo (e.g. currentUser.name)
             });
 
             window.open(response.data.url, "_blank");
@@ -190,7 +193,7 @@ export default function CORModal({ show, student, onClose }) {
             >
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content border-2 border-dark rounded-0 shadow-lg">
-                        {/* UPDATED HEADER: Matches Masterlist Modal Design */}
+                        {/* HEADER */}
                         <div className="modal-header bg-dark text-white border-bottom border-dark rounded-0 py-3">
                             <h5 className="modal-title fw-bold font-monospace mx-auto">
                                 <i className="bi bi-printer-fill me-2 text-warning"></i>{" "}
@@ -235,7 +238,7 @@ export default function CORModal({ show, student, onClose }) {
                                                             {sec.enrolled_count}
                                                             /{sec.capacity})
                                                         </option>
-                                                    )
+                                                    ),
                                                 )}
                                             </select>
                                         </div>
@@ -302,14 +305,14 @@ export default function CORModal({ show, student, onClose }) {
                                                                         sub.code
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleSubjectChange(
                                                                             idx,
                                                                             "code",
                                                                             e
                                                                                 .target
-                                                                                .value
+                                                                                .value,
                                                                         )
                                                                     }
                                                                 />
@@ -322,14 +325,14 @@ export default function CORModal({ show, student, onClose }) {
                                                                         sub.desc
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleSubjectChange(
                                                                             idx,
                                                                             "desc",
                                                                             e
                                                                                 .target
-                                                                                .value
+                                                                                .value,
                                                                         )
                                                                     }
                                                                 />
@@ -343,14 +346,14 @@ export default function CORModal({ show, student, onClose }) {
                                                                         sub.sched
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleSubjectChange(
                                                                             idx,
                                                                             "sched",
                                                                             e
                                                                                 .target
-                                                                                .value
+                                                                                .value,
                                                                         )
                                                                     }
                                                                 />
@@ -364,14 +367,14 @@ export default function CORModal({ show, student, onClose }) {
                                                                         sub.teacher
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleSubjectChange(
                                                                             idx,
                                                                             "teacher",
                                                                             e
                                                                                 .target
-                                                                                .value
+                                                                                .value,
                                                                         )
                                                                     }
                                                                 />
@@ -381,7 +384,7 @@ export default function CORModal({ show, student, onClose }) {
                                                                     className="btn btn-sm text-danger"
                                                                     onClick={() =>
                                                                         removeRow(
-                                                                            idx
+                                                                            idx,
                                                                         )
                                                                     }
                                                                 >
@@ -389,7 +392,7 @@ export default function CORModal({ show, student, onClose }) {
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                    )
+                                                    ),
                                                 )}
                                                 {formData.subjects.length ===
                                                     0 && (
@@ -475,7 +478,7 @@ export default function CORModal({ show, student, onClose }) {
                                                                 undefined,
                                                                 {
                                                                     minimumFractionDigits: 2,
-                                                                }
+                                                                },
                                                             )}
                                                         </span>
                                                     </div>
@@ -555,7 +558,7 @@ export default function CORModal({ show, student, onClose }) {
                             )}
                         </div>
 
-                        {/* UPDATED FOOTER: Matches Masterlist Modal Design */}
+                        {/* FOOTER */}
                         <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
                             <button
                                 className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect"

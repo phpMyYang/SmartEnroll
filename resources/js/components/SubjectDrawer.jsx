@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import Toast from "../utils/toast"; // Gamitin ang Toast utility
 
 export default function SubjectDrawer({
     show,
     type,
     selectedSubject,
-    strands, // Need natin list ng strands para sa dropdown
+    strands,
     onClose,
-    onSubmit,
-    isLoading,
+    onSuccess, // Callback para mag-auto refresh ang parent
+    apiPrefix = "/api", // DEFAULT: Admin. Override sa Staff (/api/staff).
 }) {
     const initialForm = {
         code: "",
@@ -18,13 +21,15 @@ export default function SubjectDrawer({
     };
 
     const [formData, setFormData] = useState(initialForm);
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Populate Data on Edit / Reset on Create
     useEffect(() => {
         if (type === "edit" && selectedSubject) {
             setFormData({
                 code: selectedSubject.code,
                 description: selectedSubject.description,
-                strand_id: selectedSubject.strand_id || "", // Handle null
+                strand_id: selectedSubject.strand_id || "", // Handle null for Core
                 grade_level: selectedSubject.grade_level,
                 semester: selectedSubject.semester,
             });
@@ -36,9 +41,68 @@ export default function SubjectDrawer({
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    // SMART SUBMIT HANDLER
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsLoading(true);
+
+        // FIX: Convert empty string "" to null for database compatibility
+        // Ito ang solusyon para tanggapin ng server ang "ALL STRANDS" at iwas 422 Error
+        const payload = {
+            ...formData,
+            strand_id: formData.strand_id === "" ? null : formData.strand_id,
+        };
+
+        try {
+            // 1. Perform API Request (Dynamic URL based on apiPrefix)
+            if (type === "create") {
+                await axios.post(`${apiPrefix}/subjects`, payload);
+            } else {
+                await axios.put(
+                    `${apiPrefix}/subjects/${selectedSubject.id}`,
+                    payload,
+                );
+            }
+
+            // 2. Show Success Toast (Hindi nakaka-block ng UI)
+            Toast.fire({
+                icon: "success",
+                title:
+                    type === "create" ? "Subject Created!" : "Subject Updated!",
+            });
+
+            // 3. Refresh Parent Data & Close
+            if (onSuccess) onSuccess();
+            onClose();
+        } catch (error) {
+            console.error(error);
+
+            // 4. Handle Errors (Validation vs Server Error)
+            if (error.response && error.response.status === 422) {
+                const errors = error.response.data.errors;
+                const errorMessage = errors
+                    ? Object.values(errors).flat().join("\n")
+                    : "Validation Error. Please check inputs.";
+
+                Swal.fire({
+                    title: "Input Error",
+                    text: errorMessage, // Dito lalabas kung duplicate code o invalid input
+                    icon: "warning",
+                    background: "#FFE2AF",
+                    customClass: { popup: "card-retro" },
+                });
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong. Action failed.",
+                    icon: "error",
+                    background: "#FFE2AF",
+                    customClass: { popup: "card-retro" },
+                });
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const drawerClass = show

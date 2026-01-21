@@ -4,14 +4,14 @@ import Swal from "sweetalert2";
 import Toast from "../../utils/toast";
 import SubjectDrawer from "../../components/SubjectDrawer";
 
-export default function Subjects() {
-    // DATA STATES
+export default function StaffSubjects() {
+    // STATES
     const [subjects, setSubjects] = useState([]);
     const [strands, setStrands] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // PAGINATION STATES
+    // PAGINATION
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -19,14 +19,13 @@ export default function Subjects() {
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSubject, setSelectedSubject] = useState(null);
-    // Note: Inalis na natin ang isSubmitting dito kasi nasa Drawer na ang loading logic
 
-    // 1. FETCH DATA (Ito ang tatawagin para mag-auto refresh)
+    // 1. FETCH DATA (Uses Staff API)
     const fetchData = async () => {
         try {
             const [subRes, strandRes] = await Promise.all([
-                axios.get("/api/subjects"),
-                axios.get("/api/strands"),
+                axios.get("/api/staff/subjects"), // Staff API
+                axios.get("/api/staff/strands"), // Staff API
             ]);
             setSubjects(subRes.data);
             setStrands(strandRes.data);
@@ -65,21 +64,19 @@ export default function Subjects() {
             confirmButtonText: "YES, DELETE IT!",
             background: "#FFE2AF",
             color: "#000",
-            customClass: {
-                popup: "card-retro",
-                confirmButton: "btn-retro bg-danger border-dark",
-                cancelButton: "btn-retro bg-dark border-dark",
-            },
+            customClass: { popup: "card-retro" },
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`/api/subjects/${id}`);
-                    fetchData(); // Auto Refresh after delete
-                    Swal.fire(
-                        "Deleted!",
-                        "Subject has been removed.",
-                        "success",
-                    );
+                    await axios.delete(`/api/staff/subjects/${id}`); // Staff API
+                    fetchData(); // Auto Refresh
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Subject has been removed.",
+                        icon: "success",
+                        background: "#FFE2AF",
+                        customClass: { popup: "card-retro" },
+                    });
                 } catch (error) {
                     Swal.fire("Error", "Failed to delete subject.", "error");
                 }
@@ -87,13 +84,12 @@ export default function Subjects() {
         });
     };
 
-    // 3. FILTER & PAGINATION LOGIC
+    // 3. FILTER & PAGINATION
     const filteredSubjects = subjects.filter(
         (s) =>
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.description.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredSubjects.slice(
@@ -101,8 +97,7 @@ export default function Subjects() {
         indexOfLastItem,
     );
     const totalPages = Math.ceil(filteredSubjects.length / itemsPerPage);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const paginate = (n) => setCurrentPage(n);
 
     return (
         <div className="container-fluid fade-in mb-5">
@@ -116,7 +111,7 @@ export default function Subjects() {
                         className="fw-bold text-dark mb-0 font-monospace"
                         style={{ textShadow: "2px 2px 0 #fff" }}
                     >
-                        SUBJECT MANAGEMENT
+                        SUBJECT MANAGEMENT (STAFF)
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
                         Curriculum & Subjects List
@@ -130,9 +125,8 @@ export default function Subjects() {
                 </button>
             </div>
 
-            {/* MAIN CARD (RETRO TABLE) */}
+            {/* TABLE CARD */}
             <div className="card-retro">
-                {/* TOOLBAR */}
                 <div
                     className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
                     style={{ borderBottom: "2px solid black" }}
@@ -153,7 +147,6 @@ export default function Subjects() {
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
                         </select>
                     </div>
                     <div className="input-group" style={{ maxWidth: "300px" }}>
@@ -173,7 +166,6 @@ export default function Subjects() {
                     </div>
                 </div>
 
-                {/* DATATABLE */}
                 <div className="card-body p-0">
                     <div className="table-responsive">
                         <table className="table table-hover align-middle mb-0">
@@ -194,7 +186,7 @@ export default function Subjects() {
                                         className="py-3 font-monospace text-dark"
                                         width="15%"
                                     >
-                                        Subject Code
+                                        Code
                                     </th>
                                     <th
                                         className="py-3 font-monospace text-dark"
@@ -252,7 +244,6 @@ export default function Subjects() {
                                             <td className="ps-4 py-3 fw-bold font-monospace">
                                                 {indexOfFirstItem + index + 1}
                                             </td>
-
                                             <td className="py-3 fw-bold font-monospace">
                                                 {subject.code}
                                             </td>
@@ -274,6 +265,8 @@ export default function Subjects() {
                                                 G{subject.grade_level} -{" "}
                                                 {subject.semester} Sem
                                             </td>
+
+                                            {/* BUTTONS UPDATED TO MATCH ADMIN EXACTLY */}
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2">
                                                     {/* EDIT BUTTON */}
@@ -345,7 +338,6 @@ export default function Subjects() {
                     </div>
                 </div>
 
-                {/* PAGINATION FOOTER */}
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
@@ -353,9 +345,7 @@ export default function Subjects() {
                     <small className="text-muted font-monospace">
                         Showing{" "}
                         <strong>
-                            {filteredSubjects.length > 0
-                                ? indexOfFirstItem + 1
-                                : 0}
+                            {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}
                         </strong>{" "}
                         to{" "}
                         <strong>
@@ -363,13 +353,10 @@ export default function Subjects() {
                         </strong>{" "}
                         of <strong>{filteredSubjects.length}</strong> entries
                     </small>
-
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${
-                                    currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -379,7 +366,6 @@ export default function Subjects() {
                                     &laquo; PREV
                                 </button>
                             </li>
-
                             <li className="page-item disabled">
                                 <span
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 mx-1"
@@ -388,14 +374,8 @@ export default function Subjects() {
                                     PAGE {currentPage}
                                 </span>
                             </li>
-
                             <li
-                                className={`page-item ${
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                        ? "disabled"
-                                        : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
@@ -413,17 +393,15 @@ export default function Subjects() {
                 </div>
             </div>
 
-            {/* CALLING THE SMART DRAWER */}
-            {/* Tinanggal na ang onSubmit={handleSubmit} */}
-            {/* Pinalitan ng onSuccess={fetchData} para mag-auto refresh */}
+            {/* PASSING STAFF PREFIX */}
             <SubjectDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSubject={selectedSubject}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // ITO ANG SUSI! Auto-refresh pagka-save.
-                apiPrefix="/api" // Default is Admin
+                onSuccess={fetchData} // Auto-refresh
+                apiPrefix="/api/staff" // IMPORTANT
             />
         </div>
     );

@@ -73,19 +73,41 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/maintenance', [EnrollmentSettingController::class, 'toggleMaintenance']);
     Route::delete('/settings/{id}', [EnrollmentSettingController::class, 'destroy']);
     
-    // --- Activity logs ---
+    // --- ACTIVITY LOGS ---
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 
-    // --- Recycle bin ---
+    // --- RECYCLE BIN ---
     Route::get('/recycle-bin', [RecycleBinController::class, 'index']);
     Route::post('/recycle-bin/restore', [RecycleBinController::class, 'restore']);
     Route::delete('/recycle-bin/force-delete', [RecycleBinController::class, 'forceDelete']);
 
-    // --- MAINTENANCE MODE GROUP (Example for Staff) ---
+    // --- MAINTENANCE MODE GROUP ---
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckMaintenanceMode::class])->group(function () {
-        // Example: Staff specific routes that are blocked during maintenance
-        // Route::apiResource('students', StudentController::class);
+        // Staff specific routes that are blocked during maintenance
         Route::get('/staff/analytics', [AdminController::class, 'getAnalytics']);
+
+        // Students
+        Route::apiResource('staff/students', StudentController::class);
+        Route::put('staff/students/{id}/status', [StudentController::class, 'changeStatus']);
+        
+        // COR
+        Route::get('staff/students/{id}/cor-data', [CORController::class, 'getCORData']); 
+        Route::post('staff/cor/generate-url', [CORController::class, 'generateUrl']);
+
+        // STRANDS
+        Route::apiResource('staff/strands', StrandController::class);
+
+        // SECTIONS
+        Route::apiResource('staff/sections', SectionController::class);
+        Route::get('staff/sections/{id}/masterlist', [SectionController::class, 'masterList']);
+        Route::get('staff/sections/{id}/masterlist/generate-url', [SectionController::class, 'generatePrintUrl']);
+
+        // SUBJECTS
+        Route::apiResource('staff/subjects', SubjectController::class);
+
+        // REPORTS
+        Route::get('staff/reports/summary', [ReportController::class, 'generateSummary']);
+        Route::get('staff/reports/masterlist', [ReportController::class, 'exportMasterlist']);
     });
 });
 
