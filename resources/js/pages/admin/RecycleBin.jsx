@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast";
+import Toast from "../../utils/toast"; // ✅ Using Toast
 
 export default function RecycleBin() {
     const [activeTab, setActiveTab] = useState("students");
@@ -59,6 +59,7 @@ export default function RecycleBin() {
             setSearchTerm("");
         } catch (error) {
             console.error(error);
+            // ✅ ERROR TOAST
             Toast.fire({ icon: "error", title: "Failed to load trash." });
         } finally {
             setLoading(false);
@@ -81,8 +82,7 @@ export default function RecycleBin() {
 
         if (activeTab === "sections") return item.name || "Unknown Section";
 
-        // UPDATE: Code lang ang ilalabas dito para malinis (e.g. "STEM")
-        // Ang description ay ililipat natin sa "Details" column
+        // Code only for Strands/Subjects
         if (activeTab === "strands") return item.code || "Unknown Strand";
         if (activeTab === "subjects") return item.code || "Unknown Subject";
 
@@ -94,7 +94,6 @@ export default function RecycleBin() {
     // 1. FILTER
     const filteredItems = items.filter((item) => {
         const name = getDisplayName(item);
-        // Isama rin sa search ang description para madaling hanapin
         const desc = item.description || "";
         const searchStr = `${name} ${desc}`.toLowerCase();
 
@@ -135,6 +134,7 @@ export default function RecycleBin() {
     const handleRestore = async () => {
         if (selectedIds.length === 0) return;
 
+        // ✅ CONFIRMATION: Swal Center
         Swal.fire({
             title: `RESTORE ${selectedIds.length} ITEMS?`,
             text: "Data will return to the active list.",
@@ -157,9 +157,11 @@ export default function RecycleBin() {
                         type: activeTab,
                         ids: selectedIds,
                     });
+                    // ✅ SUCCESS TOAST
                     Toast.fire({ icon: "success", title: "Items Restored!" });
                     fetchTrash();
                 } catch (error) {
+                    // ✅ ERROR TOAST
                     Toast.fire({ icon: "error", title: "Restore Failed" });
                 }
             }
@@ -170,6 +172,7 @@ export default function RecycleBin() {
     const handleForceDelete = async () => {
         if (selectedIds.length === 0) return;
 
+        // ✅ CONFIRMATION: Swal Center (Warning)
         Swal.fire({
             title: "PERMANENTLY DELETE?",
             text: "This action cannot be undone. Data will be gone forever.",
@@ -191,12 +194,14 @@ export default function RecycleBin() {
                     await axios.delete("/api/recycle-bin/force-delete", {
                         data: { type: activeTab, ids: selectedIds },
                     });
+                    // ✅ SUCCESS TOAST
                     Toast.fire({
                         icon: "success",
                         title: "Items Permanently Deleted!",
                     });
                     fetchTrash();
                 } catch (error) {
+                    // ✅ ERROR TOAST
                     Toast.fire({ icon: "error", title: "Delete Failed" });
                 }
             }
@@ -441,7 +446,7 @@ export default function RecycleBin() {
                                                     </span>
                                                 )}
 
-                                                {/* STRAND & SUBJECT DETAILS (DESCRIPTION) */}
+                                                {/* STRAND & SUBJECT DETAILS */}
                                                 {(activeTab === "strands" ||
                                                     activeTab ===
                                                         "subjects") && (
