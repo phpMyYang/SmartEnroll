@@ -7,7 +7,7 @@ import Toast from "../../utils/toast";
 import StudentDrawer from "../../components/StudentDrawer";
 import CORModal from "../../components/CORModal";
 
-export default function Students(props) {
+export default function StaffStudents(props) {
     const { auth } = props;
 
     // --- STATES ---
@@ -28,7 +28,7 @@ export default function Students(props) {
     });
     const [corState, setCorState] = useState({ show: false, data: null });
 
-    // UI States
+    // UI States (Dropdown)
     const [openActionId, setOpenActionId] = useState(null);
     const [dropdownPos, setDropdownPos] = useState({
         top: "auto",
@@ -46,23 +46,27 @@ export default function Students(props) {
         const handleScroll = () => {
             if (openActionId) setOpenActionId(null);
         };
+
         document.addEventListener("click", handleClickOutside);
         window.addEventListener("scroll", handleScroll, true);
+
         return () => {
             document.removeEventListener("click", handleClickOutside);
             window.removeEventListener("scroll", handleScroll, true);
         };
     }, [openActionId]);
 
+    // 1. FETCH DATA (Uses Staff Endpoint)
     const fetchData = async () => {
         try {
             const [std, str] = await Promise.all([
-                axios.get("/api/students"),
-                axios.get("/api/strands"),
+                axios.get("/api/staff/students"), // Staff API
+                axios.get("/api/staff/strands"), // staff API
             ]);
             setStudents(std.data);
             setStrands(str.data);
         } catch (e) {
+            console.error(e);
             Toast.fire({ icon: "error", title: "Failed to load data." });
         } finally {
             setLoading(false);
@@ -79,8 +83,10 @@ export default function Students(props) {
         setOpenActionId(null);
     };
 
+    // AUTO-FLIP DROPDOWN LOGIC
     const toggleDropdown = (id, e) => {
         e.stopPropagation();
+
         if (openActionId === id) {
             setOpenActionId(null);
         } else {
@@ -88,25 +94,31 @@ export default function Students(props) {
             const viewportHeight = window.innerHeight;
             const spaceBelow = viewportHeight - rect.bottom;
             const dropdownHeightEstimate = 320;
+
             let newPos = {};
+
             if (spaceBelow < dropdownHeightEstimate) {
+                // Flip UP
                 newPos = {
                     bottom: viewportHeight - rect.top,
                     right: window.innerWidth - rect.right,
                     top: "auto",
                 };
             } else {
+                // Default DOWN
                 newPos = {
                     top: rect.bottom,
                     right: window.innerWidth - rect.right,
                     bottom: "auto",
                 };
             }
+
             setDropdownPos(newPos);
             setOpenActionId(id);
         }
     };
 
+    // STATUS CHANGE
     const handleChangeStatus = async (student, newStatus) => {
         setOpenActionId(null);
         if (newStatus === "released") {
@@ -116,7 +128,9 @@ export default function Students(props) {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "YES, RELEASE",
+                cancelButtonText: "CANCEL",
                 background: "#FFE2AF",
+                color: "#000",
                 customClass: {
                     popup: "card-retro",
                     confirmButton: "btn-retro bg-danger border-dark",
@@ -125,11 +139,15 @@ export default function Students(props) {
             });
             if (!res.isConfirmed) return;
         }
+
         try {
-            await axios.put(`/api/students/${student.id}/status`, {
+            await axios.put(`/api/staff/students/${student.id}/status`, {
+                // Staff API
                 status: newStatus,
             });
             fetchData();
+
+            // SUCCESS MODAL (Swal, not Toast - to match Admin)
             Swal.fire({
                 title: "UPDATED",
                 text: `Status changed to: ${newStatus.toUpperCase()}`,
@@ -137,6 +155,7 @@ export default function Students(props) {
                 timer: 1500,
                 showConfirmButton: false,
                 background: "#FFE2AF",
+                color: "#000",
                 customClass: { popup: "card-retro" },
             });
         } catch (e) {
@@ -144,6 +163,7 @@ export default function Students(props) {
         }
     };
 
+    // DELETE HANDLER
     const handleDelete = (id) => {
         setOpenActionId(null);
         Swal.fire({
@@ -152,7 +172,9 @@ export default function Students(props) {
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "YES, DELETE IT!",
+            cancelButtonText: "CANCEL",
             background: "#FFE2AF",
+            color: "#000",
             customClass: {
                 popup: "card-retro",
                 confirmButton: "btn-retro bg-danger border-dark",
@@ -161,14 +183,18 @@ export default function Students(props) {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`/api/students/${id}`);
+                    await axios.delete(`/api/staff/students/${id}`); // Staff API
                     fetchData();
                     Swal.fire({
                         title: "Deleted!",
                         text: "Record removed.",
                         icon: "success",
                         background: "#FFE2AF",
-                        customClass: { popup: "card-retro" },
+                        color: "#000",
+                        customClass: {
+                            popup: "card-retro",
+                            confirmButton: "btn-retro bg-success border-dark",
+                        },
                     });
                 } catch (error) {
                     Swal.fire("Error", "Failed to delete.", "error");
@@ -177,6 +203,7 @@ export default function Students(props) {
         });
     };
 
+    // FILTER & PAGINATION
     const filteredStudents = students.filter(
         (s) =>
             s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -193,6 +220,7 @@ export default function Students(props) {
 
     return (
         <div className="container-fluid fade-in mb-5">
+            {/* HEADER */}
             <div
                 className="d-flex justify-content-between align-items-center mb-4 pb-3"
                 style={{ borderBottom: "2px solid black" }}
@@ -202,12 +230,13 @@ export default function Students(props) {
                         className="fw-bold text-dark mb-0 font-monospace"
                         style={{ textShadow: "2px 2px 0 #fff" }}
                     >
-                        STUDENT MANAGEMENT
+                        STUDENT MANAGEMENT (STAFF)
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
                         Manage Enrollment Records
                     </p>
                 </div>
+
                 <button
                     className="btn btn-retro px-4 py-2 d-flex align-items-center gap-2"
                     onClick={() => handleOpenDrawer("create")}
@@ -216,6 +245,7 @@ export default function Students(props) {
                 </button>
             </div>
 
+            {/* TABLE CARD */}
             <div className="card-retro">
                 <div
                     className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
@@ -371,9 +401,10 @@ export default function Students(props) {
                                                 </span>
                                             </td>
 
-                                            {/* ACTION BUTTONS (FIXED: WITH EFFECTS) */}
+                                            {/* ACTION BUTTONS WITH RETRO LIFT EFFECT */}
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2 position-relative">
+                                                    {/* VIEW */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -404,6 +435,7 @@ export default function Students(props) {
                                                     >
                                                         <i className="bi bi-eye-fill text-dark"></i>
                                                     </button>
+                                                    {/* EDIT */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -434,6 +466,7 @@ export default function Students(props) {
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
+                                                    {/* MENU */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center custom-dropdown-trigger"
                                                         style={{
@@ -464,6 +497,7 @@ export default function Students(props) {
                                                     >
                                                         <i className="bi bi-three-dots text-white"></i>
                                                     </button>
+                                                    {/* DELETE */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -500,7 +534,7 @@ export default function Students(props) {
                         </table>
                     </div>
                 </div>
-                {/* Pagination Footer */}
+
                 <div
                     className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
                     style={{ borderTop: "2px solid black" }}
@@ -553,7 +587,7 @@ export default function Students(props) {
                 </div>
             </div>
 
-            {/* Action Menu (Same as above) */}
+            {/* ACTION MENU */}
             {openActionId && (
                 <div
                     className="dropdown-menu show border-2 border-dark rounded-0 shadow p-0 fade-in"
@@ -654,7 +688,7 @@ export default function Students(props) {
                     fetchData();
                     setDrawerState({ ...drawerState, show: false });
                 }}
-                apiPrefix="/api" // Admin API
+                apiPrefix="/api/staff"
             />
 
             <CORModal
@@ -662,7 +696,7 @@ export default function Students(props) {
                 student={corState.data}
                 onClose={() => setCorState({ ...corState, show: false })}
                 currentUser={auth?.user}
-                apiPrefix="/api"
+                apiPrefix="/api/staff"
             />
         </div>
     );

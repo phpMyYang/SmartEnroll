@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios"; // Added axios import since we might move submit logic here or just for consistency
 
 export default function StrandDrawer({
     show,
@@ -7,6 +8,7 @@ export default function StrandDrawer({
     onClose,
     onSubmit,
     isLoading,
+    apiPrefix = "/api", // DEFAULT: Admin (/api). Override for Staff (/api/staff).
 }) {
     const initialForm = { code: "", description: "" };
     const [formData, setFormData] = useState(initialForm);
@@ -25,7 +27,10 @@ export default function StrandDrawer({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        // Ipapasa natin ang apiPrefix sa onSubmit handler ng parent component
+        // pero kung dito mo gusto i-handle ang axios, pwede rin.
+        // For now, susundin natin ang structure na parent ang naghahandle ng submit.
+        onSubmit(formData, apiPrefix);
     };
 
     // Drawer CSS Classes

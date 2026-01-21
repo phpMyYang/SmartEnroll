@@ -10,6 +10,7 @@ export default function StudentDrawer({
     strands,
     onClose,
     onSuccess,
+    apiPrefix = "/api", // ✅ DEFAULT: Admin (/api). Override for Staff (/api/staff).
 }) {
     // States
     const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +23,7 @@ export default function StudentDrawer({
             new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
     });
 
-    // Initial Form State
+    // Initial Form State (ALL FIELDS INCLUDED)
     const initialForm = {
         // Personal
         last_name: "",
@@ -52,7 +53,7 @@ export default function StudentDrawer({
         semester: "",
         school_year: "",
 
-        // Employment & Family
+        // Family & Work
         employer_name: "",
         employer_contact: "",
         father_name: "",
@@ -72,47 +73,57 @@ export default function StudentDrawer({
             good_moral: false,
             diploma: false,
         },
+
+        // System Fields
+        status: "",
+        released_by: "",
+        released_at: "",
     };
 
     const [form, setForm] = useState(initialForm);
 
-    // 1. FETCH DATA
+    // 1. FETCH DATA (Dynamic URL)
     useEffect(() => {
         const fetchInit = async () => {
             try {
+                // ✅ SMART FETCH: Uses apiPrefix to determine route
+                const sectionUrl = `${apiPrefix}/sections`;
+
                 const [setRes, secRes] = await Promise.all([
-                    axios.get("/api/settings").catch(() => ({ data: null })),
-                    axios.get("/api/sections").catch(() => ({ data: [] })),
+                    axios.get("/api/settings").catch(() => ({ data: null })), // Settings usually global
+                    axios.get(sectionUrl).catch(() => ({ data: [] })),
                 ]);
 
-                let settingsData = null;
                 if (setRes.data) {
-                    settingsData = Array.isArray(setRes.data)
+                    const settingsData = Array.isArray(setRes.data)
                         ? setRes.data[0]
                         : setRes.data;
+                    if (settingsData) setActiveSettings(settingsData);
                 }
-
-                if (settingsData) setActiveSettings(settingsData);
                 if (secRes.data) setSectionsList(secRes.data);
             } catch (e) {
                 console.error("Init Error:", e);
             }
         };
-
         if (show) fetchInit();
-    }, [show]);
+    }, [show, apiPrefix]);
 
-    // 2. LOAD DATA
+    // 2. LOAD DATA ON EDIT/VIEW
     useEffect(() => {
         if ((type === "edit" || type === "view") && selectedStudent) {
             setForm({
                 ...selectedStudent,
+                // Ensure date format is YYYY-MM-DD for input
                 date_of_birth: selectedStudent.date_of_birth
                     ? selectedStudent.date_of_birth.split("T")[0]
                     : "",
                 section_id: selectedStudent.section_id || "",
+                // Ensure requirements is an object
                 requirements:
-                    selectedStudent.requirements || initialForm.requirements,
+                    typeof selectedStudent.requirements === "string"
+                        ? JSON.parse(selectedStudent.requirements)
+                        : selectedStudent.requirements ||
+                          initialForm.requirements,
                 school_year:
                     selectedStudent.school_year || activeSettings.school_year,
                 semester: selectedStudent.semester || activeSettings.semester,
@@ -126,7 +137,7 @@ export default function StudentDrawer({
         }
     }, [show, selectedStudent, type, activeSettings]);
 
-    // 3. AUTO-AGE
+    // 3. AUTO-AGE CALCULATION
     useEffect(() => {
         if (form.date_of_birth && type !== "view") {
             const birth = new Date(form.date_of_birth);
@@ -138,7 +149,7 @@ export default function StudentDrawer({
         }
     }, [form.date_of_birth]);
 
-    // Handlers
+    // HANDLERS
     const handleChange = (e) => {
         const { name, value, checked } = e.target;
         if (name.startsWith("req_")) {
@@ -156,8 +167,9 @@ export default function StudentDrawer({
         e.preventDefault();
         setIsLoading(true);
         try {
+            // ✅ DYNAMIC URL BASED ON API PREFIX
             if (type === "create") {
-                await axios.post("/api/students", form);
+                await axios.post(`${apiPrefix}/students`, form);
                 Swal.fire({
                     title: "Success",
                     text: "Application Sent!",
@@ -166,7 +178,10 @@ export default function StudentDrawer({
                     customClass: { popup: "card-retro" },
                 });
             } else {
-                await axios.put(`/api/students/${selectedStudent.id}`, form);
+                await axios.put(
+                    `${apiPrefix}/students/${selectedStudent.id}`,
+                    form,
+                );
                 Swal.fire({
                     title: "Updated",
                     text: "Student Record Updated!",
@@ -180,7 +195,7 @@ export default function StudentDrawer({
             Swal.fire(
                 "Error",
                 error.response?.data?.message || "Action Failed",
-                "error"
+                "error",
             );
         } finally {
             setIsLoading(false);
@@ -189,7 +204,7 @@ export default function StudentDrawer({
 
     const filteredSections = sectionsList.filter(
         (s) =>
-            s.strand_id == form.strand_id && s.grade_level == form.grade_level
+            s.strand_id == form.strand_id && s.grade_level == form.grade_level,
     );
     const isReadOnly = type === "view";
     const drawerClass = show
@@ -259,7 +274,6 @@ export default function StudentDrawer({
                     className="offcanvas-body"
                     style={{ backgroundColor: "#f8f9fa" }}
                 >
-                    {/* RELEASE INFO */}
                     {type === "view" && form.status === "released" && (
                         <div className="alert alert-dark border-2 border-dark rounded-0 mb-4 font-monospace shadow-sm bg-white">
                             <div className="d-flex align-items-center">
@@ -272,7 +286,7 @@ export default function StudentDrawer({
                                         BY: {form.released_by || "System Admin"}{" "}
                                         <br /> DATE:{" "}
                                         {moment(form.released_at).format(
-                                            "MMMM Do YYYY, h:mm A"
+                                            "MMMM Do YYYY, h:mm A",
                                         )}
                                     </p>
                                 </div>
@@ -345,7 +359,7 @@ export default function StudentDrawer({
                                         value={form.middle_name}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
-                                        placeholder="Enter Middle Name (Optional)"
+                                        placeholder="(Optional)"
                                     />
                                 </div>
                                 <div className="col-4">
@@ -357,7 +371,7 @@ export default function StudentDrawer({
                                         value={form.suffix}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
-                                        placeholder="e.g. Jr., III (Optional)"
+                                        placeholder="e.g. Jr."
                                     />
                                 </div>
                                 <div className="col-4">
@@ -382,7 +396,7 @@ export default function StudentDrawer({
                                         value={form.age}
                                         readOnly
                                         disabled
-                                        placeholder="Auto-computed"
+                                        placeholder="Auto"
                                     />
                                 </div>
                                 <div className="col-6">
@@ -627,13 +641,14 @@ export default function StudentDrawer({
                             </div>
                         </div>
 
-                        {/* 4. FAMILY */}
+                        {/* 4. FAMILY & WORK */}
                         <div className="card-retro p-3 bg-white">
                             <h6 className="fw-bold mb-3 pb-2 border-bottom border-dark font-monospace">
                                 <i className="bi bi-people-fill me-2"></i>{" "}
                                 FAMILY & WORK
                             </h6>
                             <div className="row g-2 mb-3">
+                                {/* FATHER */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1">
                                     FATHER'S INFO
                                 </div>
@@ -653,7 +668,7 @@ export default function StudentDrawer({
                                         type="text"
                                         name="father_occupation"
                                         className={inputStyle}
-                                        placeholder="Father's Occupation"
+                                        placeholder="Occupation"
                                         value={form.father_occupation}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -664,13 +679,14 @@ export default function StudentDrawer({
                                         type="text"
                                         name="father_contact"
                                         className={inputStyle}
-                                        placeholder="Father's Mobile No."
+                                        placeholder="Contact No."
                                         value={form.father_contact}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
                                     />
                                 </div>
 
+                                {/* MOTHER */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
                                     MOTHER'S INFO
                                 </div>
@@ -690,7 +706,7 @@ export default function StudentDrawer({
                                         type="text"
                                         name="mother_occupation"
                                         className={inputStyle}
-                                        placeholder="Mother's Occupation"
+                                        placeholder="Occupation"
                                         value={form.mother_occupation}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -701,13 +717,14 @@ export default function StudentDrawer({
                                         type="text"
                                         name="mother_contact"
                                         className={inputStyle}
-                                        placeholder="Mother's Mobile No."
+                                        placeholder="Contact No."
                                         value={form.mother_contact}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
                                     />
                                 </div>
 
+                                {/* GUARDIAN */}
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
                                     GUARDIAN'S INFO
                                 </div>
@@ -727,7 +744,7 @@ export default function StudentDrawer({
                                         type="text"
                                         name="guardian_occupation"
                                         className={inputStyle}
-                                        placeholder="Guardian's Occupation"
+                                        placeholder="Occupation"
                                         value={form.guardian_occupation}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -738,16 +755,18 @@ export default function StudentDrawer({
                                         type="text"
                                         name="guardian_contact"
                                         className={inputStyle}
-                                        placeholder="Guardian's Mobile No."
+                                        placeholder="Contact No."
                                         value={form.guardian_contact}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
                                     />
                                 </div>
                             </div>
+
+                            {/* WORKING STUDENT */}
                             <div className="row g-2">
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1">
-                                    EMPLOYMENT (If Working)
+                                    EMPLOYMENT (If Working Student)
                                 </div>
                                 <div className="col-6">
                                     <input
@@ -801,10 +820,10 @@ export default function StudentDrawer({
                                                 {req === "psa"
                                                     ? "PSA Birth Certificate"
                                                     : req === "form137"
-                                                    ? "Form 137 / SF10"
-                                                    : req === "good_moral"
-                                                    ? "Good Moral Cert"
-                                                    : "Grade 10 Diploma"}
+                                                      ? "Form 137 / SF10"
+                                                      : req === "good_moral"
+                                                        ? "Good Moral Cert"
+                                                        : "Grade 10 Diploma"}
                                             </label>
                                         </div>
                                     </div>
@@ -812,7 +831,7 @@ export default function StudentDrawer({
                             </div>
                         </div>
 
-                        {/* ACTION BUTTONS WITH TOGA SPINNER */}
+                        {/* ACTION BUTTONS */}
                         {!isReadOnly && (
                             <button
                                 type="submit"
