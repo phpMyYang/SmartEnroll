@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Modal } from "react-bootstrap";
-import Swal from "sweetalert2";
+import Toast from "../../utils/toast"; // ✅ Using Toast
 
 export default function StaffReports() {
     const [showModal, setShowModal] = useState(false);
@@ -73,22 +73,20 @@ export default function StaffReports() {
     };
 
     const handleGenerate = async () => {
-        // VALIDATION
+        // VALIDATION: Toast Warning
         if (!schoolYear) {
-            Swal.fire(
-                "Missing Input",
-                "Please enter a School Year.",
-                "warning",
-            );
+            Toast.fire({
+                icon: "warning",
+                title: "Please enter a School Year.",
+            });
             return;
         }
 
         if (selectedReport.format === "pdf" && !registrar) {
-            Swal.fire(
-                "Missing Input",
-                "Please enter the School Registrar's Name.",
-                "warning",
-            );
+            Toast.fire({
+                icon: "warning",
+                title: "Please enter the Registrar's Name.",
+            });
             return;
         }
 
@@ -101,11 +99,9 @@ export default function StaffReports() {
 
             // PASS PARAMETERS TO BACKEND
             if (selectedReport.format === "pdf") {
-                // Using Staff Route
                 url = `${apiPrefix}/reports/summary?type=${selectedReport.type}&school_year=${schoolYear}&registrar=${encodeURIComponent(registrar)}`;
                 filename = `${selectedReport.title}_${schoolYear}.pdf`;
             } else {
-                // Using Staff Route
                 url = `${apiPrefix}/reports/masterlist?school_year=${schoolYear}`;
                 filename = `Masterlist_${schoolYear}.csv`;
             }
@@ -121,18 +117,20 @@ export default function StaffReports() {
             link.click();
             link.remove();
 
-            setShowModal(false);
+            setShowModal(false); // Close modal
 
-            Swal.fire({
+            // ✅ SUCCESS TOAST
+            Toast.fire({
                 icon: "success",
-                title: "Report Generated!",
-                text: "Your download should start automatically.",
-                background: "#FFE2AF",
-                customClass: { popup: "card-retro" },
+                title: "Report Generated! Download starting...",
             });
         } catch (error) {
             console.error(error);
-            Swal.fire("Failed", "No data found or server error.", "error");
+            // ✅ ERROR TOAST
+            Toast.fire({
+                icon: "error",
+                title: "No data found or server error.",
+            });
         } finally {
             setLoading(false);
         }

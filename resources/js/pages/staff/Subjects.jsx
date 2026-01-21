@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast"; // ✅ Using Toast
+import Toast from "../../utils/toast"; // Using Toast
 import SubjectDrawer from "../../components/SubjectDrawer";
 
 export default function StaffSubjects() {
