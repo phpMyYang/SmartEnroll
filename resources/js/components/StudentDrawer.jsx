@@ -795,7 +795,7 @@ export default function StudentDrawer({
                                                 disabled={isReadOnly}
                                             />
                                             <label className="form-check-label font-monospace fw-bold text-uppercase small ms-2">
-                                                {/* ✅ UPDATED LABELS WITH CARD */}
+                                                {/* UPDATED LABELS WITH CARD */}
                                                 {req === "psa"
                                                     ? "PSA Birth Cert"
                                                     : req === "form137"

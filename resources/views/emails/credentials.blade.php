@@ -5,85 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Credentials | SmartEnroll</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f9; color: #333333;">
-    
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+<body style="margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; background-color: #eeeeee;">
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;">
         <tr>
             <td style="padding: 20px 0; text-align: center;">
                 
-                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e1e4e8;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #fcfbf4; border: 3px solid #2d3436; padding: 0; box-shadow: 8px 8px 0px #2d3436; text-align: left;">
                     
-                    <tr>
-                        <td style="background-color: #3F9AAE; padding: 30px; text-align: center;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">HFJLSJI</h1>
-                            <p style="color: #e6f7f8; margin: 5px 0 0 0; font-size: 14px;">Official Account Notification</p>
-                        </td>
-                    </tr>
+                    {{-- HEADER --}}
+                    <div style="background-color: #F4D03F; padding: 20px; border-bottom: 3px solid #2d3436; text-align: center;">
+                        <h1 style="margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; color: #2d3436;">
+                            🎓 SmartEnroll
+                        </h1>
+                        <span style="font-size: 12px; font-weight: bold; background-color: #2d3436; color: #fff; padding: 2px 8px; margin-top: 5px; display: inline-block;">OFFICIAL ACCOUNT</span>
+                    </div>
 
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="margin: 0 0 15px 0; font-size: 16px; color: #555;">Dear <strong>{{ $user->name }}</strong>,</p>
+                    <div style="padding: 30px;">
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                            Dear <strong>{{ strtoupper($user->name) }}</strong>,
+                        </p>
+
+                        <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                            We are pleased to inform you that an administrative account has been successfully created for you. You may now access the portal to manage system records.
+                        </p>
+
+                        <div style="background-color: #dfe6e9; border: 2px dashed #2d3436; padding: 15px; margin-bottom: 25px;">
+                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 15px;">
+                                <span style="background-color: #2d3436; color: #fff; padding: 2px 5px;">SECURE</span> LOGIN CREDENTIALS:
+                            </strong>
                             
-                            <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555;">
-                                We are pleased to inform you that an administrative account has been successfully created for you in the <strong>SmartEnroll System</strong>. You may now access the portal to manage enrollment records and system configurations.
-                            </p>
-
-                            <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555;">
-                                Please find your temporary login credentials below. For security purposes, we strongly recommend changing your password immediately after your first login.
-                            </p>
-
-                            <div style="background-color: #f8f9fa; border-left: 4px solid #3F9AAE; padding: 20px; margin: 25px 0; border-radius: 4px;">
-                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                    <tr>
-                                        <td width="30%" style="padding: 5px 0; font-size: 13px; text-transform: uppercase; color: #888; font-weight: bold;">System Role</td>
-                                        <td style="padding: 5px 0; font-size: 14px; font-weight: bold; color: #333;">{{ strtoupper($user->role) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td width="30%" style="padding: 5px 0; font-size: 13px; text-transform: uppercase; color: #888; font-weight: bold;">Username / Email</td>
-                                        <td style="padding: 5px 0; font-size: 14px; font-weight: bold; color: #333;">{{ $user->email }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td width="30%" style="padding: 5px 0; font-size: 13px; text-transform: uppercase; color: #888; font-weight: bold;">Temporary Password</td>
-                                        <td style="padding: 5px 0;">
-                                            <span style="background-color: #e2e6ea; color: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{{ $password }}</span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-
-                            <p style="margin: 0 0 30px 0; line-height: 1.6; color: #555;">
-                                To activate your account, please click the verification button below. This link will expire in 24 hours.
-                            </p>
-
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <table width="100%" cellpadding="5" cellspacing="0" style="font-size: 14px;">
                                 <tr>
-                                    <td align="center">
-                                        <a href="{{ $verificationUrl }}" style="background-color: #3F9AAE; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px; box-shadow: 0 2px 4px rgba(63, 154, 174, 0.3);">Verify Email & Access Account</a>
+                                    <td style="font-weight: bold; color: #636e72; width: 35%;">ROLE:</td>
+                                    <td style="color: #2d3436; font-weight: bold;">{{ strtoupper($user->role) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #636e72;">USERNAME:</td>
+                                    <td style="color: #2d3436; font-weight: bold;">{{ $user->email }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #636e72;">PASSWORD:</td>
+                                    <td>
+                                        <span style="background-color: #fff; border: 1px solid #2d3436; color: #d63031; padding: 4px 8px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; letter-spacing: 1px;">
+                                            {{ $password }}
+                                        </span>
                                     </td>
                                 </tr>
                             </table>
+                        </div>
 
-                            <p style="margin: 30px 0 0 0; font-size: 13px; color: #999; line-height: 1.5; text-align: center;">
-                                If the button above does not work, please copy and paste the following URL into your web browser:<br>
-                                <a href="{{ $verificationUrl }}" style="color: #3F9AAE; text-decoration: underline;">{{ $verificationUrl }}</a>
-                            </p>
-                        </td>
-                    </tr>
+                        <p style="font-size: 13px; color: #d63031; font-weight: bold; margin-bottom: 25px;">
+                            ⚠️ SECURITY REMINDER: Please change your password immediately after your first login.
+                        </p>
 
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
-                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
-                                <strong>Confidentiality Notice:</strong> This email and any attachments are for the sole use of the intended recipient. If you have received this email in error, please notify the system administrator immediately.
-                            </p>
-                            <p style="margin: 0; font-size: 12px; color: #aaa;">
-                                &copy; {{ date('Y') }} SmartEnroll System. All rights reserved.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <p style="margin: 20px 0 0 0; font-size: 12px; color: #aaa;">This is an automated system message. Please do not reply.</p>
+                        {{-- ACTION BUTTON --}}
+                        <div style="text-align: center; margin-bottom: 25px;">
+                            <a href="{{ $verificationUrl }}" style="background-color: #2d3436; color: #ffffff; padding: 12px 25px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; border: 1px solid #000; text-transform: uppercase;">
+                                Verify & Access Account &rarr;
+                            </a>
+                        </div>
 
+                        <p style="font-size: 12px; color: #636e72; text-align: center; line-height: 1.4;">
+                            If the button doesn't work, copy this link:<br>
+                            <span style="text-decoration: underline;">{{ $verificationUrl }}</span>
+                        </p>
+                    </div>
+
+                    {{-- FOOTER --}}
+                    <div style="background-color: #2d3436; color: #dfe6e9; padding: 15px; text-align: center; font-size: 11px;">
+                        <p style="margin: 0 0 5px 0;">This is an automated system message. Please do not reply.</p>
+                        <p style="margin: 0;">&copy; {{ date('Y') }} SmartEnroll System. All Rights Reserved.</p>
+                    </div>
+
+                </div>
             </td>
         </tr>
     </table>
