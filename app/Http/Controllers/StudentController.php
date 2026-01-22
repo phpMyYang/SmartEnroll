@@ -205,7 +205,8 @@ class StudentController extends Controller
                         'psa' => 'PSA Birth Certificate',
                         'form137' => 'Form 137 / SF10',
                         'good_moral' => 'Good Moral Certificate',
-                        'diploma' => 'Grade 10 Diploma'
+                        'diploma' => 'Grade 10 Diploma',
+                        'card' => 'Report Card (Form 138)'
                     ];
 
                     foreach ($labels as $k => $label) {

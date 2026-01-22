@@ -13,13 +13,15 @@
                 
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e1e4e8;">
                     
+                    {{-- HEADER --}}
                     <tr>
                         <td style="background-color: #3F9AAE; padding: 30px; text-align: center;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">HFJLSJI</h1>
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">SMARTENROLL</h1>
                             <p style="color: #e6f7f8; margin: 5px 0 0 0; font-size: 14px;">Application Receipt Notification</p>
                         </td>
                     </tr>
 
+                    {{-- BODY --}}
                     <tr>
                         <td style="padding: 40px 30px;">
                             <p style="margin: 0 0 15px 0; font-size: 16px; color: #555;">Dear <strong>{{ $student->first_name }}</strong>,</p>
@@ -42,21 +44,40 @@
 
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 15px; border-collapse: collapse;">
                                 @php
+                                    // 1. SAFE DECODE LOGIC
+                                    $rawReqs = $student->requirements;
+                                    if (is_string($rawReqs)) {
+                                        $savedReqs = json_decode($rawReqs, true);
+                                    } elseif (is_array($rawReqs)) {
+                                        $savedReqs = $rawReqs;
+                                    } else {
+                                        $savedReqs = [];
+                                    }
+
+                                    // 2. MASTER LIST (With Report Card)
                                     $documents = [
-                                        'PSA Birth Certificate' => 'psa',
-                                        'Diploma' => 'diploma',
-                                        'Form 137' => 'form137',
-                                        'Good Moral Certificate' => 'good_moral'
+                                        'PSA Birth Certificate'   => 'psa',
+                                        'Form 137 / SF10'         => 'form137',
+                                        'Good Moral Certificate'  => 'good_moral',
+                                        'Diploma / Certificate'   => 'diploma',
+                                        'Report Card (Form 138)'  => 'card' // ✅ ADDED
                                     ];
+
+                                    $isComplete = true;
                                 @endphp
 
                                 @foreach($documents as $label => $key)
+                                    @php
+                                        // Check if requirement exists and is true
+                                        $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                        if (!$isVerified) $isComplete = false;
+                                    @endphp
                                     <tr>
                                         <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 14px;">
                                             {{ $label }}
                                         </td>
                                         <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right;">
-                                            @if($student->requirements[$key])
+                                            @if($isVerified)
                                                 <span style="background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase;">
                                                     Verified
                                                 </span>
@@ -70,13 +91,8 @@
                                 @endforeach
                             </table>
 
-                            @php
-                                $reqs = $student->requirements;
-                                $complete = $reqs['psa'] && $reqs['diploma'] && $reqs['form137'] && $reqs['good_moral'];
-                            @endphp
-
                             <div style="margin-top: 30px;">
-                                @if($complete)
+                                @if($isComplete)
                                     <div style="background-color: #d1e7dd; border: 1px solid #badbcc; color: #0f5132; padding: 15px; border-radius: 5px; text-align: center;">
                                         <strong style="display: block; font-size: 16px; margin-bottom: 5px;">✅ Application Complete</strong>
                                         <p style="margin: 0; font-size: 14px;">All requirements have been verified. Please proceed to the Registrar's Office to claim your Certificate of Registration (COR).</p>
@@ -92,6 +108,7 @@
                         </td>
                     </tr>
 
+                    {{-- FOOTER --}}
                     <tr>
                         <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
                             <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
