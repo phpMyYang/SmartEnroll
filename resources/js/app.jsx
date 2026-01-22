@@ -5,6 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // --- LAYOUTS ---
+import PublicLayout from "./layouts/PublicLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import StaffLayout from "./layouts/StaffLayout";
 
@@ -64,7 +65,10 @@ function App() {
                 {/* ==============================
                     PUBLIC ROUTES
                 ============================== */}
-                <Route path="/" element={<Landing />} />
+                <Route element={<PublicLayout />}>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/maintenance" element={<Maintenance />} />
+                </Route>
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route
