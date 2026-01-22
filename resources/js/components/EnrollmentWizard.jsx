@@ -204,6 +204,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                             <li>Form 138 / Report Card</li>
                             <li>Form 137</li>
                             <li>Certificate of Good Moral</li>
+                            <li>Diploma / Certificate of Completion</li>
                         </ul>
                     </div>
                 `,

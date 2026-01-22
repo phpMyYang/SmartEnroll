@@ -26,7 +26,7 @@ class EnrollmentInstruction extends Mailable
      */
     public function build()
     {
-        return $this->subject('Entrance Exam Result: CONGRATULATIONS!')
+        return $this->subject('Academic Evaluation Result: CONGRATULATIONS!')
                     ->view('emails.enrollment_instruction');
     }
 }

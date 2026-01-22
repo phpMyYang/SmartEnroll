@@ -5,139 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Record Updated | SmartEnroll</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f6f9; color: #333333;">
-    
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+<body style="margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; background-color: #eeeeee;">
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;">
         <tr>
             <td style="padding: 20px 0; text-align: center;">
                 
-                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e1e4e8;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #fcfbf4; border: 3px solid #2d3436; padding: 0; box-shadow: 8px 8px 0px #2d3436; text-align: left;">
                     
                     {{-- HEADER --}}
-                    <tr>
-                        <td style="background-color: #3F9AAE; padding: 30px; text-align: center;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">SMARTENROLL</h1>
-                            <p style="color: #e6f7f8; margin: 5px 0 0 0; font-size: 14px;">Student Record Update Notification</p>
-                        </td>
-                    </tr>
+                    <div style="background-color: #F4D03F; padding: 20px; border-bottom: 3px solid #2d3436; text-align: center;">
+                        <h1 style="margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; color: #2d3436;">
+                            🎓 SmartEnroll
+                        </h1>
+                        <span style="font-size: 12px; font-weight: bold; background-color: #2d3436; color: #fff; padding: 2px 8px; margin-top: 5px; display: inline-block;">RECORD UPDATE</span>
+                    </div>
 
-                    {{-- BODY --}}
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="margin: 0 0 15px 0; font-size: 16px; color: #555;">Dear <strong>{{ $student->first_name }}</strong>,</p>
+                    <div style="padding: 30px;">
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                            Dear <strong>{{ strtoupper($student->first_name) }} {{ strtoupper($student->last_name) }}</strong>,
+                        </p>
+
+                        <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                            This is to inform you that your enrollment record has been updated by the school administration.
+                        </p>
+
+                        <div style="background-color: #dfe6e9; border: 2px dashed #2d3436; padding: 15px; margin-bottom: 25px;">
+                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 10px;">
+                                <span style="background-color: #2d3436; color: #fff; padding: 2px 5px;">INFO</span> SUMMARY OF CHANGES:
+                            </strong>
                             
-                            <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555;">
-                                This is to inform you that your enrollment record has been updated by the school administration.
-                            </p>
+                            <table width="100%" cellpadding="5" cellspacing="0" style="font-size: 13px;">
+                                @foreach($changes as $key => $value)
+                                    <tr>
+                                        <td style="font-weight: bold; color: #636e72; width: 40%; vertical-align: top;">
+                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                        </td>
+                                        <td style="color: #2d3436; font-weight: bold; vertical-align: top;">
+                                            {{ is_array($value) ? 'Updated' : $value }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </table>
+                        </div>
 
-                            <p style="margin: 0 0 15px 0; line-height: 1.6; color: #555; font-size: 14px;">
-                                Please review the summary of changes below:
-                            </p>
+                        <h4 style="border-bottom: 2px solid #2d3436; padding-bottom: 10px; font-size: 16px; margin-bottom: 15px;">REQUIREMENT STATUS</h4>
 
-                            {{-- CHANGES TABLE --}}
-                            <div style="background-color: #f8f9fa; border-left: 4px solid #3F9AAE; padding: 20px; margin: 20px 0; border-radius: 4px;">
-                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                    @foreach($changes as $key => $value)
-                                        <tr>
-                                            <td width="40%" style="padding: 8px 0; font-size: 13px; text-transform: uppercase; color: #888; font-weight: bold; vertical-align: top;">
-                                                {{ ucfirst(str_replace('_', ' ', $key)) }}
-                                            </td>
-                                            <td style="padding: 8px 0; font-size: 14px; color: #333; font-weight: bold; vertical-align: top;">
-                                                {{ is_array($value) ? 'Updated' : $value }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </table>
+                        {{-- CHECKLIST LOGIC --}}
+                        @php
+                            $rawReqs = $student->requirements;
+                            if (is_string($rawReqs)) {
+                                $savedReqs = json_decode($rawReqs, true);
+                            } elseif (is_array($rawReqs)) {
+                                $savedReqs = $rawReqs;
+                            } else {
+                                $savedReqs = [];
+                            }
+
+                            $masterList = [
+                                'psa'        => 'PSA Birth Certificate',
+                                'form137'    => 'Form 137 / SF10',
+                                'good_moral' => 'Good Moral Certificate',
+                                'diploma'    => 'Diploma / Certificate',
+                                'card'       => 'Report Card (Form 138)'
+                            ];
+
+                            $pendingList = [];
+                            foreach ($masterList as $key => $label) {
+                                if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
+                                    $pendingList[] = $label;
+                                }
+                            }
+                        @endphp
+
+                        @if(count($pendingList) === 0)
+                            <div style="background-color: #dff9fb; border: 2px solid #2d3436; padding: 15px; text-align: center;">
+                                <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #00b894;">✅ REQUIREMENTS COMPLETE</strong>
+                                <p style="margin: 0; font-size: 13px;">Congratulations! Your enrollment requirements are fully complied.</p>
                             </div>
+                        @else
+                            <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px;">
+                                <strong style="display: block; font-size: 16px; margin-bottom: 10px; color: #d63031; text-align: center;">⚠️ MISSING REQUIREMENTS</strong>
+                                <ul style="font-size: 13px; padding-left: 20px; margin: 0; color: #d63031; font-weight: bold;">
+                                    @foreach($pendingList as $item)
+                                        <li style="margin-bottom: 3px;">{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
-                            <div style="border-top: 1px solid #eeeeee; margin: 30px 0;"></div>
-
-                            <h4 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">Enrollment Requirements Status</h4>
-
-                            @php
-                                // 1. SAFE DECODE LOGIC
-                                $rawReqs = $student->requirements;
-                                if (is_string($rawReqs)) {
-                                    $savedReqs = json_decode($rawReqs, true);
-                                } elseif (is_array($rawReqs)) {
-                                    $savedReqs = $rawReqs;
-                                } else {
-                                    $savedReqs = [];
-                                }
-
-                                // 2. MASTER LIST (With Report Card)
-                                $masterList = [
-                                    'psa'        => 'PSA Birth Certificate',
-                                    'form137'    => 'Form 137 / SF10',
-                                    'good_moral' => 'Good Moral Certificate',
-                                    'diploma'    => 'Diploma / Certificate',
-                                    'card'       => 'Report Card (Form 138)' // ✅ ADDED
-                                ];
-
-                                // 3. IDENTIFY MISSING ITEMS
-                                $pendingList = [];
-                                foreach ($masterList as $key => $label) {
-                                    // Kung empty o false, idagdag sa pending list
-                                    if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
-                                        $pendingList[] = $label;
-                                    }
-                                }
-                            @endphp
-
-                            @if(count($pendingList) === 0)
-                                {{-- COMPLETE --}}
-                                <div style="background-color: #d1e7dd; border: 1px solid #badbcc; color: #0f5132; padding: 15px; border-radius: 5px; display: flex; align-items: flex-start;">
-                                    <div style="margin-right: 15px; font-size: 20px;">✅</div>
-                                    <div>
-                                        <strong style="display: block; font-size: 15px; margin-bottom: 5px;">Requirements Complete!</strong>
-                                        <p style="margin: 0; font-size: 13px;">Congratulations! Your enrollment requirements are fully complied. You are cleared for the next step.</p>
-                                    </div>
-                                </div>
-                            @else
-                                {{-- PENDING / MISSING --}}
-                                <div style="background-color: #fff3cd; border: 1px solid #ffecb5; color: #664d03; padding: 15px; border-radius: 5px;">
-                                    <div style="display: flex; align-items: flex-start; margin-bottom: 10px;">
-                                        <div style="margin-right: 15px; font-size: 20px;">⚠️</div>
-                                        <div>
-                                            <strong style="display: block; font-size: 15px; margin-bottom: 5px;">Missing Requirements</strong>
-                                            <p style="margin: 0; font-size: 13px;">Our records show that you still have the following pending documents:</p>
-                                        </div>
-                                    </div>
-                                    
-                                    {{-- LIST OF MISSING REQUIREMENTS --}}
-                                    <ul style="margin: 5px 0 0 0; padding-left: 45px; color: #d63031; font-weight: bold; font-size: 13px;">
-                                        @foreach($pendingList as $item)
-                                            <li style="margin-bottom: 3px;">{{ $item }}</li>
-                                        @endforeach
-                                    </ul>
-                                    
-                                    <p style="margin: 10px 0 0 45px; font-size: 12px; color: #664d03;">
-                                        Please submit these to the Registrar's Office as soon as possible.
-                                    </p>
-                                </div>
-                            @endif
-
-                            <p style="margin: 30px 0 0 0; line-height: 1.6; color: #999; font-size: 13px;">
-                                If you have questions about these changes, please visit the Registrar's Office.
+                        {{-- ADVISORY BOX --}}
+                        <div style="background-color: #dfe6e9; border: 2px dashed #2d3436; padding: 15px; margin-top: 20px; text-align: center; border-radius: 5px;">
+                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 5px;">📢 Important Advisory</strong>
+                            <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                Please go to the Registrar's Office to complete the enrollment.
                             </p>
-                        </td>
-                    </tr>
+                        </div>
+
+                        <p style="font-size: 14px; margin-top: 25px;">
+                            If you have questions, please visit the Registrar's Office.
+                        </p>
+                    </div>
 
                     {{-- FOOTER --}}
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
-                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
-                                <strong>Confidentiality Notice:</strong> This email contains student record information intended solely for the recipient.
-                            </p>
-                            <p style="margin: 0; font-size: 12px; color: #aaa;">
-                                &copy; {{ date('Y') }} SmartEnroll System. All rights reserved.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <p style="margin: 20px 0 0 0; font-size: 12px; color: #aaa;">This is an automated system message. Please do not reply.</p>
+                    <div style="background-color: #2d3436; color: #dfe6e9; padding: 15px; text-align: center; font-size: 11px;">
+                        <p style="margin: 0 0 5px 0;">This is an automated system message. Please do not reply.</p>
+                        <p style="margin: 0;">&copy; {{ date('Y') }} SmartEnroll System. All Rights Reserved.</p>
+                    </div>
 
+                </div>
             </td>
         </tr>
     </table>
