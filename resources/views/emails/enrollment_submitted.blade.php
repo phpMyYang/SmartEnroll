@@ -56,21 +56,17 @@
                             </table>
                         </div>
 
-                        {{-- --- FIXED: ROBUST REQUIREMENTS LOGIC --- --}}
+                        {{-- CHECKLIST LOGIC --}}
                         @php
-                            // 1. KUNIN ANG DATA
                             $rawReqs = $student->requirements;
-
-                            // 2. SAFETY CHECK: Kung String, i-decode. Kung Array na, gamitin agad.
                             if (is_string($rawReqs)) {
                                 $savedReqs = json_decode($rawReqs, true);
                             } elseif (is_array($rawReqs)) {
                                 $savedReqs = $rawReqs;
                             } else {
-                                $savedReqs = []; // Fallback kung null
+                                $savedReqs = [];
                             }
 
-                            // 3. Define MASTER LIST
                             $masterList = [
                                 'psa'        => 'PSA Birth Certificate (Original/Photocopy)',
                                 'form137'    => 'Form 137 / SF10 (School Record)',
@@ -79,12 +75,9 @@
                                 'card'       => 'Report Card (Form 138)' 
                             ];
 
-                            // 4. Check alin ang PENDING (Missing or False)
                             $pendingList = [];
-                            
                             foreach ($masterList as $key => $label) {
-                                // Kung wala sa database (isset false) O KAYA naka-set sa false -> PENDING 'YUN
-                                if (empty($savedReqs[$key])) {
+                                if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
                                     $pendingList[] = $label;
                                 }
                             }
@@ -95,31 +88,31 @@
                                 <p style="margin: 0 0 10px 0; font-weight: bold; text-transform: uppercase;">
                                     <span style="background-color: #d63031; color: #fff; padding: 2px 5px;">MISSING</span> PENDING REQUIREMENTS:
                                 </p>
-                                <p style="font-size: 13px; margin-bottom: 10px;">
-                                    Please submit the hard copies of the following to the Registrar's Office to complete your enrollment:
-                                </p>
                                 <ul style="font-size: 13px; padding-left: 20px; margin: 0; color: #d63031; font-weight: bold;">
-                                    
-                                    {{-- I-loop ang listahan ng mga kulang --}}
                                     @foreach($pendingList as $item)
                                         <li style="margin-bottom: 5px;">{{ $item }}</li>
                                     @endforeach
-                                    
-                                    {{-- Laging isama ang 2x2 ID bilang reminder --}}
-                                    <li style="margin-bottom: 5px; color: #2d3436;">2x2 ID Picture (White Background)</li>
+                                    <li style="margin-bottom: 5px; color: #2d3436;">Yellow Folder w/ Plastic Envelope (Long Size)</li>
                                 </ul>
                             </div>
                         @else
-                            {{-- Lalabas lang ito kapag 0 ang laman ng pendingList (All True) --}}
                             <div style="background-color: #dff9fb; border: 2px dashed #2d3436; padding: 15px;">
                                 <p style="margin: 0; font-weight: bold; text-transform: uppercase; color: #00b894;">
                                     <span style="background-color: #00b894; color: #fff; padding: 2px 5px;">COMPLETE</span> ALL REQUIREMENTS SUBMITTED
                                 </p>
                                 <p style="font-size: 13px; margin-top: 5px;">
-                                    Thank you! Your enrollment requirements are complete. Please wait for further announcements.
+                                    Your enrollment requirements are complete.
                                 </p>
                             </div>
                         @endif
+
+                        {{-- NEW ADVISORY BOX (ALWAYS VISIBLE) --}}
+                        <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px; margin-top: 20px; text-align: center;">
+                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 5px;">📢 NEXT STEP</strong>
+                            <p style="margin: 0; font-size: 14px; font-weight: bold; color: #2d3436;">
+                                Please go to the Registrar's Office to complete the enrollment.
+                            </p>
+                        </div>
 
                         <p style="font-size: 14px; margin-top: 25px;">
                             Thank you for choosing our institution!
