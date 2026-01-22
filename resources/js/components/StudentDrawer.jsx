@@ -64,6 +64,7 @@ export default function StudentDrawer({
             form137: false,
             good_moral: false,
             diploma: false,
+            card: false, // REPORT CARD
         },
         // System
         status: "",
@@ -73,6 +74,7 @@ export default function StudentDrawer({
 
     const [form, setForm] = useState(initialForm);
 
+    // FETCH INIT DATA
     useEffect(() => {
         const fetchInit = async () => {
             try {
@@ -96,19 +98,25 @@ export default function StudentDrawer({
         if (show) fetchInit();
     }, [show, apiPrefix]);
 
+    // POPULATE FORM
     useEffect(() => {
         if ((type === "edit" || type === "view") && selectedStudent) {
+            // SAFE REQUIREMENT PARSING
+            let parsedReqs = initialForm.requirements;
+            if (selectedStudent.requirements) {
+                parsedReqs =
+                    typeof selectedStudent.requirements === "string"
+                        ? JSON.parse(selectedStudent.requirements)
+                        : selectedStudent.requirements;
+            }
+
             setForm({
                 ...selectedStudent,
                 date_of_birth: selectedStudent.date_of_birth
                     ? selectedStudent.date_of_birth.split("T")[0]
                     : "",
                 section_id: selectedStudent.section_id || "",
-                requirements:
-                    typeof selectedStudent.requirements === "string"
-                        ? JSON.parse(selectedStudent.requirements)
-                        : selectedStudent.requirements ||
-                          initialForm.requirements,
+                requirements: { ...initialForm.requirements, ...parsedReqs },
                 school_year:
                     selectedStudent.school_year || activeSettings.school_year,
                 semester: selectedStudent.semester || activeSettings.semester,
@@ -122,6 +130,7 @@ export default function StudentDrawer({
         }
     }, [show, selectedStudent, type, activeSettings]);
 
+    // AUTO AGE
     useEffect(() => {
         if (form.date_of_birth && type !== "view") {
             const birth = new Date(form.date_of_birth);
@@ -215,6 +224,7 @@ export default function StudentDrawer({
                     borderLeft: "2px solid black",
                 }}
             >
+                {/* HEADER - ADDED ICON BACK */}
                 <div
                     className="offcanvas-header text-white"
                     style={{
@@ -222,19 +232,26 @@ export default function StudentDrawer({
                         borderBottom: "2px solid black",
                     }}
                 >
-                    <h5 className="offcanvas-title fw-bold font-monospace">
-                        {type === "create"
-                            ? "NEW STUDENT APPLICATION"
-                            : type === "edit"
-                              ? "UPDATE STUDENT RECORD"
-                              : "STUDENT PROFILE"}
-                    </h5>
+                    <div className="d-flex align-items-center gap-2">
+                        {/* ADDED ICON HERE */}
+                        <i
+                            className={`bi ${type === "create" ? "bi-person-plus-fill" : type === "edit" ? "bi-pencil-square" : "bi-person-badge-fill"} fs-4`}
+                        ></i>
+                        <h5 className="offcanvas-title fw-bold font-monospace m-0">
+                            {type === "create"
+                                ? "NEW STUDENT APPLICATION"
+                                : type === "edit"
+                                  ? "UPDATE STUDENT RECORD"
+                                  : "STUDENT PROFILE"}
+                        </h5>
+                    </div>
                     <button
                         type="button"
                         className="btn-close btn-close-white opacity-100"
                         onClick={onClose}
                     ></button>
                 </div>
+
                 <div
                     className="offcanvas-body"
                     style={{ backgroundColor: "#f8f9fa" }}
@@ -759,9 +776,10 @@ export default function StudentDrawer({
                             <div className="row">
                                 {[
                                     "psa",
-                                    "diploma",
                                     "form137",
                                     "good_moral",
+                                    "diploma",
+                                    "card", //REPORT CARD
                                 ].map((req) => (
                                     <div className="col-6 mb-2" key={req}>
                                         <div className="form-check">
@@ -769,18 +787,24 @@ export default function StudentDrawer({
                                                 className="form-check-input border-dark rounded-0"
                                                 type="checkbox"
                                                 name={`req_${req}`}
-                                                checked={form.requirements[req]}
+                                                checked={
+                                                    form.requirements[req] ||
+                                                    false
+                                                }
                                                 onChange={handleChange}
                                                 disabled={isReadOnly}
                                             />
                                             <label className="form-check-label font-monospace fw-bold text-uppercase small ms-2">
+                                                {/* ✅ UPDATED LABELS WITH CARD */}
                                                 {req === "psa"
-                                                    ? "PSA Birth Certificate"
+                                                    ? "PSA Birth Cert"
                                                     : req === "form137"
                                                       ? "Form 137 / SF10"
                                                       : req === "good_moral"
                                                         ? "Good Moral Cert"
-                                                        : "Grade 10 Diploma"}
+                                                        : req === "card"
+                                                          ? "Report Card (F138)"
+                                                          : "Grade 10 Diploma"}
                                             </label>
                                         </div>
                                     </div>

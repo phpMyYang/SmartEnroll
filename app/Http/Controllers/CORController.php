@@ -26,16 +26,15 @@ class CORController extends Controller
             ->get();
 
         // FIX: CLEAN SEMESTER DATA
-        // Kukunin lang natin ang "1st" o "2nd" mula sa "1st Semester" para tumugma sa database
         $semKey = explode(' ', trim($student->semester))[0]; // "1st" or "2nd"
 
         // Get Subjects (Flexible Search)
         $subjects = Subject::where(function($q) use ($student) {
-                $q->where('strand_id', $student->strand_id) // Specific Strand
-                  ->orWhereNull('strand_id');               // OR Core Subject (Null)
+                $q->where('strand_id', $student->strand_id)
+                  ->orWhereNull('strand_id');
             })
-            ->where('grade_level', $student->grade_level)   // Match Grade Level
-            ->where('semester', 'LIKE', "%{$semKey}%")     // Match "1st" kahit "1st Semester" ang nasa DB
+            ->where('grade_level', $student->grade_level)
+            ->where('semester', 'LIKE', "%{$semKey}%")
             ->get();
 
         return response()->json([
@@ -45,14 +44,31 @@ class CORController extends Controller
         ]);
     }
 
-    // 2. GENERATE SIGNED URL
+    // 2. GENERATE SIGNED URL (AND SAVE SECTION)
     public function generateUrl(Request $request)
     {
+        // --- START: AUTO-SAVE SECTION LOGIC ---
+        // Kukunin natin ang LRN at Section ID galing sa COR Modal Form
+        $lrn = $request->input('info.lrn');
+        $sectionId = $request->input('info.section_id');
+
+        if ($lrn && $sectionId) {
+            // Hanapin ang student gamit ang LRN
+            $student = Student::where('lrn', $lrn)->first();
+            
+            // Kung nahanap at magkaiba ang section, i-update natin
+            if ($student && $student->section_id != $sectionId) {
+                $student->update(['section_id' => $sectionId]);
+                
+                // (Optional) Pwede ring mag-log dito kung gusto mong ma-track ang pag-assign ng section via COR
+            }
+        }
+        // --- END: AUTO-SAVE SECTION LOGIC ---
+
         $tempId = Str::random(40);
         Cache::put('cor_data_' . $tempId, $request->all(), now()->addMinutes(5));
 
         // LOG ACTIVITY: DOWNLOAD COR
-        // Kukunin natin ang pangalan ng student mula sa request data
         $studentName = $request->input('info.name') ?? 'Student';
         
         ActivityLog::create([
@@ -93,7 +109,7 @@ class CORController extends Controller
         $data['logo'] = $logoData;
         $data['printed_at'] = now()->format('F d, Y h:i A');
 
-        // Buuin ang grade_section para sa PDF View
+        // Grade & Section Display
         $grade = $data['info']['grade_level'] ?? 'N/A';
         $section = $data['info']['section_name'] ?? 'TBA';
         $data['info']['grade_section'] = "$grade / $section"; 

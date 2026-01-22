@@ -13,13 +13,15 @@
                 
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e1e4e8;">
                     
+                    {{-- HEADER --}}
                     <tr>
                         <td style="background-color: #3F9AAE; padding: 30px; text-align: center;">
-                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">HFJLSJI</h1>
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;">SMARTENROLL</h1>
                             <p style="color: #e6f7f8; margin: 5px 0 0 0; font-size: 14px;">Student Record Update Notification</p>
                         </td>
                     </tr>
 
+                    {{-- BODY --}}
                     <tr>
                         <td style="padding: 40px 30px;">
                             <p style="margin: 0 0 15px 0; font-size: 16px; color: #555;">Dear <strong>{{ $student->first_name }}</strong>,</p>
@@ -32,6 +34,7 @@
                                 Please review the summary of changes below:
                             </p>
 
+                            {{-- CHANGES TABLE --}}
                             <div style="background-color: #f8f9fa; border-left: 4px solid #3F9AAE; padding: 20px; margin: 20px 0; border-radius: 4px;">
                                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                     @foreach($changes as $key => $value)
@@ -52,11 +55,37 @@
                             <h4 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">Enrollment Requirements Status</h4>
 
                             @php
-                                $reqs = $student->requirements;
-                                $complete = $reqs['psa'] && $reqs['diploma'] && $reqs['form137'] && $reqs['good_moral'];
+                                // 1. SAFE DECODE LOGIC
+                                $rawReqs = $student->requirements;
+                                if (is_string($rawReqs)) {
+                                    $savedReqs = json_decode($rawReqs, true);
+                                } elseif (is_array($rawReqs)) {
+                                    $savedReqs = $rawReqs;
+                                } else {
+                                    $savedReqs = [];
+                                }
+
+                                // 2. MASTER LIST (With Report Card)
+                                $masterList = [
+                                    'psa'        => 'PSA Birth Certificate',
+                                    'form137'    => 'Form 137 / SF10',
+                                    'good_moral' => 'Good Moral Certificate',
+                                    'diploma'    => 'Diploma / Certificate',
+                                    'card'       => 'Report Card (Form 138)' // ✅ ADDED
+                                ];
+
+                                // 3. IDENTIFY MISSING ITEMS
+                                $pendingList = [];
+                                foreach ($masterList as $key => $label) {
+                                    // Kung empty o false, idagdag sa pending list
+                                    if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
+                                        $pendingList[] = $label;
+                                    }
+                                }
                             @endphp
 
-                            @if($complete)
+                            @if(count($pendingList) === 0)
+                                {{-- COMPLETE --}}
                                 <div style="background-color: #d1e7dd; border: 1px solid #badbcc; color: #0f5132; padding: 15px; border-radius: 5px; display: flex; align-items: flex-start;">
                                     <div style="margin-right: 15px; font-size: 20px;">✅</div>
                                     <div>
@@ -65,12 +94,26 @@
                                     </div>
                                 </div>
                             @else
-                                <div style="background-color: #fff3cd; border: 1px solid #ffecb5; color: #664d03; padding: 15px; border-radius: 5px; display: flex; align-items: flex-start;">
-                                    <div style="margin-right: 15px; font-size: 20px;">⚠️</div>
-                                    <div>
-                                        <strong style="display: block; font-size: 15px; margin-bottom: 5px;">Missing Requirements</strong>
-                                        <p style="margin: 0; font-size: 13px;">Our records show that you still have pending documents. Please submit the missing requirements to the Registrar's Office as soon as possible.</p>
+                                {{-- PENDING / MISSING --}}
+                                <div style="background-color: #fff3cd; border: 1px solid #ffecb5; color: #664d03; padding: 15px; border-radius: 5px;">
+                                    <div style="display: flex; align-items: flex-start; margin-bottom: 10px;">
+                                        <div style="margin-right: 15px; font-size: 20px;">⚠️</div>
+                                        <div>
+                                            <strong style="display: block; font-size: 15px; margin-bottom: 5px;">Missing Requirements</strong>
+                                            <p style="margin: 0; font-size: 13px;">Our records show that you still have the following pending documents:</p>
+                                        </div>
                                     </div>
+                                    
+                                    {{-- LIST OF MISSING REQUIREMENTS --}}
+                                    <ul style="margin: 5px 0 0 0; padding-left: 45px; color: #d63031; font-weight: bold; font-size: 13px;">
+                                        @foreach($pendingList as $item)
+                                            <li style="margin-bottom: 3px;">{{ $item }}</li>
+                                        @endforeach
+                                    </ul>
+                                    
+                                    <p style="margin: 10px 0 0 45px; font-size: 12px; color: #664d03;">
+                                        Please submit these to the Registrar's Office as soon as possible.
+                                    </p>
                                 </div>
                             @endif
 
@@ -80,6 +123,7 @@
                         </td>
                     </tr>
 
+                    {{-- FOOTER --}}
                     <tr>
                         <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
                             <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
