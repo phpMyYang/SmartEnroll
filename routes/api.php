@@ -4,7 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Auth\Events\Verified;
 
-// CONTROLLERS IMPORT FOR ADMIN
+// CONTROLLERS IMPORT
+use App\Http\Controllers\Api\PublicEnrollmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
@@ -24,6 +25,20 @@ use App\Models\User;
 |  PUBLIC ROUTES (No Login Required)
 |--------------------------------------------------------------------------
 */
+Route::group(['prefix' => 'public'], function () {
+    // 1. Settings & Dropdowns
+    Route::get('/settings', [PublicEnrollmentController::class, 'getSettings']);
+    Route::get('/strands', [PublicEnrollmentController::class, 'getStrands']);
+
+    // 2. Checkers
+    Route::post('/check-lrn', [PublicEnrollmentController::class, 'checkLrn']);
+    Route::post('/check-status', [PublicEnrollmentController::class, 'checkStatus']);
+
+    // 3. Enrollment Submission
+    Route::post('/enroll-new', [PublicEnrollmentController::class, 'enrollNew']);
+    Route::post('/enroll-old/{id}', [PublicEnrollmentController::class, 'enrollOld']);
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail']);
