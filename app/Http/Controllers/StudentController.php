@@ -60,7 +60,7 @@ class StudentController extends Controller
             $data['section_id'] = null;
         }
 
-        // 5. Fill "None" Logic (Excluded Dates & Sensitive Fields)
+        // 5. Fill "null" Logic (Excluded Dates & Sensitive Fields)
         foreach ($data as $key => $value) {
             if (empty($value) && !in_array($key, [
                 'requirements', 
@@ -72,7 +72,7 @@ class StudentController extends Controller
                 'created_at',
                 'updated_at'
             ])) {
-                $data[$key] = 'None';
+                $data[$key] = null;
             }
         }
 
@@ -134,7 +134,7 @@ class StudentController extends Controller
             $data['section_id'] = null;
         }
 
-        // 2. Fill "None" Logic (Excluded Dates)
+        // 2. Fill "null" Logic (Excluded Dates)
         foreach ($data as $key => $value) {
             if (empty($value) && !in_array($key, [
                 'requirements', 
@@ -144,7 +144,7 @@ class StudentController extends Controller
                 'age', 
                 'released_at'
             ])) {
-                $data[$key] = 'None';
+                $data[$key] = null;
             }
         }
 
@@ -206,7 +206,8 @@ class StudentController extends Controller
                         'form137' => 'Form 137 / SF10',
                         'good_moral' => 'Good Moral Certificate',
                         'diploma' => 'Grade 10 Diploma',
-                        'card' => 'Report Card (Form 138)'
+                        'card' => 'Report Card (Form 138)',
+                        'picture' => '2x2 Picture (2pcs)'      
                     ];
 
                     foreach ($labels as $k => $label) {

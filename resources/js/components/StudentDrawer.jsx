@@ -46,6 +46,7 @@ export default function StudentDrawer({
         section_id: "",
         semester: "",
         school_year: "",
+        learning_modality: "Face-to-Face", // ✅ ADDED MODALITY
         // Family & Work
         employer_name: "",
         employer_contact: "",
@@ -64,7 +65,8 @@ export default function StudentDrawer({
             form137: false,
             good_moral: false,
             diploma: false,
-            card: false, // REPORT CARD
+            card: false,
+            picture: false, // ✅ ADDED 2x2 PICTURE
         },
         // System
         status: "",
@@ -116,6 +118,9 @@ export default function StudentDrawer({
                     ? selectedStudent.date_of_birth.split("T")[0]
                     : "",
                 section_id: selectedStudent.section_id || "",
+                // Ensure modality exists, default to F2F
+                learning_modality:
+                    selectedStudent.learning_modality || "Face-to-Face",
                 requirements: { ...initialForm.requirements, ...parsedReqs },
                 school_year:
                     selectedStudent.school_year || activeSettings.school_year,
@@ -224,7 +229,7 @@ export default function StudentDrawer({
                     borderLeft: "2px solid black",
                 }}
             >
-                {/* HEADER - ADDED ICON BACK */}
+                {/* HEADER */}
                 <div
                     className="offcanvas-header text-white"
                     style={{
@@ -233,7 +238,6 @@ export default function StudentDrawer({
                     }}
                 >
                     <div className="d-flex align-items-center gap-2">
-                        {/* ADDED ICON HERE */}
                         <i
                             className={`bi ${type === "create" ? "bi-person-plus-fill" : type === "edit" ? "bi-pencil-square" : "bi-person-badge-fill"} fs-4`}
                         ></i>
@@ -301,7 +305,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-4">
                                     <label className={labelStyle}>
-                                        LAST NAME
+                                        LAST NAME *
                                     </label>
                                     <input
                                         type="text"
@@ -316,7 +320,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-4">
                                     <label className={labelStyle}>
-                                        FIRST NAME
+                                        FIRST NAME *
                                     </label>
                                     <input
                                         type="text"
@@ -357,7 +361,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-4">
                                     <label className={labelStyle}>
-                                        BIRTH DATE
+                                        BIRTH DATE *
                                     </label>
                                     <input
                                         type="date"
@@ -370,7 +374,7 @@ export default function StudentDrawer({
                                     />
                                 </div>
                                 <div className="col-4">
-                                    <label className={labelStyle}>AGE</label>
+                                    <label className={labelStyle}>AGE *</label>
                                     <input
                                         type="text"
                                         className={`${inputStyle} bg-light`}
@@ -381,7 +385,9 @@ export default function StudentDrawer({
                                     />
                                 </div>
                                 <div className="col-6">
-                                    <label className={labelStyle}>GENDER</label>
+                                    <label className={labelStyle}>
+                                        GENDER *
+                                    </label>
                                     <select
                                         name="gender"
                                         className={selectStyle}
@@ -395,7 +401,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        CIVIL STATUS
+                                        CIVIL STATUS *
                                     </label>
                                     <select
                                         name="civil_status"
@@ -410,7 +416,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-12">
                                     <label className={labelStyle}>
-                                        PLACE OF BIRTH
+                                        PLACE OF BIRTH *
                                     </label>
                                     <input
                                         type="text"
@@ -425,7 +431,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        CITIZENSHIP
+                                        CITIZENSHIP *
                                     </label>
                                     <input
                                         type="text"
@@ -440,7 +446,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        RELIGION
+                                        RELIGION *
                                     </label>
                                     <input
                                         type="text"
@@ -464,7 +470,7 @@ export default function StudentDrawer({
                             </h6>
                             <div className="mb-2">
                                 <label className={labelStyle}>
-                                    HOME ADDRESS
+                                    HOME ADDRESS *
                                 </label>
                                 <input
                                     type="text"
@@ -494,7 +500,7 @@ export default function StudentDrawer({
                             <div className="row g-2">
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        EMAIL ADDRESS
+                                        EMAIL ADDRESS *
                                     </label>
                                     <input
                                         type="email"
@@ -509,7 +515,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        MOBILE NO.
+                                        MOBILE NO. *
                                     </label>
                                     <input
                                         type="text"
@@ -544,7 +550,7 @@ export default function StudentDrawer({
                             </div>
                             <div className="mb-2">
                                 <label className={labelStyle}>
-                                    PREVIOUS SCHOOL
+                                    PREVIOUS SCHOOL *
                                 </label>
                                 <input
                                     type="text"
@@ -558,7 +564,9 @@ export default function StudentDrawer({
                             </div>
                             <div className="row g-2">
                                 <div className="col-6">
-                                    <label className={labelStyle}>STRAND</label>
+                                    <label className={labelStyle}>
+                                        STRAND *
+                                    </label>
                                     <select
                                         name="strand_id"
                                         className={selectStyle}
@@ -579,7 +587,7 @@ export default function StudentDrawer({
                                 </div>
                                 <div className="col-6">
                                     <label className={labelStyle}>
-                                        GRADE LEVEL
+                                        GRADE LEVEL *
                                     </label>
                                     <select
                                         name="grade_level"
@@ -593,6 +601,27 @@ export default function StudentDrawer({
                                         <option value="12">Grade 12</option>
                                     </select>
                                 </div>
+                                {/* ADDED LEARNING MODALITY DROPDOWN */}
+                                <div className="col-12">
+                                    <label className={labelStyle}>
+                                        LEARNING MODALITY *
+                                    </label>
+                                    <select
+                                        name="learning_modality"
+                                        className={`${selectStyle} bg-info bg-opacity-10 fw-bold`}
+                                        value={form.learning_modality}
+                                        onChange={handleChange}
+                                        disabled={isReadOnly}
+                                    >
+                                        <option value="Face-to-Face">
+                                            Face-to-Face (Regular)
+                                        </option>
+                                        <option value="Modular">
+                                            Modular (Distance Learning)
+                                        </option>
+                                    </select>
+                                </div>
+
                                 {type !== "create" && (
                                     <div className="col-12">
                                         <label className={labelStyle}>
@@ -666,7 +695,7 @@ export default function StudentDrawer({
                                     />
                                 </div>
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
-                                    MOTHER'S INFO
+                                    MOTHER'S INFO (MAIDEN NAME)
                                 </div>
                                 <div className="col-4">
                                     <input
@@ -702,14 +731,14 @@ export default function StudentDrawer({
                                     />
                                 </div>
                                 <div className="col-12 text-muted small fw-bold font-monospace border-bottom mb-1 mt-2">
-                                    GUARDIAN'S INFO
+                                    GUARDIAN'S INFO *
                                 </div>
                                 <div className="col-4">
                                     <input
                                         type="text"
                                         name="guardian_name"
                                         className={inputStyle}
-                                        placeholder="Guardian's Full Name"
+                                        placeholder="Guardian's Full Name *"
                                         value={form.guardian_name}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -720,7 +749,7 @@ export default function StudentDrawer({
                                         type="text"
                                         name="guardian_occupation"
                                         className={inputStyle}
-                                        placeholder="Occupation"
+                                        placeholder="Occupation *"
                                         value={form.guardian_occupation}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -731,7 +760,7 @@ export default function StudentDrawer({
                                         type="text"
                                         name="guardian_contact"
                                         className={inputStyle}
-                                        placeholder="Contact No."
+                                        placeholder="Contact No. *"
                                         value={form.guardian_contact}
                                         onChange={handleChange}
                                         disabled={isReadOnly}
@@ -779,7 +808,8 @@ export default function StudentDrawer({
                                     "form137",
                                     "good_moral",
                                     "diploma",
-                                    "card", //REPORT CARD
+                                    "card",
+                                    "picture", // ADDED 2x2 PICTURE
                                 ].map((req) => (
                                     <div className="col-6 mb-2" key={req}>
                                         <div className="form-check">
@@ -795,7 +825,7 @@ export default function StudentDrawer({
                                                 disabled={isReadOnly}
                                             />
                                             <label className="form-check-label font-monospace fw-bold text-uppercase small ms-2">
-                                                {/* UPDATED LABELS WITH CARD */}
+                                                {/* UPDATED LABELS WITH 2x2 PICTURE */}
                                                 {req === "psa"
                                                     ? "PSA Birth Cert"
                                                     : req === "form137"
@@ -804,7 +834,9 @@ export default function StudentDrawer({
                                                         ? "Good Moral Cert"
                                                         : req === "card"
                                                           ? "Report Card (F138)"
-                                                          : "Grade 10 Diploma"}
+                                                          : req === "picture"
+                                                            ? "2x2 Picture (2pcs)"
+                                                            : "Grade 10 Diploma"}
                                             </label>
                                         </div>
                                     </div>

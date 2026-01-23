@@ -30,6 +30,7 @@
                             This is to inform you that your enrollment record has been updated by the school administration.
                         </p>
 
+                        {{-- SUMMARY OF CHANGES --}}
                         <div style="background-color: #dfe6e9; border: 2px dashed #2d3436; padding: 15px; margin-bottom: 25px;">
                             <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 10px;">
                                 <span style="background-color: #2d3436; color: #fff; padding: 2px 5px;">INFO</span> SUMMARY OF CHANGES:
@@ -62,35 +63,83 @@
                                 $savedReqs = [];
                             }
 
-                            $masterList = [
-                                'psa'        => 'PSA Birth Certificate',
-                                'form137'    => 'Form 137 / SF10',
-                                'good_moral' => 'Good Moral Certificate',
-                                'diploma'    => 'Diploma / Certificate',
-                                'card'       => 'Report Card (Form 138)'
+                            $isComplete = true;
+
+                            // 1. PRIORITY REQUIREMENTS (Added 2x2 Picture)
+                            $priorityDocs = [
+                                'PSA Birth Certificate'   => 'psa',
+                                'Report Card (Form 138)'  => 'card',
+                                '2x2 Picture (2pcs)'      => 'picture' 
                             ];
 
-                            $pendingList = [];
-                            foreach ($masterList as $key => $label) {
-                                if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
-                                    $pendingList[] = $label;
-                                }
-                            }
+                            // 2. SUPPORTING DOCUMENTS
+                            $supportingDocs = [
+                                'Form 137 / SF10'         => 'form137',
+                                'Good Moral Certificate'  => 'good_moral',
+                                'Diploma / Certificate'   => 'diploma'
+                            ];
                         @endphp
 
-                        @if(count($pendingList) === 0)
+                        {{-- SECTION 1: PRIORITY REQUIREMENTS --}}
+                        <h4 style="border-bottom: 2px solid #d63031; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #d63031; text-transform: uppercase;">
+                            🚨 Priority Requirements
+                        </h4>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
+                            @foreach($priorityDocs as $label => $key)
+                                @php
+                                    $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                    if (!$isVerified) $isComplete = false;
+                                @endphp
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                        {{ $label }} <span style="color: #d63031;">*</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; text-align: right;">
+                                        @if($isVerified)
+                                            <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
+                                        @else
+                                            <span style="background-color: #d63031; color: #fff; padding: 2px 6px; font-weight: bold; font-size: 10px; border-radius: 2px;">REQUIRED</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        {{-- SECTION 2: SUPPORTING DOCUMENTS --}}
+                        <h4 style="border-bottom: 2px solid #2d3436; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #2d3436; text-transform: uppercase;">
+                            📄 Supporting Documents
+                        </h4>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
+                            @foreach($supportingDocs as $label => $key)
+                                @php
+                                    $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                    if (!$isVerified) $isComplete = false;
+                                @endphp
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; font-size: 13px; font-weight: bold; color: #636e72;">
+                                        {{ $label }}
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; text-align: right;">
+                                        @if($isVerified)
+                                            <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
+                                        @else
+                                            <span style="color: #636e72; font-weight: bold; font-size: 11px;">[ TO FOLLOW ]</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        {{-- STATUS MESSAGE --}}
+                        @if($isComplete)
                             <div style="background-color: #dff9fb; border: 2px solid #2d3436; padding: 15px; text-align: center;">
                                 <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #00b894;">✅ REQUIREMENTS COMPLETE</strong>
                                 <p style="margin: 0; font-size: 13px;">Congratulations! Your enrollment requirements are fully complied.</p>
                             </div>
                         @else
-                            <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px;">
-                                <strong style="display: block; font-size: 16px; margin-bottom: 10px; color: #d63031; text-align: center;">⚠️ MISSING REQUIREMENTS</strong>
-                                <ul style="font-size: 13px; padding-left: 20px; margin: 0; color: #d63031; font-weight: bold;">
-                                    @foreach($pendingList as $item)
-                                        <li style="margin-bottom: 3px;">{{ $item }}</li>
-                                    @endforeach
-                                </ul>
+                            <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px; text-align: center;">
+                                <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #d63031;">⚠️ PENDING REQUIREMENTS</strong>
+                                <p style="margin: 0; font-size: 13px;">Please submit the missing documents to the Registrar's Office.</p>
                             </div>
                         @endif
 

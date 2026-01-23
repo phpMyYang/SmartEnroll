@@ -93,6 +93,7 @@ class PublicEnrollmentController extends Controller
             'lrn'                       => 'required|digits:12|unique:students,lrn',
             'current_school_attended'   => 'required|string',
             'strand_id'                 => 'required|string', // UUID String
+            'learning_modality'         => 'required|string',
             
             // --- EMPLOYMENT ---
             // NOTE: Tinanggal natin ang 'is_employed' dito.
@@ -124,7 +125,9 @@ class PublicEnrollmentController extends Controller
             'psa' => false, 
             'form137' => false, 
             'good_moral' => false, 
-            'diploma' => false
+            'diploma' => false,
+            'card' => false, 
+            'picture' => false
         ]);
 
         // CREATE STUDENT
