@@ -13,6 +13,7 @@
                 
                 <div style="max-width: 600px; margin: 0 auto; background-color: #fcfbf4; border: 3px solid #2d3436; padding: 0; box-shadow: 8px 8px 0px #2d3436; text-align: left;">
                     
+                    {{-- HEADER --}}
                     <div style="background-color: #F4D03F; padding: 20px; border-bottom: 3px solid #2d3436; text-align: center;">
                         <h1 style="margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; color: #2d3436;">
                             🎓 SmartEnroll
@@ -29,6 +30,7 @@
                             We have received your enrollment application for <strong>Grade {{ $student->grade_level }}</strong>. Your records have been saved in our system.
                         </p>
 
+                        {{-- STUDENT INFO --}}
                         <div style="background-color: #fff; border: 2px solid #2d3436; padding: 15px; margin-bottom: 25px;">
                             <table width="100%" cellpadding="5" cellspacing="0" style="font-size: 14px;">
                                 <tr>
@@ -56,6 +58,19 @@
                             </table>
                         </div>
 
+                        {{-- SUBMISSION INSTRUCTIONS (BLUE FOLDER NOTE) --}}
+                        <div style="background-color: #dfe6e9; border: 2px dashed #2d3436; padding: 15px; margin-bottom: 25px;">
+                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 10px;">
+                                <span style="background-color: #2d3436; color: #fff; padding: 2px 5px;">NOTE</span> SUBMISSION INSTRUCTION:
+                            </strong>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #2d3436; line-height: 1.5; font-weight: bold;">
+                                <li style="margin-bottom: 5px;">Provide <strong>Photocopy</strong> and <strong>Original</strong> copies of requirements.</li>
+                                <li style="margin-bottom: 5px;">All photocopies should be in <strong>Long Bond Paper</strong>.</li>
+                                <li style="margin-bottom: 5px;">Place documents in a <strong>Long Blue Folder</strong> with a <strong>Long Clear Plastic Envelope</strong>.</li>
+                                <li>Label the folder with your <strong>Full Name</strong>.</li>
+                            </ul>
+                        </div>
+
                         {{-- CHECKLIST LOGIC --}}
                         @php
                             $rawReqs = $student->requirements;
@@ -67,52 +82,87 @@
                                 $savedReqs = [];
                             }
 
-                            $masterList = [
-                                'psa'        => 'PSA Birth Certificate (Original/Photocopy)',
-                                'form137'    => 'Form 137 / SF10 (School Record)',
-                                'good_moral' => 'Certificate of Good Moral Character',
-                                'diploma'    => 'Diploma / Certificate of Completion',
-                                'card'       => 'Report Card (Form 138)' 
+                            $isComplete = true;
+
+                            // 1. PRIORITY REQUIREMENTS (PSA, CARD, PICTURE)
+                            $priorityDocs = [
+                                'PSA Birth Certificate'   => 'psa',
+                                'Report Card (Form 138)'  => 'card',
+                                '2x2 Picture (2pcs)'      => 'picture' 
                             ];
 
-                            $pendingList = [];
-                            foreach ($masterList as $key => $label) {
-                                if (empty($savedReqs[$key]) || $savedReqs[$key] != true) {
-                                    $pendingList[] = $label;
-                                }
-                            }
+                            // 2. SUPPORTING DOCUMENTS
+                            $supportingDocs = [
+                                'Form 137 / SF10'         => 'form137',
+                                'Good Moral Certificate'  => 'good_moral',
+                                'Diploma / Certificate'   => 'diploma'
+                            ];
                         @endphp
 
-                        @if(count($pendingList) > 0)
-                            <div style="background-color: #dff9fb; border: 2px dashed #2d3436; padding: 15px;">
-                                <p style="margin: 0 0 10px 0; font-weight: bold; text-transform: uppercase;">
-                                    <span style="background-color: #d63031; color: #fff; padding: 2px 5px;">MISSING</span> PENDING REQUIREMENTS:
-                                </p>
-                                <ul style="font-size: 13px; padding-left: 20px; margin: 0; color: #d63031; font-weight: bold;">
-                                    @foreach($pendingList as $item)
-                                        <li style="margin-bottom: 5px;">{{ $item }}</li>
-                                    @endforeach
-                                    <li style="margin-bottom: 5px; color: #2d3436;">Yellow Folder w/ Plastic Envelope (Long Size)</li>
-                                </ul>
+                        {{-- SECTION 1: PRIORITY REQUIREMENTS --}}
+                        <h4 style="border-bottom: 2px solid #d63031; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #d63031; text-transform: uppercase;">
+                            🚨 Priority Requirements
+                        </h4>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
+                            @foreach($priorityDocs as $label => $key)
+                                @php
+                                    $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                    if (!$isVerified) $isComplete = false;
+                                @endphp
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                        {{ $label }} <span style="color: #d63031;">*</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; text-align: right;">
+                                        @if($isVerified)
+                                            <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
+                                        @else
+                                            <span style="background-color: #d63031; color: #fff; padding: 2px 6px; font-weight: bold; font-size: 10px; border-radius: 2px;">REQUIRED</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        {{-- SECTION 2: SUPPORTING DOCUMENTS --}}
+                        <h4 style="border-bottom: 2px solid #2d3436; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #2d3436; text-transform: uppercase;">
+                            📄 Supporting Documents
+                        </h4>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
+                            @foreach($supportingDocs as $label => $key)
+                                @php
+                                    $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                    if (!$isVerified) $isComplete = false;
+                                @endphp
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; font-size: 13px; font-weight: bold; color: #636e72;">
+                                        {{ $label }}
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; text-align: right;">
+                                        @if($isVerified)
+                                            <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
+                                        @else
+                                            <span style="color: #636e72; font-weight: bold; font-size: 11px;">[ TO FOLLOW ]</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        {{-- STATUS MESSAGE & ADVISORY --}}
+                        @if($isComplete)
+                            <div style="background-color: #dff9fb; border: 2px solid #2d3436; padding: 15px; text-align: center;">
+                                <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #00b894;">✅ REQUIREMENTS COMPLETE</strong>
+                                <p style="margin: 0; font-size: 13px;">Your enrollment requirements are complete. Please wait for further announcements.</p>
                             </div>
                         @else
-                            <div style="background-color: #dff9fb; border: 2px dashed #2d3436; padding: 15px;">
-                                <p style="margin: 0; font-weight: bold; text-transform: uppercase; color: #00b894;">
-                                    <span style="background-color: #00b894; color: #fff; padding: 2px 5px;">COMPLETE</span> ALL REQUIREMENTS SUBMITTED
-                                </p>
-                                <p style="font-size: 13px; margin-top: 5px;">
-                                    Your enrollment requirements are complete.
+                            <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px; text-align: center;">
+                                <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #d63031;">⚠️ NEXT STEP</strong>
+                                <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                    Please go to the Registrar's Office to submit the missing requirements.
                                 </p>
                             </div>
                         @endif
-
-                        {{-- NEW ADVISORY BOX (ALWAYS VISIBLE) --}}
-                        <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px; margin-top: 20px; text-align: center;">
-                            <strong style="display: block; font-size: 14px; color: #2d3436; text-transform: uppercase; margin-bottom: 5px;">📢 NEXT STEP</strong>
-                            <p style="margin: 0; font-size: 14px; font-weight: bold; color: #2d3436;">
-                                Please go to the Registrar's Office to complete the enrollment.
-                            </p>
-                        </div>
 
                         <p style="font-size: 14px; margin-top: 25px;">
                             Thank you for choosing our institution!

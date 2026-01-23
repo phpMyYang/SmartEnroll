@@ -47,12 +47,10 @@
                                     <td style="font-weight: bold; color: #636e72;">STRAND:</td>
                                     <td style="text-align: right;">{{ $student->strand->code ?? 'N/A' }}</td>
                                 </tr>
-                                {{-- ADDED: GRADE LEVEL --}}
                                 <tr>
                                     <td style="font-weight: bold; color: #636e72;">GRADE LEVEL:</td>
                                     <td style="text-align: right;">{{ $student->grade_level }}</td>
                                 </tr>
-                                {{-- ADDED: SEMESTER --}}
                                 <tr>
                                     <td style="font-weight: bold; color: #636e72;">SEMESTER:</td>
                                     <td style="text-align: right;">{{ $student->semester }}</td>
@@ -66,49 +64,83 @@
                                 <span style="background-color: #2d3436; color: #fff; padding: 2px 5px;">NOTE</span> SUBMISSION INSTRUCTION:
                             </strong>
                             <p style="margin: 0; font-size: 13px; color: #2d3436;">
-                                Please compile all physical documents in a <strong style="text-decoration: underline;">Long Yellow Folder</strong> with a plastic envelope.
+                                Provide Photocopy and Original copies of requirements and All photocopies should be in Long Bond Paper. 
+                                Place documents in a Long Blue Folder with a Long Clear Plastic Envelope and Label the folder with your Full Name.
                             </p>
                         </div>
 
-                        <h4 style="border-bottom: 2px solid #2d3436; padding-bottom: 10px; font-size: 16px; margin-bottom: 15px;">REQUIREMENT CHECKLIST</h4>
+                        @php
+                            // PREPARE DATA
+                            $rawReqs = $student->requirements;
+                            if (is_string($rawReqs)) {
+                                $savedReqs = json_decode($rawReqs, true);
+                            } elseif (is_array($rawReqs)) {
+                                $savedReqs = $rawReqs;
+                            } else {
+                                $savedReqs = [];
+                            }
 
-                        {{-- CHECKLIST TABLE --}}
+                            $isComplete = true;
+
+                            // 1. PRIORITY REQUIREMENTS (PSA, CARD, PICTURE)
+                            $priorityDocs = [
+                                'PSA Birth Certificate'   => 'psa',
+                                'Report Card (Form 138)'  => 'card',
+                                '2x2 Picture (2pcs)'      => 'picture' // ADDED PICTURE
+                            ];
+
+                            // 2. SUPPORTING DOCUMENTS
+                            $supportingDocs = [
+                                'Form 137 / SF10'         => 'form137',
+                                'Good Moral Certificate'  => 'good_moral',
+                                'Diploma / Certificate'   => 'diploma'
+                            ];
+                        @endphp
+
+                        {{-- SECTION 1: PRIORITY REQUIREMENTS --}}
+                        <h4 style="border-bottom: 2px solid #d63031; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #d63031; text-transform: uppercase;">
+                            🚨 Priority Requirements
+                        </h4>
                         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
-                            @php
-                                $rawReqs = $student->requirements;
-                                if (is_string($rawReqs)) {
-                                    $savedReqs = json_decode($rawReqs, true);
-                                } elseif (is_array($rawReqs)) {
-                                    $savedReqs = $rawReqs;
-                                } else {
-                                    $savedReqs = [];
-                                }
-
-                                $documents = [
-                                    'PSA Birth Certificate'   => 'psa',
-                                    'Form 137 / SF10'         => 'form137',
-                                    'Good Moral Certificate'  => 'good_moral',
-                                    'Diploma / Certificate'   => 'diploma',
-                                    'Report Card (Form 138)'  => 'card'
-                                ];
-
-                                $isComplete = true;
-                            @endphp
-
-                            @foreach($documents as $label => $key)
+                            @foreach($priorityDocs as $label => $key)
                                 @php
                                     $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
                                     if (!$isVerified) $isComplete = false;
                                 @endphp
                                 <tr>
-                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; font-size: 13px; font-weight: bold; color: #2d3436;">
+                                        {{ $label }} <span style="color: #d63031;">*</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #fab1a0; text-align: right;">
+                                        @if($isVerified)
+                                            <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
+                                        @else
+                                            <span style="background-color: #d63031; color: #fff; padding: 2px 6px; font-weight: bold; font-size: 10px; border-radius: 2px;">REQUIRED</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        {{-- SECTION 2: SUPPORTING DOCUMENTS --}}
+                        <h4 style="border-bottom: 2px solid #2d3436; padding-bottom: 5px; font-size: 14px; margin-bottom: 10px; color: #2d3436; text-transform: uppercase;">
+                            📄 Supporting Documents
+                        </h4>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; border-collapse: collapse;">
+                            @foreach($supportingDocs as $label => $key)
+                                @php
+                                    $isVerified = !empty($savedReqs[$key]) && $savedReqs[$key] == true;
+                                    if (!$isVerified) $isComplete = false;
+                                @endphp
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; font-size: 13px; font-weight: bold; color: #636e72;">
                                         {{ $label }}
                                     </td>
                                     <td style="padding: 8px 0; border-bottom: 1px dashed #b2bec3; text-align: right;">
                                         @if($isVerified)
                                             <span style="color: #00b894; font-weight: bold; font-size: 12px;">[ VERIFIED ]</span>
                                         @else
-                                            <span style="color: #d63031; font-weight: bold; font-size: 12px;">[ TO FOLLOW ]</span>
+                                            <span style="color: #636e72; font-weight: bold; font-size: 11px;">[ TO FOLLOW ]</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -124,8 +156,7 @@
                         @else
                             <div style="background-color: #ffeaa7; border: 2px solid #2d3436; padding: 15px; text-align: center;">
                                 <strong style="display: block; font-size: 16px; margin-bottom: 5px; color: #d63031;">⚠️ PENDING REQUIREMENTS</strong>
-                                {{-- UPDATED ADVISORY: NO DATE --}}
-                                <p style="margin: 0; font-size: 13px;">Please go to the Registrar's Office to submit the missing documents.</p>
+                                <p style="margin: 0; font-size: 13px;">Please go to the Registrar's Office to submit the missing Priority Documents.</p>
                             </div>
                         @endif
 

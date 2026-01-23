@@ -44,6 +44,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
         section_name: "",
         school_year: settings?.school_year || "",
         semester: settings?.semester || "",
+        learning_modality: "Face-to-Face", // ADDED FIELD
 
         // Employment
         is_employed: false,
@@ -93,6 +94,8 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                 school_year: settings?.school_year,
                 semester: settings?.semester,
                 strand_id: studentData.strand_id,
+                learning_modality:
+                    studentData.learning_modality || "Face-to-Face", // Load if exists
             }));
         } else {
             setForm((prev) => ({
@@ -135,6 +138,8 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
             if (!form.current_school_attended)
                 missingFields.push("Last School Attended");
             if (!form.strand_id) missingFields.push("Strand");
+            if (!form.learning_modality)
+                missingFields.push("Learning Modality"); // ✅ ADDED CHECK
         } else if (step === 3) {
             if (!form.guardian_name) missingFields.push("Guardian's Name");
             if (!form.guardian_occupation)
@@ -202,6 +207,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                         <ul class="mb-0 fw-bold">
                             <li>PSA Birth Certificate</li>
                             <li>Form 138 / Report Card</li>
+                            <li>2x2 Picture (2pcs)</li>
                             <li>Form 137</li>
                             <li>Certificate of Good Moral</li>
                             <li>Diploma / Certificate of Completion</li>
@@ -694,6 +700,30 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                                     )}
                                 </div>
 
+                                {/* ADDED: LEARNING MODALITY DROPDOWN */}
+                                <div className="col-12">
+                                    <Label text="LEARNING MODALITY" required />
+                                    <select
+                                        className="form-select"
+                                        value={form.learning_modality}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                learning_modality:
+                                                    e.target.value,
+                                            })
+                                        }
+                                        required
+                                    >
+                                        <option value="Face-to-Face">
+                                            Face-to-Face (Regular)
+                                        </option>
+                                        <option value="Modular">
+                                            Modular (Distance Learning)
+                                        </option>
+                                    </select>
+                                </div>
+
                                 {isOldStudent && form.section_name && (
                                     <div className="col-12">
                                         <div className="alert alert-warning border-dark rounded-0 small py-2 mt-2">
@@ -779,7 +809,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
 
                                 <div className="col-12">
                                     <h6 className="fw-bold text-decoration-underline mt-2">
-                                        FATHER'S INFORMATION (Optional)
+                                        FATHER'S INFORMATION
                                     </h6>
                                 </div>
                                 <div className="col-md-6">
@@ -828,7 +858,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
 
                                 <div className="col-12">
                                     <h6 className="fw-bold text-decoration-underline mt-3">
-                                        MOTHER'S INFORMATION (Optional)
+                                        MOTHER'S INFORMATION (MAIDEN NAME)
                                     </h6>
                                 </div>
                                 <div className="col-md-6">
@@ -877,8 +907,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
 
                                 <div className="col-12">
                                     <h6 className="fw-bold text-decoration-underline mt-3">
-                                        GUARDIAN'S INFORMATION{" "}
-                                        <span className="text-danger">*</span>
+                                        GUARDIAN'S INFORMATION
                                     </h6>
                                 </div>
                                 <div className="col-md-6">
