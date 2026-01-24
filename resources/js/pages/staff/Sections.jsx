@@ -56,7 +56,7 @@ export default function StaffSections() {
 
     // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
-        // ✅ CONFIRMATION: Center Modal (Swal)
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SECTION?",
             text: "This cannot be undone.",
@@ -398,21 +398,29 @@ export default function StaffSections() {
                                                             </th>
                                                             <th
                                                                 style={{
-                                                                    width: "60%",
+                                                                    width: "40%",
                                                                 }}
                                                             >
                                                                 STUDENT NAME
                                                             </th>
                                                             <th
                                                                 style={{
-                                                                    width: "10%",
+                                                                    width: "5%",
                                                                 }}
                                                             >
                                                                 SEX
                                                             </th>
+                                                            {/* ADDED: MODALITY HEADER */}
                                                             <th
                                                                 style={{
-                                                                    width: "25%",
+                                                                    width: "20%",
+                                                                }}
+                                                            >
+                                                                MODALITY
+                                                            </th>
+                                                            <th
+                                                                style={{
+                                                                    width: "30%",
                                                                 }}
                                                             >
                                                                 LRN
@@ -422,7 +430,7 @@ export default function StaffSections() {
                                                     <tbody>
                                                         <tr className="table-secondary fw-bold border-top border-dark">
                                                             <td
-                                                                colSpan="4"
+                                                                colSpan="5"
                                                                 className="ps-3"
                                                             >
                                                                 <i className="bi bi-gender-male me-2"></i>{" "}
@@ -447,6 +455,11 @@ export default function StaffSections() {
                                                                     <td className="text-center">
                                                                         M
                                                                     </td>
+                                                                    {/* ADDED: MODALITY DATA */}
+                                                                    <td className="text-center text-uppercase small fw-bold">
+                                                                        {s.learning_modality ||
+                                                                            "N/A"}
+                                                                    </td>
                                                                     <td className="text-center">
                                                                         {s.lrn}
                                                                     </td>
@@ -457,7 +470,7 @@ export default function StaffSections() {
                                                             .length === 0 && (
                                                             <tr>
                                                                 <td
-                                                                    colSpan="4"
+                                                                    colSpan="5"
                                                                     className="text-center text-muted fst-italic py-2"
                                                                 >
                                                                     No Male
@@ -468,7 +481,7 @@ export default function StaffSections() {
 
                                                         <tr className="table-secondary fw-bold border-top border-dark">
                                                             <td
-                                                                colSpan="4"
+                                                                colSpan="5"
                                                                 className="ps-3"
                                                             >
                                                                 <i className="bi bi-gender-female me-2"></i>{" "}
@@ -493,6 +506,11 @@ export default function StaffSections() {
                                                                     <td className="text-center">
                                                                         F
                                                                     </td>
+                                                                    {/* ADDED: MODALITY DATA */}
+                                                                    <td className="text-center text-uppercase small fw-bold">
+                                                                        {s.learning_modality ||
+                                                                            "N/A"}
+                                                                    </td>
                                                                     <td className="text-center">
                                                                         {s.lrn}
                                                                     </td>
@@ -503,7 +521,7 @@ export default function StaffSections() {
                                                             .length === 0 && (
                                                             <tr>
                                                                 <td
-                                                                    colSpan="4"
+                                                                    colSpan="5"
                                                                     className="text-center text-muted fst-italic py-2"
                                                                 >
                                                                     No Female

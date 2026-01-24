@@ -37,7 +37,7 @@ export default function SectionDrawer({
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // ✅ SMART SUBMIT HANDLER
+    // SMART SUBMIT HANDLER
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
