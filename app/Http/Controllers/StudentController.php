@@ -251,79 +251,105 @@ class StudentController extends Controller
     }
 
     /**
-     * CHANGE STATUS
+     * CHANGE STATUS (With Anti-Overbooking Protection)
      */
     public function changeStatus(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
-        $newStatus = $request->status;
-        $oldStatus = $student->status; // Capture old status for log
-        $user = Auth::user(); 
+        // WRAP SA TRANSACTION PARA SAFE ANG CHECKING
+        return DB::transaction(function () use ($request, $id) {
+            
+            $student = Student::findOrFail($id);
+            $newStatus = $request->status;
+            $oldStatus = $student->status; 
+            $user = Auth::user(); 
 
-        if ($newStatus !== 'reset') {
-            $student->update(['previous_status' => $student->status]);
-        }
+            // ---------------------------------------------------------
+            // SAFETY CHECK: KAPAG GAGAWING 'ENROLLED'
+            // ---------------------------------------------------------
+            if ($newStatus === 'enrolled' && $student->section_id) {
+                // 1. LOCK THE SECTION
+                $section = Section::where('id', $student->section_id)->lockForUpdate()->first();
 
-        // A. RESET LOGIC
-        if ($newStatus === 'reset') {
-            $prev = $student->previous_status ?? 'pending';
-            $student->update([
-                'status' => $prev,
-                'released_by' => null,
-                'released_at' => null
-            ]);
+                if ($section) {
+                    // 2. COUNT CURRENT ENROLLED
+                    $currentEnrolled = $section->students()->where('status', 'enrolled')->count();
 
-            // LOG ACTIVITY: RESET
-            ActivityLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'update',
-                'description' => "Reset status of {$student->last_name} from " . strtoupper($oldStatus) . " back to " . strtoupper($prev),
-                'ip_address' => $request->ip()
-            ]);
-
-            return response()->json(['message' => 'Status reset to ' . $prev]);
-        }
-
-        // B. PASSED LOGIC  Sends Instruction Email)
-        if ($newStatus === 'passed') {
-            try {
-                Mail::to($student->email)->send(new EnrollmentInstruction($student));
-            } catch (\Exception $e) {
-                Log::error("Instruction email failed: " . $e->getMessage());
+                    // 3. CHECK IF FULL
+                    if ($currentEnrolled >= $section->capacity) {
+                        // STOP & RETURN ERROR
+                        return response()->json([
+                            'message' => "FAILED: Section '{$section->name}' is already FULL ({$currentEnrolled}/{$section->capacity}). Cannot enroll student."
+                        ], 422);
+                    }
+                }
             }
-        }
+            // ---------------------------------------------------------
+            // END SAFETY CHECK
+            // ---------------------------------------------------------
 
-        // C. RELEASED LOGIC
-        if ($newStatus === 'released') {
-            $student->update([
-                'status' => 'released',
-                'released_by' => $user ? $user->name : 'Administrator',
-                'released_at' => now()
-            ]);
+            // PREPARE PREVIOUS STATUS
+            if ($newStatus !== 'reset') {
+                $student->update(['previous_status' => $student->status]);
+            }
 
-            // LOG ACTIVITY: RELEASED
+            // A. RESET LOGIC
+            if ($newStatus === 'reset') {
+                $prev = $student->previous_status ?? 'pending';
+                $student->update([
+                    'status' => $prev,
+                    'released_by' => null,
+                    'released_at' => null
+                ]);
+
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'update',
+                    'description' => "Reset status of {$student->last_name} from " . strtoupper($oldStatus) . " back to " . strtoupper($prev),
+                    'ip_address' => $request->ip()
+                ]);
+
+                return response()->json(['message' => 'Status reset to ' . $prev]);
+            }
+
+            // B. PASSED LOGIC
+            if ($newStatus === 'passed') {
+                try {
+                    Mail::to($student->email)->send(new EnrollmentInstruction($student));
+                } catch (\Exception $e) {
+                    Log::error("Instruction email failed: " . $e->getMessage());
+                }
+            }
+
+            // C. RELEASED LOGIC
+            if ($newStatus === 'released') {
+                $student->update([
+                    'status' => 'released',
+                    'released_by' => $user ? $user->name : 'Administrator',
+                    'released_at' => now()
+                ]);
+
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'update',
+                    'description' => "Released record of student: {$student->last_name}, {$student->first_name}",
+                    'ip_address' => $request->ip()
+                ]);
+
+                return response()->json(['message' => 'Record marked as Released.']);
+            }
+
+            // D. GENERIC UPDATE (INCLUDES ENROLLED)
+            $student->update(['status' => $newStatus]);
+
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'update',
-                'description' => "Released record of student: {$student->last_name}, {$student->first_name}",
+                'description' => "Changed status of {$student->last_name} from " . strtoupper($oldStatus) . " to " . strtoupper($newStatus),
                 'ip_address' => $request->ip()
             ]);
 
-            return response()->json(['message' => 'Record marked as Released.']);
-        }
-
-        // D. GENERIC UPDATE
-        $student->update(['status' => $newStatus]);
-
-        // LOG ACTIVITY: GENERIC STATUS CHANGE
-        ActivityLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'update',
-            'description' => "Changed status of {$student->last_name} from " . strtoupper($oldStatus) . " to " . strtoupper($newStatus),
-            'ip_address' => $request->ip()
-        ]);
-
-        return response()->json(['message' => 'Status updated to ' . strtoupper($newStatus)]);
+            return response()->json(['message' => 'Status updated to ' . strtoupper($newStatus)]);
+        });
     }
 
     /**
