@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth; // Import Auth
 
 class ReportController extends Controller
 {
-    // 🖨️ GENERATE PDF SUMMARY (Formal Report)
+    // GENERATE PDF SUMMARY (Formal Report)
     public function generateSummary(Request $request)
     {
         $sy = $request->input('school_year');
@@ -24,7 +24,7 @@ class ReportController extends Controller
         // 1. Base Query
         $query = Student::where('school_year', $sy);
 
-        // 2. Filter by Report Type
+        // 2. Filter by Report Type (Existing Logic...)
         $title = "";
         $description = "";
 
@@ -44,7 +44,7 @@ class ReportController extends Controller
             $query->where('status', 'graduate');
             $title = "OFFICIAL LIST OF GRADUATES REPORT";
             $description = "This document certifies the summary count of students who have successfully graduated.";
-        } elseif ($type === 'released') { // NEW: Released Students
+        } elseif ($type === 'released') {
             $query->where('status', 'released');
             $title = "OFFICIAL LIST OF RELEASED STUDENTS";
             $description = "This document lists the students who have transferred out or were officially released from the institution.";
@@ -53,28 +53,82 @@ class ReportController extends Controller
         // 3. Gather Data
         $students = $query->get();
 
-        // 4. Breakdown Logic
+        // 4. CALCULATE GRADE LEVEL BREAKDOWN WITH MODALITY
+        $gradeBreakdown = [
+            '11' => [
+                'total' => $students->where('grade_level', '11')->count(),
+                'f2f' => $students->where('grade_level', '11')->where('learning_modality', 'Face-to-Face')->count(),
+                'modular' => $students->where('grade_level', '11')->where('learning_modality', 'Modular')->count(),
+            ],
+            '12' => [
+                'total' => $students->where('grade_level', '12')->count(),
+                'f2f' => $students->where('grade_level', '12')->where('learning_modality', 'Face-to-Face')->count(),
+                'modular' => $students->where('grade_level', '12')->where('learning_modality', 'Modular')->count(),
+            ]
+        ];
+
+        // 5. Build Data Array
         $data = [
             'school_year' => $sy,
             'title' => $title,
             'description' => $description,
             'total' => $students->count(),
-            'freshmen' => $students->where('grade_level', '11')->count(),
-            'old_students' => $students->where('grade_level', '12')->count(),
+            
+            // New Detailed Grade Breakdown
+            'grade_breakdown' => $gradeBreakdown,
+
+            // Updated Helpers (See Below)
             'by_strand' => $this->groupByStrand($students),
             'by_section' => $this->groupBySection($students),
+            
             'date_generated' => now()->format('F d, Y h:i A'),
             'generated_by' => auth()->user()->name, 
             'registrar' => $registrarName, 
             'logo_path' => public_path('images/logo.png'),
         ];
 
-        // 5. LOG ACTIVITY
+        // 6. LOG ACTIVITY
         $this->logActivity("Generated Report: $title for SY $sy");
 
-        // 6. Download PDF
+        // 7. Download PDF
         $pdf = Pdf::loadView('reports.summary', $data);
         return $pdf->download("Report_{$type}_{$sy}.pdf");
+    }
+
+    // --- UPDATED HELPERS (WITH MODALITY COUNT) ---
+
+    private function groupByStrand($students) {
+        $strands = Strand::all();
+        $result = [];
+        foreach($strands as $strand) {
+            $subset = $students->where('strand_id', $strand->id);
+            if($subset->count() > 0) {
+                // Return Array instead of Count
+                $result[$strand->code] = [
+                    'total' => $subset->count(),
+                    'f2f' => $subset->where('learning_modality', 'Face-to-Face')->count(),
+                    'modular' => $subset->where('learning_modality', 'Modular')->count(),
+                ];
+            }
+        }
+        return $result;
+    }
+
+    private function groupBySection($students) {
+        $sections = Section::all();
+        $result = [];
+        foreach($sections as $sec) {
+            $subset = $students->where('section_id', $sec->id);
+            if($subset->count() > 0) {
+                // Return Array instead of Count
+                $result[$sec->name] = [
+                    'total' => $subset->count(),
+                    'f2f' => $subset->where('learning_modality', 'Face-to-Face')->count(),
+                    'modular' => $subset->where('learning_modality', 'Modular')->count(),
+                ];
+            }
+        }
+        return $result;
     }
 
     // EXPORT CSV MASTERLIST
@@ -91,7 +145,8 @@ class ReportController extends Controller
             "Expires" => "0"
         ];
 
-        $columns = ['LRN', 'Full Name', 'Gender', 'Email', 'Contact Number', 'Grade', 'Strand', 'Section', 'Status'];
+        // 1. ADDED 'Modality' HEADER
+        $columns = ['LRN', 'Full Name', 'Gender', 'Email', 'Contact Number', 'Grade', 'Strand', 'Section', 'Modality', 'Status'];
 
         $males = Student::where('school_year', $sy)->where('gender', 'Male')->orderBy('last_name', 'ASC')->get();
         $females = Student::where('school_year', $sy)->where('gender', 'Female')->orderBy('last_name', 'ASC')->get();
@@ -110,10 +165,15 @@ class ReportController extends Controller
             fputcsv($file, $columns);
             foreach ($males as $student) {
                 fputcsv($file, [
-                    $student->lrn, strtoupper($student->last_name . ', ' . $student->first_name), 'MALE', 
-                    $student->email, $student->contact_number, $student->grade_level,
+                    $student->lrn, 
+                    strtoupper($student->last_name . ', ' . $student->first_name), 
+                    'MALE', 
+                    $student->email, 
+                    $student->contact_number, 
+                    $student->grade_level,
                     $student->strand ? $student->strand->code : 'N/A',
                     $student->section ? $student->section->name : 'N/A',
+                    strtoupper($student->learning_modality ?? 'N/A'), // 2. ADDED MODALITY DATA
                     strtoupper($student->status)
                 ]);
             }
@@ -126,10 +186,15 @@ class ReportController extends Controller
             fputcsv($file, $columns);
             foreach ($females as $student) {
                 fputcsv($file, [
-                    $student->lrn, strtoupper($student->last_name . ', ' . $student->first_name), 'FEMALE',
-                    $student->email, $student->contact_number, $student->grade_level,
+                    $student->lrn, 
+                    strtoupper($student->last_name . ', ' . $student->first_name), 
+                    'FEMALE',
+                    $student->email, 
+                    $student->contact_number, 
+                    $student->grade_level,
                     $student->strand ? $student->strand->code : 'N/A',
                     $student->section ? $student->section->name : 'N/A',
+                    strtoupper($student->learning_modality ?? 'N/A'), // 2. ADDED MODALITY DATA
                     strtoupper($student->status)
                 ]);
             }
@@ -137,27 +202,6 @@ class ReportController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
-    }
-
-    // --- Helpers ---
-    private function groupByStrand($students) {
-        $strands = Strand::all();
-        $result = [];
-        foreach($strands as $strand) {
-            $count = $students->where('strand_id', $strand->id)->count();
-            if($count > 0) $result[$strand->code] = $count;
-        }
-        return $result;
-    }
-
-    private function groupBySection($students) {
-        $sections = Section::all();
-        $result = [];
-        foreach($sections as $sec) {
-            $count = $students->where('section_id', $sec->id)->count();
-            if($count > 0) $result[$sec->name] = $count;
-        }
-        return $result;
     }
 
     // HELPER FOR LOGGING

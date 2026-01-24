@@ -94,37 +94,43 @@
     <table class="students-table">
         <thead>
             <tr>
-                <th width="8%">NO.</th>
-                <th width="52%">FULL NAME</th>
-                <th width="10%">SEX</th>
+                {{-- ADJUSTED WIDTHS TO FIT MODALITY --}}
+                <th width="5%">NO.</th>
+                <th width="40%">FULL NAME</th>
+                <th width="5%">SEX</th>
+                <th width="20%">MODALITY</th> {{-- ADDED COLUMN --}}
                 <th width="30%">LRN</th>
             </tr>
         </thead>
         <tbody>
             {{-- MALE --}}
-            <tr class="cat-row"><td colspan="4">MALE</td></tr>
+            <tr class="cat-row"><td colspan="5">MALE</td></tr>
             @forelse($males as $index => $s)
                 <tr>
                     <td align="center">{{ $index + 1 }}</td>
                     <td>{{ strtoupper($s->last_name) }}, {{ strtoupper($s->first_name) }}</td>
                     <td align="center">M</td>
+                    {{-- ADDED DATA --}}
+                    <td align="center" style="font-size: 10pt;">{{ strtoupper($s->learning_modality ?? 'N/A') }}</td>
                     <td align="center">{{ $s->lrn }}</td>
                 </tr>
             @empty
-                <tr><td colspan="4" align="center" style="font-style: italic;">-- NO MALE STUDENTS --</td></tr>
+                <tr><td colspan="5" align="center" style="font-style: italic;">-- NO MALE STUDENTS --</td></tr>
             @endforelse
 
             {{-- FEMALE --}}
-            <tr class="cat-row"><td colspan="4">FEMALE</td></tr>
+            <tr class="cat-row"><td colspan="5">FEMALE</td></tr>
             @forelse($females as $index => $s)
                 <tr>
                     <td align="center">{{ $index + 1 }}</td>
                     <td>{{ strtoupper($s->last_name) }}, {{ strtoupper($s->first_name) }}</td>
                     <td align="center">F</td>
+                    {{-- ADDED DATA --}}
+                    <td align="center" style="font-size: 10pt;">{{ strtoupper($s->learning_modality ?? 'N/A') }}</td>
                     <td align="center">{{ $s->lrn }}</td>
                 </tr>
             @empty
-                <tr><td colspan="4" align="center" style="font-style: italic;">-- NO FEMALE STUDENTS --</td></tr>
+                <tr><td colspan="5" align="center" style="font-style: italic;">-- NO FEMALE STUDENTS --</td></tr>
             @endforelse
         </tbody>
     </table>

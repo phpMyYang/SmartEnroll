@@ -32,7 +32,6 @@ export default function Landing() {
         settings?.start_date &&
         moment().isBetween(settings.start_date, settings.end_date, "day", "[]");
 
-    // --- REFRESH HANDLER ---
     const handleCloseAndRefresh = () => {
         setShowLRN(false);
         setShowWizard(false);
@@ -68,7 +67,7 @@ export default function Landing() {
                         100% { transform: translateY(0px) rotate(0deg); } 
                     }
                     
-                    /* Background Elements - Distributed, Not Clustered */
+                    /* Background Elements */
                     .bg-element { 
                         position: absolute; 
                         z-index: 0; 
@@ -77,7 +76,7 @@ export default function Landing() {
                     }
                     .float-icon { 
                         animation: float-icon 12s ease-in-out infinite; 
-                        opacity: 0.07; /* Subtle Visibility */
+                        opacity: 0.07; 
                     }
                     .float-shape {
                         opacity: 0.25;
@@ -103,16 +102,26 @@ export default function Landing() {
                     .shape-cross:before { width: 10px; height: 40px; left: 15px; }
                     .shape-cross:after { width: 40px; height: 10px; top: 15px; }
 
-                    /* --- Card Positioning (Pushed further to edges to avoid crowding center) --- */
+                    /* --- Card Positioning (Desktop) --- */
                     @media (min-width: 992px) {
-                        /* Top Left - Moved closer to edge */
+                        /* Top Left */
                         .pos-1 { position: absolute; top: 5%; left: 3%; width: 240px; transform: rotate(-3deg); }
-                        /* Top Right - Moved closer to edge */
+                        
+                        /* Top Right (ACCESSIBLE CARD) */
                         .pos-2 { position: absolute; top: 8%; right: 3%; width: 240px; transform: rotate(3deg); }
-                        /* Bottom Left - Moved closer to edge */
+                        
+                        /* Bottom Left */
                         .pos-3 { position: absolute; bottom: 5%; left: 3%; width: 240px; transform: rotate(2deg); }
-                        /* Bottom Right - Moved closer to edge */
-                        .pos-4 { position: absolute; bottom: 3%; right: 3%; width: 300px; transform: rotate(-1deg); }
+                        
+                        /* Bottom Right (ADVISORY BOARD) - MOVED TO RIGHT (PAKANAN) */
+                        .pos-4 { 
+                            position: absolute; 
+                            bottom: 5%; 
+                            right: -2%;      /* <--- UPDATED: Moved closer to right edge */
+                            width: 300px; 
+                            transform: rotate(-1deg); 
+                            z-index: 20;
+                        }
                     }
 
                     /* --- Components --- */
@@ -134,7 +143,6 @@ export default function Landing() {
                         color: black;
                         border: 3px solid black;
                         box-shadow: 6px 6px 0px black;
-                        transform: translate(0, 0);
                         transition: all 0.2s ease;
                     }
                     .btn-hero:hover {
@@ -152,11 +160,7 @@ export default function Landing() {
             </style>
 
             <div className="container position-relative h-100 py-5">
-                {/* =================================================================================
-                    BACKGROUND LAYER: EVENLY DISTRIBUTED (HIWALAY-HIWALAY)
-                   ================================================================================= */}
-
-                {/* --- FAR CORNERS (Likod ng Cards) --- */}
+                {/* --- BACKGROUND DECORATION --- */}
                 <i
                     className="bi bi-book-fill bg-element float-icon display-1"
                     style={{ top: "2%", left: "2%", opacity: "0.04" }}
@@ -174,7 +178,7 @@ export default function Landing() {
                     style={{ bottom: "2%", right: "2%", opacity: "0.04" }}
                 ></i>
 
-                {/* --- UPPER AREAS (Away from Center) --- */}
+                {/* Random Shapes */}
                 <div
                     className="bg-element float-shape shape-circle"
                     style={{
@@ -189,7 +193,6 @@ export default function Landing() {
                     className="bi bi-calculator-fill bg-element float-icon display-4"
                     style={{ top: "12%", left: "35%" }}
                 ></i>
-
                 <div
                     className="bg-element float-shape shape-square"
                     style={{
@@ -204,8 +207,6 @@ export default function Landing() {
                     className="bi bi-backpack-fill bg-element float-icon display-4"
                     style={{ top: "10%", right: "35%" }}
                 ></i>
-
-                {/* --- MIDDLE AREAS (Sides) --- */}
                 <i
                     className="bi bi-pencil-fill bg-element float-icon display-3"
                     style={{
@@ -222,7 +223,6 @@ export default function Landing() {
                         left: "15%",
                     }}
                 ></div>
-
                 <i
                     className="bi bi-clipboard-data-fill bg-element float-icon display-3"
                     style={{ top: "48%", right: "5%" }}
@@ -231,8 +231,6 @@ export default function Landing() {
                     className="bg-element float-shape shape-cross"
                     style={{ top: "45%", right: "15%", color: "#3F9AAE" }}
                 ></div>
-
-                {/* --- LOWER AREAS (Away from Center) --- */}
                 <i
                     className="bi bi-laptop bg-element float-icon display-4"
                     style={{ bottom: "25%", left: "25%" }}
@@ -248,7 +246,6 @@ export default function Landing() {
                         opacity: "0.1",
                     }}
                 ></div>
-
                 <i
                     className="bi bi-alarm-fill bg-element float-icon display-4"
                     style={{ bottom: "25%", right: "30%" }}
@@ -264,31 +261,9 @@ export default function Landing() {
                     }}
                 ></div>
 
-                {/* --- FILLERS (Randomly placed but spaced) --- */}
-                <i
-                    className="bi bi-star-fill bg-element float-icon h3"
-                    style={{ top: "30%", left: "10%", opacity: "0.1" }}
-                ></i>
-                <i
-                    className="bi bi-music-note-beamed bg-element float-icon h2"
-                    style={{ top: "25%", right: "10%", opacity: "0.1" }}
-                ></i>
-                <i
-                    className="bi bi-lightbulb-fill bg-element float-icon h3"
-                    style={{ bottom: "40%", left: "10%", opacity: "0.1" }}
-                ></i>
-                <i
-                    className="bi bi-palette-fill bg-element float-icon h3"
-                    style={{ bottom: "45%", right: "8%", opacity: "0.1" }}
-                ></i>
+                {/* --- MAIN CONTENT --- */}
 
-                {/* =================================================================================
-                    MAIN CONTENT 
-                   ================================================================================= */}
-
-                {/* --- CARDS (Now Pushed to Edges) --- */}
-
-                {/* Pos 1: Top Left */}
+                {/* Feature 1: Top Left */}
                 <div className="retro-card p-4 pos-1 float-anim mb-4 mx-auto bg-white">
                     <div className="d-flex align-items-center gap-3">
                         <div className="bg-warning border border-2 border-dark p-2 rounded text-dark">
@@ -305,7 +280,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* Pos 2: Top Right */}
+                {/* Feature 2: Top Right */}
                 <div className="retro-card p-4 pos-2 float-anim-rev mb-4 mx-auto bg-white">
                     <div className="d-flex align-items-center gap-3">
                         <div className="bg-info border border-2 border-dark p-2 rounded text-white">
@@ -322,7 +297,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* Pos 3: Bottom Left */}
+                {/* Feature 3: Bottom Left */}
                 <div className="retro-card p-4 pos-3 float-anim mb-4 mx-auto bg-white">
                     <div className="d-flex align-items-center gap-3">
                         <div className="bg-success border border-2 border-dark p-2 rounded text-white">
@@ -339,7 +314,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* --- HERO CONTENT (CENTER) --- */}
+                {/* HERO TEXT */}
                 <div className="text-center position-relative z-index-10 mt-5 mt-lg-0 pt-lg-5 px-lg-5">
                     <div className="d-inline-block bg-white border border-2 border-dark px-3 py-1 mb-3 shadow-sm">
                         <span
@@ -386,7 +361,7 @@ export default function Landing() {
                     </button>
                 </div>
 
-                {/* --- ADVISORY (Bottom Right) --- */}
+                {/* ADVISORY BOARD (Bottom Right - Shifted Right) */}
                 <div className="retro-card p-0 pos-4 float-anim-rev mt-5 mx-auto bg-white">
                     <div className="bg-dark text-white p-3 border-bottom border-3 border-dark d-flex align-items-center gap-2">
                         <i className="bi bi-megaphone-fill text-warning"></i>
@@ -406,7 +381,7 @@ export default function Landing() {
                                     {settings?.semester}
                                 </span>
                                 <div className="small fw-bold text-success text-uppercase border-top border-dark pt-2 mt-2">
-                                    <i className="bi bi-calendar-check me-1"></i>
+                                    <i className="bi bi-calendar-check me-1"></i>{" "}
                                     OPEN UNTIL{" "}
                                     {moment(settings?.end_date).format("MMM D")}
                                 </div>

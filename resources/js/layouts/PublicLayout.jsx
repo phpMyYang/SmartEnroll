@@ -5,6 +5,23 @@ import Swal from "sweetalert2";
 import TermsModal from "../components/TermsModal";
 import StatusCheckModal from "../components/StatusCheckModal";
 
+// FIX: Inilabas ko ang component dito para hindi mawala ang focus
+const SearchInputField = ({ value, onChange }) => (
+    <div className="input-group shadow-sm">
+        <span className="input-group-text bg-white border-dark border-2 border-end-0 rounded-start">
+            <i className="bi bi-search"></i>
+        </span>
+        <input
+            type="text"
+            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace rounded-end"
+            placeholder="Search LRN..."
+            value={value}
+            onChange={onChange}
+            style={{ boxShadow: "none" }}
+        />
+    </div>
+);
+
 export default function PublicLayout() {
     const [showTerms, setShowTerms] = useState(false);
     const [searchLrn, setSearchLrn] = useState("");
@@ -39,12 +56,16 @@ export default function PublicLayout() {
         }
     };
 
-    // --- NEW: HANDLE CLOSE & REFRESH ---
     const handleCloseStatus = () => {
         setShowStatus(false);
         setStatusResult(null);
-        setSearchLrn(""); // Clear input
-        window.location.reload(); // 🔄 AUTO REFRESH PAGE
+        setSearchLrn("");
+        window.location.reload();
+    };
+
+    // Helper function para sa input change
+    const onSearchChange = (e) => {
+        setSearchLrn(e.target.value.replace(/\D/g, "").slice(0, 12));
     };
 
     return (
@@ -81,88 +102,91 @@ export default function PublicLayout() {
 
             {/* --- NAVBAR --- */}
             <nav
-                className="navbar navbar-expand-lg border-bottom border-2 border-dark sticky-top"
+                className="border-bottom border-2 border-dark sticky-top"
                 style={{
                     backgroundColor: "#3F9AAE",
-                    height: "80px",
-                    boxShadow: "0 4px 0 rgba(0,0,0,0.1)",
                     zIndex: 1000,
+                    paddingBottom: "0",
                 }}
             >
-                <div className="container h-100 d-flex justify-content-between align-items-center">
-                    {/* LEFT: BRANDING */}
-                    <Link
-                        to="/"
-                        className="d-flex align-items-center gap-3 text-decoration-none"
-                    >
-                        <div
-                            className="bg-white p-1 border border-2 border-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                            style={{ width: "50px", height: "50px" }}
+                <div className="container py-2">
+                    <div className="d-flex flex-wrap justify-content-between align-items-center">
+                        {/* LEFT: BRANDING */}
+                        <Link
+                            to="/"
+                            className="d-flex align-items-center gap-3 text-decoration-none"
                         >
-                            <img
-                                src="/images/logo.png"
-                                alt="Logo"
-                                style={{ width: "100%", height: "auto" }}
-                            />
-                        </div>
-                        <div className="d-flex flex-column justify-content-center">
-                            <span
-                                className="fw-black text-uppercase lh-1 text-white"
-                                style={{
-                                    fontSize: "1.5rem",
-                                    letterSpacing: "1px",
-                                    textShadow: "3px 3px 0 #000",
-                                }}
+                            <div
+                                className="bg-white p-1 border border-2 border-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                style={{ width: "50px", height: "50px" }}
                             >
-                                SmartEnroll
-                            </span>
-                            <span
-                                className="small fw-bold font-monospace text-uppercase"
-                                style={{
-                                    letterSpacing: "2px",
-                                    color: "#F4D03F",
-                                    textShadow: "1px 1px 0 #000",
-                                }}
-                            >
-                                Official Portal
-                            </span>
-                        </div>
-                    </Link>
-
-                    {/* RIGHT: SEARCH BAR & LOGIN BUTTON */}
-                    <div className="d-flex align-items-center gap-4">
-                        <form
-                            onSubmit={handleQuickSearch}
-                            className="d-none d-md-block"
-                            style={{ width: "300px" }}
-                        >
-                            <div className="input-group shadow-sm">
-                                <span className="input-group-text bg-white border-dark border-2 border-end-0 rounded-start">
-                                    <i className="bi bi-search"></i>
-                                </span>
-                                <input
-                                    type="text"
-                                    className="form-control border-dark border-2 border-start-0 ps-2 font-monospace rounded-end"
-                                    placeholder="Search LRN..."
-                                    value={searchLrn}
-                                    onChange={(e) =>
-                                        setSearchLrn(
-                                            e.target.value
-                                                .replace(/\D/g, "")
-                                                .slice(0, 12),
-                                        )
-                                    }
-                                    style={{ boxShadow: "none" }}
+                                <img
+                                    src="/images/logo.png"
+                                    alt="Logo"
+                                    style={{ width: "100%", height: "auto" }}
                                 />
                             </div>
-                        </form>
-                        <Link
-                            to="/login"
-                            className="btn btn-retro btn-staff px-4 py-2"
-                        >
-                            <i className="bi bi-shield-lock-fill"></i> STAFF
-                            LOGIN
+                            <div className="d-flex flex-column justify-content-center">
+                                <span
+                                    className="fw-black text-uppercase lh-1 text-white"
+                                    style={{
+                                        fontSize: "1.5rem",
+                                        letterSpacing: "1px",
+                                        textShadow: "3px 3px 0 #000",
+                                    }}
+                                >
+                                    SmartEnroll
+                                </span>
+                                <span
+                                    className="small fw-bold font-monospace text-uppercase"
+                                    style={{
+                                        letterSpacing: "2px",
+                                        color: "#F4D03F",
+                                        textShadow: "1px 1px 0 #000",
+                                    }}
+                                >
+                                    Official Portal
+                                </span>
+                            </div>
                         </Link>
+
+                        {/* RIGHT: DESKTOP SEARCH & LOGIN BUTTON */}
+                        <div className="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                            {/* Desktop Search (Hidden on Mobile) */}
+                            <form
+                                onSubmit={handleQuickSearch}
+                                className="d-none d-md-block"
+                                style={{ width: "300px" }}
+                            >
+                                <SearchInputField
+                                    value={searchLrn}
+                                    onChange={onSearchChange}
+                                />
+                            </form>
+
+                            <Link
+                                to="/login"
+                                className="btn btn-retro btn-staff px-3 py-2 text-nowrap"
+                            >
+                                <i className="bi bi-shield-lock-fill"></i>
+                                <span className="d-none d-sm-inline">
+                                    STAFF LOGIN
+                                </span>
+                                <span className="d-inline d-sm-none">
+                                    LOGIN
+                                </span>
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* MOBILE SEARCH (Row 2 - Inside Navbar) */}
+                    <div className="d-md-none w-100 mt-3 pb-2">
+                        <form onSubmit={handleQuickSearch}>
+                            <SearchInputField
+                                value={searchLrn}
+                                onChange={onSearchChange}
+                            />
+                        </form>
                     </div>
                 </div>
             </nav>
@@ -192,11 +216,10 @@ export default function PublicLayout() {
                 handleClose={() => setShowTerms(false)}
             />
 
-            {/* --- STATUS MODAL WITH REFRESH HANDLER --- */}
             <StatusCheckModal
                 show={showStatus}
                 student={statusResult}
-                onClose={handleCloseStatus} // Calls the refresh logic
+                onClose={handleCloseStatus}
             />
         </div>
     );

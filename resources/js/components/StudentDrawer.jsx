@@ -66,7 +66,7 @@ export default function StudentDrawer({
             good_moral: false,
             diploma: false,
             card: false,
-            picture: false, // ✅ ADDED 2x2 PICTURE
+            picture: false, // ADDED 2x2 PICTURE
         },
         // System
         status: "",
@@ -639,12 +639,44 @@ export default function StudentDrawer({
                                             <option value="">
                                                 -- Select Section --
                                             </option>
-                                            {filteredSections.map((s) => (
-                                                <option key={s.id} value={s.id}>
-                                                    {s.name} ({s.enrolled_count}
-                                                    /{s.capacity})
-                                                </option>
-                                            ))}
+                                            {/* UPDATED MAPPING LOGIC */}
+                                            {filteredSections.map((s) => {
+                                                // Check Capacity Logic
+                                                const currentEnrolled =
+                                                    s.enrolled_count || 0;
+                                                const maxCapacity =
+                                                    s.capacity || 40;
+
+                                                // PUNO NA KUNG: Enrolled >= Capacity AT hindi ito ang current section ng student
+                                                // (Para pwede pa rin niyang makita ang sarili niyang section kung enrolled na siya dun)
+                                                const isFull =
+                                                    currentEnrolled >=
+                                                        maxCapacity &&
+                                                    s.id !==
+                                                        selectedStudent?.section_id;
+
+                                                return (
+                                                    <option
+                                                        key={s.id}
+                                                        value={s.id}
+                                                        disabled={isFull} // DISABLE IF FULL
+                                                        style={
+                                                            isFull
+                                                                ? {
+                                                                      color: "#d63031",
+                                                                      fontStyle:
+                                                                          "italic",
+                                                                  }
+                                                                : {}
+                                                        }
+                                                    >
+                                                        {s.name} (
+                                                        {currentEnrolled}/
+                                                        {maxCapacity}){" "}
+                                                        {isFull ? "(FULL)" : ""}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                 )}

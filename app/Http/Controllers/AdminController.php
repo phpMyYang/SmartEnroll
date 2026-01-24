@@ -43,9 +43,17 @@ class AdminController extends Controller
         $totalMale = Student::where('gender', 'Male')->where('status', 'enrolled')->tap($applyFilter)->count();
         $totalFemale = Student::where('gender', 'Female')->where('status', 'enrolled')->tap($applyFilter)->count();
         
-        // NEW: Graduates & Dropouts (Filtered by SY)
-        $totalGraduates = Student::where('status', 'graduate')->tap($applyFilter)->count();
-        $totalDropouts = Student::where('status', 'dropped')->tap($applyFilter)->count();
+        // CHANGED: Replaced Graduates & Dropouts with Modality Stats
+        // Kinukuha lang natin ang mga 'enrolled' na students para sa stats na ito
+        $totalFaceToFace = Student::where('status', 'enrolled')
+            ->where('learning_modality', 'Face-to-Face')
+            ->tap($applyFilter)
+            ->count();
+
+        $totalModular = Student::where('status', 'enrolled')
+            ->where('learning_modality', 'Modular')
+            ->tap($applyFilter)
+            ->count();
 
         // 3. CHARTS DATA
         $strands = Strand::withCount([
@@ -93,8 +101,9 @@ class AdminController extends Controller
                 'total_g12' => $totalOldStudents,
                 'total_male' => $totalMale,
                 'total_female' => $totalFemale,
-                'total_graduates' => $totalGraduates, 
-                'total_dropouts' => $totalDropouts,   
+                // UPDATED KEYS
+                'total_f2f' => $totalFaceToFace,    
+                'total_modular' => $totalModular,    
             ],
             'charts' => [
                 'students_per_strand' => $studentsPerStrand,
