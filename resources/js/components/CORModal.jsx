@@ -157,7 +157,7 @@ export default function CORModal({
         setFormData((prev) => ({ ...prev, subjects: updatedSubjects }));
     };
 
-    // 5. DOWNLOAD PDF (FIXED: TOAST LOADING, NO SUCCESS MODAL)
+    // 5. DOWNLOAD PDF
     const handleDownloadPDF = async () => {
         // LOADING STATE (TOAST)
         Toast.fire({
@@ -174,11 +174,19 @@ export default function CORModal({
 
             // OPEN PDF
             window.open(response.data.url, "_blank");
-
-            // NO SUCCESS ALERT (As requested)
         } catch (error) {
-            // ERROR STATE (TOAST)
-            Toast.fire({ icon: "error", title: "Failed to generate PDF." });
+            // UPDATED: SHOW SPECIFIC BACKEND ERROR (E.g. Section Full)
+            let msg = "Failed to generate PDF.";
+
+            if (
+                error.response &&
+                error.response.data &&
+                error.response.data.message
+            ) {
+                msg = error.response.data.message;
+            }
+
+            Toast.fire({ icon: "error", title: msg });
         }
     };
 
@@ -229,17 +237,50 @@ export default function CORModal({
                                                 <option value="" disabled>
                                                     -- Select Section --
                                                 </option>
+
+                                                {/* UPDATED MAPPING WITH FULL LOGIC */}
                                                 {availableSections.map(
-                                                    (sec) => (
-                                                        <option
-                                                            key={sec.id}
-                                                            value={sec.id}
-                                                        >
-                                                            {sec.name} (
-                                                            {sec.enrolled_count}
-                                                            /{sec.capacity})
-                                                        </option>
-                                                    ),
+                                                    (sec) => {
+                                                        const enrolled =
+                                                            sec.enrolled_count ||
+                                                            0;
+                                                        const capacity =
+                                                            sec.capacity || 40;
+
+                                                        // PUNO NA KUNG: Enrolled >= Capacity
+                                                        // PERO: Kung ito ang CURRENT section ng student, wag i-disable (para maprint niya)
+                                                        const isFull =
+                                                            enrolled >=
+                                                                capacity &&
+                                                            sec.id !==
+                                                                student.section_id;
+
+                                                        return (
+                                                            <option
+                                                                key={sec.id}
+                                                                value={sec.id}
+                                                                disabled={
+                                                                    isFull
+                                                                } // 👈 DISABLE IF FULL
+                                                                style={
+                                                                    isFull
+                                                                        ? {
+                                                                              color: "#d63031",
+                                                                              fontStyle:
+                                                                                  "italic",
+                                                                          }
+                                                                        : {}
+                                                                }
+                                                            >
+                                                                {sec.name} (
+                                                                {enrolled}/
+                                                                {capacity}){" "}
+                                                                {isFull
+                                                                    ? "(FULL)"
+                                                                    : ""}
+                                                            </option>
+                                                        );
+                                                    },
                                                 )}
                                             </select>
                                         </div>

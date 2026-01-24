@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CORController extends Controller
 {
@@ -20,15 +21,18 @@ class CORController extends Controller
     {
         $student = Student::with(['strand', 'section'])->findOrFail($studentId);
 
-        // Get Sections for Dropdown (Same Strand & Grade)
+        // FIX: ADD 'withCount' PARA MAKUHA ANG ENROLLED COUNT
         $sections = Section::where('strand_id', $student->strand_id)
             ->where('grade_level', $student->grade_level)
+            ->withCount(['students as enrolled_count' => function ($query) {
+                $query->where('status', 'enrolled'); // Bilangin lang ang 'Enrolled' status
+            }])
             ->get();
 
         // FIX: CLEAN SEMESTER DATA
-        $semKey = explode(' ', trim($student->semester))[0]; // "1st" or "2nd"
+        $semKey = explode(' ', trim($student->semester))[0]; 
 
-        // Get Subjects (Flexible Search)
+        // Get Subjects...
         $subjects = Subject::where(function($q) use ($student) {
                 $q->where('strand_id', $student->strand_id)
                   ->orWhereNull('strand_id');
@@ -44,47 +48,69 @@ class CORController extends Controller
         ]);
     }
 
-    // 2. GENERATE SIGNED URL (AND SAVE SECTION)
+    // 2. GENERATE SIGNED URL (WITH SAFETY CHECK)
     public function generateUrl(Request $request)
     {
-        // --- START: AUTO-SAVE SECTION LOGIC ---
-        // Kukunin natin ang LRN at Section ID galing sa COR Modal Form
-        $lrn = $request->input('info.lrn');
-        $sectionId = $request->input('info.section_id');
-
-        if ($lrn && $sectionId) {
-            // Hanapin ang student gamit ang LRN
-            $student = Student::where('lrn', $lrn)->first();
+        // WRAP SA TRANSACTION PARA SAFE
+        return DB::transaction(function () use ($request) {
             
-            // Kung nahanap at magkaiba ang section, i-update natin
-            if ($student && $student->section_id != $sectionId) {
-                $student->update(['section_id' => $sectionId]);
+            $lrn = $request->input('info.lrn');
+            $sectionId = $request->input('info.section_id');
+            $student = Student::where('lrn', $lrn)->first();
+
+            // --- START: CRITICAL SAFETY CHECK ---
+            if ($student && $sectionId && $student->section_id != $sectionId) {
                 
-                // (Optional) Pwede ring mag-log dito kung gusto mong ma-track ang pag-assign ng section via COR
+                // 1. LOCK THE TARGET SECTION
+                $section = Section::where('id', $sectionId)->lockForUpdate()->first();
+
+                if ($section) {
+                    // 2. COUNT REAL-TIME ENROLLED
+                    $currentEnrolled = $section->students()->where('status', 'enrolled')->count();
+
+                    // 3. CHECK CAPACITY
+                    if ($currentEnrolled >= $section->capacity) {
+                        // STOP PROCESS & RETURN ERROR
+                        return response()->json([
+                            'message' => "FAILED: Section '{$section->name}' is FULL ({$currentEnrolled}/{$section->capacity}). Cannot update section via COR."
+                        ], 422);
+                    }
+
+                    // 4. UPDATE IF SAFE
+                    $student->update(['section_id' => $sectionId]);
+
+                    // Optional: Log this specific action
+                    ActivityLog::create([
+                        'user_id' => Auth::id(),
+                        'action' => 'update',
+                        'description' => "Updated section to {$section->name} via COR for: {$student->last_name}",
+                        'ip_address' => $request->ip()
+                    ]);
+                }
             }
-        }
-        // --- END: AUTO-SAVE SECTION LOGIC ---
+            // --- END: CRITICAL SAFETY CHECK ---
 
-        $tempId = Str::random(40);
-        Cache::put('cor_data_' . $tempId, $request->all(), now()->addMinutes(5));
+            // PROCEED TO GENERATE URL (Existing Code)
+            $tempId = Str::random(40);
+            Cache::put('cor_data_' . $tempId, $request->all(), now()->addMinutes(5));
 
-        // LOG ACTIVITY: DOWNLOAD COR
-        $studentName = $request->input('info.name') ?? 'Student';
-        
-        ActivityLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'download',
-            'description' => "Downloaded COR for student: {$studentName}",
-            'ip_address' => $request->ip()
-        ]);
+            $studentName = $request->input('info.name') ?? 'Student';
+            
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'download',
+                'description' => "Downloaded COR for student: {$studentName}",
+                'ip_address' => $request->ip()
+            ]);
 
-        $url = URL::temporarySignedRoute(
-            'cor.print', 
-            now()->addMinutes(5), 
-            ['id' => $tempId]
-        );
+            $url = URL::temporarySignedRoute(
+                'cor.print', 
+                now()->addMinutes(5), 
+                ['id' => $tempId]
+            );
 
-        return response()->json(['url' => $url]);
+            return response()->json(['url' => $url]);
+        });
     }
 
     // 3. PRINT PDF

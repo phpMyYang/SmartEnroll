@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 // Mailables
 use App\Mail\ApplicationReceived;
@@ -106,140 +107,147 @@ class StudentController extends Controller
     }
 
     /**
-     * UPDATE STUDENT RECORD
+     * UPDATE STUDENT RECORD (With Anti-Overbooking Lock)
      */
     public function update(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
-        
-        $request->validate([
-            'lrn' => 'required|unique:students,lrn,'.$id,
-            'email' => 'required|email|unique:students,email,'.$id,
-            'date_of_birth' => 'nullable|date',
-            'age' => 'nullable|integer',
-        ]);
+        // GAMIT TAYO NG TRANSACTION PARA SAFE
+        return DB::transaction(function () use ($request, $id) {
+            
+            $student = Student::findOrFail($id);
 
-        $data = $request->all();
-
-        // REMOVE SYSTEM FIELDS & RELATIONSHIPS (Fixes "Unknown Column" Error)
-        unset($data['id']);
-        unset($data['created_at']);
-        unset($data['updated_at']);
-        unset($data['deleted_at']);
-        unset($data['strand']);   // Prevent saving strand object
-        unset($data['section']);  // Prevent saving section object
-
-        // 1. Handle Empty Section ID
-        if (empty($data['section_id'])) {
-            $data['section_id'] = null;
-        }
-
-        // 2. Fill "null" Logic (Excluded Dates)
-        foreach ($data as $key => $value) {
-            if (empty($value) && !in_array($key, [
-                'requirements', 
-                'fees', 
-                'section_id', 
-                'date_of_birth', 
-                'age', 
-                'released_at'
-            ])) {
-                $data[$key] = null;
-            }
-        }
-
-        // 3. Update & Track Changes
-        $student->fill($data);
-        
-        if ($student->isDirty()) {
-            // Get raw changes before saving
-            $rawChanges = $student->getDirty();
-            $student->save();
-
-            // LOG ACTIVITY: UPDATE
-            ActivityLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'update',
-                'description' => "Updated profile of student: {$student->last_name}, {$student->first_name}",
-                'ip_address' => $request->ip()
+            $request->validate([
+                'lrn' => 'required|unique:students,lrn,'.$id,
+                'email' => 'required|email|unique:students,email,'.$id,
+                'date_of_birth' => 'nullable|date',
+                'age' => 'nullable|integer',
             ]);
 
-            // --- FORMAT DATA FOR EMAIL ---
-            $formattedChanges = [];
+            $data = $request->all();
 
-            foreach ($rawChanges as $key => $newValue) {
-                // SKIP Internal Fields
-                if (in_array($key, ['updated_at', 'created_at', 'id', 'previous_status', 'released_by', 'released_at'])) {
-                    continue;
+            // CLEANUP DATA
+            unset($data['id'], $data['created_at'], $data['updated_at'], $data['deleted_at'], $data['strand'], $data['section']);
+
+            if (empty($data['section_id'])) {
+                $data['section_id'] = null;
+            }
+
+            // NULLIFY EMPTY FIELDS
+            foreach ($data as $key => $value) {
+                if (empty($value) && !in_array($key, ['requirements', 'fees', 'section_id', 'date_of_birth', 'age', 'released_at'])) {
+                    $data[$key] = null;
                 }
+            }
 
-                // A. STRAND ID -> STRAND CODE
-                if ($key === 'strand_id') {
-                    $strandName = 'Unknown Strand';
-                    if ($newValue) {
-                        $strand = Strand::find($newValue);
-                        if ($strand) $strandName = $strand->code;
-                    }
-                    $formattedChanges['Strand'] = $strandName;
-                    continue;
-                }
+            // ---------------------------------------------------------
+            // 🔒 CRITICAL: RACE CONDITION & CAPACITY CHECK
+            // ---------------------------------------------------------
+            // Check kung nagbago ang Section ID o naging 'enrolled' ang status
+            $isAssigningSection = !empty($data['section_id']) && $data['section_id'] != $student->section_id;
+            $isEnrolling = isset($data['status']) && $data['status'] === 'enrolled' && $student->status !== 'enrolled';
 
-                // B. SECTION ID -> SECTION NAME
-                if ($key === 'section_id') {
-                    $secName = 'No Section Assigned';
-                    if ($newValue) {
-                        $sec = Section::find($newValue);
-                        if ($sec) $secName = $sec->name;
-                    }
-                    $formattedChanges['Assigned Section'] = $secName;
-                    continue;
-                }
+            if ($isAssigningSection || $isEnrolling) {
+                $targetSectionId = $data['section_id'] ?? $student->section_id;
 
-                // C. REQUIREMENTS -> READABLE LIST
-                if ($key === 'requirements') {
-                    $reqs = $student->requirements;
-                    if (is_string($reqs)) $reqs = json_decode($reqs, true);
+                if ($targetSectionId) {
+                    // 1. LOCK THE SECTION ROW (Iba muna mag-aantay)
+                    $section = Section::where('id', $targetSectionId)->lockForUpdate()->first();
 
-                    $missing = [];
-                    $labels = [
-                        'psa' => 'PSA Birth Certificate',
-                        'form137' => 'Form 137 / SF10',
-                        'good_moral' => 'Good Moral Certificate',
-                        'diploma' => 'Grade 10 Diploma',
-                        'card' => 'Report Card (Form 138)',
-                        'picture' => '2x2 Picture (2pcs)'      
-                    ];
+                    if ($section) {
+                        // 2. BILANGIN ANG CURRENT ENROLLED (Real-time count inside lock)
+                        $currentEnrolled = $section->students()->where('status', 'enrolled')->count();
 
-                    foreach ($labels as $k => $label) {
-                        if (empty($reqs[$k])) {
-                            $missing[] = $label;
+                        // 3. CHECK CAPACITY
+                        // Kung puno na, ABORT TRANSACTION agad.
+                        if ($currentEnrolled >= $section->capacity) {
+                            return response()->json([
+                                'message' => "FAILED: Section '{$section->name}' is FULL ({$currentEnrolled}/{$section->capacity}). Please choose another section."
+                            ], 422);
                         }
                     }
+                }
+            }
+            // ---------------------------------------------------------
+            // END CRITICAL SECTION
+            // ---------------------------------------------------------
 
-                    if (empty($missing)) {
-                        $formattedChanges['Requirements Status'] = 'COMPLETED (Congratulations!)';
-                    } else {
-                        $formattedChanges['Pending Requirements'] = implode(', ', $missing);
+            // PROCEED UPDATE
+            $student->fill($data);
+
+            if ($student->isDirty()) {
+                $rawChanges = $student->getDirty();
+                $student->save(); // Save inside transaction
+
+                // LOG ACTIVITY
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'update',
+                    'description' => "Updated profile of student: {$student->last_name}, {$student->first_name}",
+                    'ip_address' => $request->ip()
+                ]);
+
+                // EMAIL LOGIC (Copied from your existing code)
+                $formattedChanges = [];
+                foreach ($rawChanges as $key => $newValue) {
+                    if (in_array($key, ['updated_at', 'created_at', 'id', 'previous_status', 'released_by', 'released_at'])) continue;
+
+                    if ($key === 'strand_id') {
+                        $strandName = 'Unknown Strand';
+                        if ($newValue) {
+                            $strand = Strand::find($newValue);
+                            if ($strand) $strandName = $strand->code;
+                        }
+                        $formattedChanges['Strand'] = $strandName;
+                        continue;
                     }
-                    continue;
+
+                    if ($key === 'section_id') {
+                        $secName = 'No Section Assigned';
+                        if ($newValue) {
+                            $sec = Section::find($newValue);
+                            if ($sec) $secName = $sec->name;
+                        }
+                        $formattedChanges['Assigned Section'] = $secName;
+                        continue;
+                    }
+
+                    if ($key === 'requirements') {
+                        $reqs = $student->requirements;
+                        if (is_string($reqs)) $reqs = json_decode($reqs, true);
+                        $missing = [];
+                        $labels = [
+                            'psa' => 'PSA Birth Certificate',
+                            'form137' => 'Form 137 / SF10',
+                            'good_moral' => 'Good Moral Certificate',
+                            'diploma' => 'Grade 10 Diploma',
+                            'card' => 'Report Card (Form 138)',
+                            'picture' => '2x2 Picture (2pcs)'      
+                        ];
+                        foreach ($labels as $k => $label) {
+                            if (empty($reqs[$k])) $missing[] = $label;
+                        }
+                        if (empty($missing)) {
+                            $formattedChanges['Requirements Status'] = 'COMPLETED (Congratulations!)';
+                        } else {
+                            $formattedChanges['Pending Requirements'] = implode(', ', $missing);
+                        }
+                        continue;
+                    }
+                    $label = ucwords(str_replace('_', ' ', $key));
+                    $formattedChanges[$label] = $newValue;
                 }
 
-                // D. DEFAULT FORMATTING
-                $label = ucwords(str_replace('_', ' ', $key));
-                $formattedChanges[$label] = $newValue;
-            }
-
-            // 4. Send Email (Only if there are valid changes)
-            if (!empty($formattedChanges)) {
-                try {
-                    Mail::to($student->email)->send(new StudentUpdated($student, $formattedChanges));
-                } catch (\Exception $e) {
-                    Log::error("Update email failed: " . $e->getMessage());
+                if (!empty($formattedChanges)) {
+                    try {
+                        Mail::to($student->email)->send(new StudentUpdated($student, $formattedChanges));
+                    } catch (\Exception $e) {
+                        Log::error("Update email failed: " . $e->getMessage());
+                    }
                 }
             }
-        }
 
-        return response()->json(['message' => 'Student record updated successfully.']);
+            return response()->json(['message' => 'Student record updated successfully.']);
+        });
     }
 
     /**

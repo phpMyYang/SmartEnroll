@@ -9,7 +9,7 @@
         body {
             /* FONT: Courier New for Retro/Technical Feel */
             font-family: 'Courier New', Courier, monospace;
-            font-size: 11pt;
+            font-size: 10pt; /* Slightly smaller font to fit columns */
             color: #000;
             line-height: 1.3;
         }
@@ -31,13 +31,14 @@
         .letter-meta { margin-bottom: 20px; margin-top: 30px; }
         
         /* DATA TABLES */
-        table.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; font-size: 11pt; }
+        table.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; font-size: 10pt; }
         table.data-table th, table.data-table td { border: 1px solid #000; padding: 6px; }
         
         /* ALIGNMENT FIXES */
-        table.data-table th { background-color: #e0e0e0; text-align: center; font-weight: bold; }
-        table.data-table td.label-col { text-align: left; } 
-        table.data-table td.count-col { text-align: center; font-weight: bold; }
+        table.data-table th { background-color: #e0e0e0; text-align: center; font-weight: bold; vertical-align: middle; }
+        table.data-table td.label-col { text-align: left; font-weight: bold; } 
+        table.data-table td.count-col { text-align: center; }
+        table.data-table td.total-col { text-align: center; font-weight: bold; background-color: #f9f9f9; }
 
         /* SUMMARY BOX */
         .summary-box { 
@@ -49,10 +50,8 @@
             background: #f9f9f9;
         }
 
-        /* SIGNATORIES LAYOUT (Fixed Centering) */
+        /* SIGNATORIES LAYOUT */
         .sig-table { width: 100%; margin-top: 50px; border: none; page-break-inside: avoid; }
-        
-        /* ✅ KEY FIX: Both columns are centered text-align */
         .sig-table td { 
             border: none; 
             vertical-align: top; 
@@ -66,13 +65,13 @@
             margin-top: 40px; 
             border-top: 1px solid #000; 
             display: inline-block; 
-            width: 80%; /* Line width relative to column */
+            width: 80%; 
             padding-top: 5px;
             text-align: center;
         }
         .sig-role { font-size: 10pt; font-style: italic; display: block; margin: 0 auto;}
 
-        /* FOOTER (Bottom of the document only) */
+        /* FOOTER */
         .footer {
             margin-top: 50px;
             text-align: center;
@@ -113,7 +112,7 @@
 
     <p style="text-align: justify; text-indent: 40px;">
         This document serves as the official report regarding the <strong>{{ strtolower($title) }}</strong> of HFJLSJI for the School Year <strong>{{ $school_year }}</strong>. 
-        {{ $description ?? 'Please find the detailed statistical breakdown below.' }}
+        {{ $description ?? 'Please find the detailed statistical breakdown below, classified by Learning Modality.' }}
     </p>
 
     {{-- 3. TOTAL SUMMARY --}}
@@ -122,29 +121,41 @@
         <strong style="font-size: 20pt;">{{ $total }}</strong>
     </div>
 
-    {{-- 4. DETAILED TABLES --}}
+    {{-- 4. DETAILED TABLES (UPDATED WITH MODALITY) --}}
     
     {{-- Grade Level --}}
     <div class="font-bold uppercase" style="margin-top: 20px;">I. Breakdown by Grade Level</div>
     <table class="data-table">
         <thead>
             <tr>
-                <th width="70%">Grade Level Category</th>
-                <th width="30%">Student Count</th>
+                <th width="40%">Grade Level Category</th>
+                <th width="20%">Face-to-Face</th>
+                <th width="20%">Modular</th>
+                <th width="20%">TOTAL</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td class="label-col">Freshmen (Grade 11)</td>
-                <td class="count-col">{{ $freshmen }}</td>
+                <td class="count-col">{{ $grade_breakdown['11']['f2f'] ?? 0 }}</td>
+                <td class="count-col">{{ $grade_breakdown['11']['modular'] ?? 0 }}</td>
+                <td class="total-col">{{ $grade_breakdown['11']['total'] ?? 0 }}</td>
             </tr>
             <tr>
                 <td class="label-col">Old Students (Grade 12)</td>
-                <td class="count-col">{{ $old_students }}</td>
+                <td class="count-col">{{ $grade_breakdown['12']['f2f'] ?? 0 }}</td>
+                <td class="count-col">{{ $grade_breakdown['12']['modular'] ?? 0 }}</td>
+                <td class="total-col">{{ $grade_breakdown['12']['total'] ?? 0 }}</td>
             </tr>
             <tr style="background: #f0f0f0;">
-                <td class="text-right font-bold">SUBTOTAL</td>
-                <td class="count-col">{{ $freshmen + $old_students }}</td>
+                <td class="text-right font-bold">GRAND TOTAL</td>
+                <td class="count-col font-bold">
+                    {{ ($grade_breakdown['11']['f2f'] ?? 0) + ($grade_breakdown['12']['f2f'] ?? 0) }}
+                </td>
+                <td class="count-col font-bold">
+                    {{ ($grade_breakdown['11']['modular'] ?? 0) + ($grade_breakdown['12']['modular'] ?? 0) }}
+                </td>
+                <td class="total-col">{{ $total }}</td>
             </tr>
         </tbody>
     </table>
@@ -154,18 +165,22 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th width="70%">Strand Code</th>
-                <th width="30%">Student Count</th>
+                <th width="40%">Strand Code</th>
+                <th width="20%">Face-to-Face</th>
+                <th width="20%">Modular</th>
+                <th width="20%">TOTAL</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($by_strand as $code => $count)
+            @forelse($by_strand as $code => $stats)
             <tr>
                 <td class="label-col">{{ $code }}</td>
-                <td class="count-col">{{ $count }}</td>
+                <td class="count-col">{{ $stats['f2f'] }}</td>
+                <td class="count-col">{{ $stats['modular'] }}</td>
+                <td class="total-col">{{ $stats['total'] }}</td>
             </tr>
             @empty
-            <tr><td colspan="2" class="text-center">No data available.</td></tr>
+            <tr><td colspan="4" class="text-center">No data available.</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -175,25 +190,29 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th width="70%">Section Name</th>
-                <th width="30%">Student Count</th>
+                <th width="40%">Section Name</th>
+                <th width="20%">Face-to-Face</th>
+                <th width="20%">Modular</th>
+                <th width="20%">TOTAL</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($by_section as $name => $count)
+            @forelse($by_section as $name => $stats)
             <tr>
                 <td class="label-col">{{ $name }}</td>
-                <td class="count-col">{{ $count }}</td>
+                <td class="count-col">{{ $stats['f2f'] }}</td>
+                <td class="count-col">{{ $stats['modular'] }}</td>
+                <td class="total-col">{{ $stats['total'] }}</td>
             </tr>
             @empty
-            <tr><td colspan="2" class="text-center">No data available.</td></tr>
+            <tr><td colspan="4" class="text-center">No data available.</td></tr>
             @endforelse
         </tbody>
     </table>
 
     <p style="text-align: center; margin-top: 30px;">*** NOTHING FOLLOWS ***</p>
 
-    {{-- 5. SIGNATORIES (Balanced Layout) --}}
+    {{-- 5. SIGNATORIES --}}
     <table class="sig-table">
         <tr>
             {{-- LEFT COLUMN --}}
@@ -203,7 +222,7 @@
                 <span class="sig-role">System Administrator / Staff</span>
             </td>
             
-            {{-- RIGHT COLUMN (Now identically centered as the left) --}}
+            {{-- RIGHT COLUMN --}}
             <td width="50%">
                 <p>Certified Correct by:</p>
                 <div class="sig-name">{{ strtoupper($registrar) }}</div><br>
