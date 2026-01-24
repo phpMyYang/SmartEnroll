@@ -142,7 +142,14 @@ export default function Students(props) {
                 title: `Status changed to: ${newStatus.toUpperCase()}`,
             });
         } catch (e) {
-            Toast.fire({ icon: "error", title: "Failed to update status." });
+            // FIX: Capture Backend Error Message (e.g. "Section is Full")
+            let errorMsg = "Failed to update status.";
+
+            if (e.response && e.response.data && e.response.data.message) {
+                errorMsg = e.response.data.message;
+            }
+
+            Toast.fire({ icon: "error", title: errorMsg });
         }
     };
 
