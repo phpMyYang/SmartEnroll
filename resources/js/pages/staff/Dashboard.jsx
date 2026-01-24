@@ -336,18 +336,19 @@ export default function StaffDashboard() {
                     bgColor="#e74c3c"
                     textColor="#fff"
                 />
+                {/* UPDATED: Face-to-Face & Modular Stats */}
                 <StatCard
-                    title="TOTAL GRADUATES"
-                    value={cards.total_graduates}
-                    icon="bi-mortarboard-fill"
-                    bgColor="#27ae60"
+                    title="FACE-TO-FACE (F2F)"
+                    value={cards.total_f2f} // Updated key
+                    icon="bi-backpack-fill" // New Icon
+                    bgColor="#27ae60" // Green
                     textColor="#fff"
                 />
                 <StatCard
-                    title="TOTAL DROPOUTS"
-                    value={cards.total_dropouts}
-                    icon="bi-person-x-fill"
-                    bgColor="#c0392b"
+                    title="MODULAR (DISTANCE)"
+                    value={cards.total_modular} // Updated key
+                    icon="bi-journal-richtext" // New Icon
+                    bgColor="#8e44ad" // Purple (Distinct from F2F)
                     textColor="#fff"
                 />
             </div>
