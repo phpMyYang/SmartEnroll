@@ -6,23 +6,21 @@ import Toast from "../utils/toast";
 export default function Maintenance() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-
-    // 1. TIMER STATE (Start at 1 Hour = 3600 seconds)
     const [countdown, setCountdown] = useState(3600);
 
-    // 2. TIMER LOGIC (Looping)
+    // CHECK TOKEN
+    const hasToken = localStorage.getItem("token");
+
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdown((prev) => {
-                if (prev <= 1) return 3600; // Loop back to 1 hour kapag 0
+                if (prev <= 1) return 3600;
                 return prev - 1;
             });
         }, 1000);
-
         return () => clearInterval(timer);
     }, []);
 
-    // Helper: Format Seconds to HH:MM:SS
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600)
             .toString()
@@ -34,50 +32,72 @@ export default function Maintenance() {
         return `${h}:${m}:${s}`;
     };
 
-    // 3. SMART REFRESH (Check kung tapos na ang Maintenance)
+    // UPDATED CHECKING LOGIC
     const handleCheckStatus = async () => {
         setIsLoading(true);
         try {
-            await axios.get("/api/user");
+            // Anti-Cache request
+            await axios.get(`/api/user?t=${Date.now()}`);
 
-            Toast.fire({
-                icon: "success",
-                title: "System is back online! Redirecting...",
-            });
+            Toast.fire({ icon: "success", title: "System is back online!" });
 
             setTimeout(() => {
-                navigate("/staff/dashboard");
+                if (hasToken) {
+                    window.location.href = "/staff/dashboard"; // Staff -> Dashboard
+                } else {
+                    window.location.href = "/"; // Public -> Landing Page
+                }
             }, 1000);
         } catch (error) {
+            // 1. MAINTENANCE PA RIN (503)
             if (error.response && error.response.status === 503) {
                 Toast.fire({
                     icon: "warning",
                     title: "System is still under maintenance.",
                 });
-            } else {
-                window.location.href = "/login";
+            }
+            // 2. UNAUTHORIZED (401)
+            else if (error.response && error.response.status === 401) {
+                // Linisin muna kung ano man ang natira
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                // DITO ANG FIX: Check natin kung Staff ba siya o Public
+                if (hasToken) {
+                    // Kung may token dati (Staff na expired session), go to Login
+                    window.location.href = "/login";
+                } else {
+                    // Kung wala talagang token (Public), go to Landing
+                    window.location.href = "/";
+                }
+            }
+            // 3. IBANG ERROR -> Landing Page na lang para safe
+            else {
+                window.location.href = "/";
             }
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Logout Logic
     const handleLogout = async () => {
         try {
             await axios.post("/api/logout");
-            localStorage.clear();
-            window.location.href = "/login";
         } catch (e) {
-            localStorage.clear();
+        } finally {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             window.location.href = "/login";
         }
     };
 
     return (
         <div
-            className="d-flex flex-column align-items-center justify-content-center vh-100 fade-in"
-            style={{ backgroundColor: "#FFE2AF" }}
+            className="d-flex flex-column align-items-center justify-content-center vh-100 fade-in position-fixed top-0 start-0 w-100"
+            style={{
+                backgroundColor: "#FFE2AF",
+                zIndex: 9999,
+            }}
         >
             <div
                 className="text-center p-5 card-retro bg-white"
@@ -87,7 +107,6 @@ export default function Maintenance() {
                     boxShadow: "8px 8px 0px #000",
                 }}
             >
-                {/* ICON & ANIMATION */}
                 <div className="mb-4 position-relative d-inline-block">
                     <i
                         className="bi bi-cone-striped text-warning"
@@ -99,7 +118,6 @@ export default function Maintenance() {
                     <span className="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-dark rounded-circle blink-animation"></span>
                 </div>
 
-                {/* TITLE */}
                 <h1
                     className="fw-black text-uppercase mb-2 font-monospace"
                     style={{ color: "#2d3436", letterSpacing: "1px" }}
@@ -107,7 +125,6 @@ export default function Maintenance() {
                     SYSTEM MAINTENANCE
                 </h1>
 
-                {/* TIMER DISPLAY */}
                 <div
                     className="my-4 p-3 bg-dark rounded border border-2 border-dark"
                     style={{ boxShadow: "inset 0 0 10px #000" }}
@@ -124,74 +141,50 @@ export default function Maintenance() {
                     >
                         {formatTime(countdown)}
                     </h1>
-                    <small
-                        className="text-white-50 fst-italic"
-                        style={{ fontSize: "0.7rem" }}
-                    >
-                        (Looping until completion)
-                    </small>
                 </div>
 
-                {/* MESSAGE */}
                 <p className="font-monospace text-muted mb-4 fs-6">
                     We are currently upgrading the{" "}
-                    <strong>SmartEnroll System</strong>.
-                    <br />
+                    <strong>SmartEnroll System</strong>.<br />
                     Please wait until the admin restores access.
                 </p>
 
-                {/* ACTIONS */}
                 <div className="d-flex gap-2 justify-content-center">
-                    {/* BUTTON 1: REFRESH (Yellow Retro) */}
                     <button
                         onClick={handleCheckStatus}
                         className="btn btn-retro px-4 py-2 font-monospace fw-bold d-flex align-items-center gap-2"
                         disabled={isLoading}
                     >
                         {isLoading ? (
-                            <>
-                                <span
-                                    className="spinner-border spinner-border-sm border-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                ></span>
-                                CHECKING...
-                            </>
+                            /* UPDATED: TOGA SPINNER */
+                            <i className="bi bi-mortarboard-fill fs-5 toga-spin"></i>
                         ) : (
-                            <>
-                                <i className="bi bi-arrow-clockwise fs-5"></i>
-                                REFRESH STATUS
-                            </>
+                            <i className="bi bi-arrow-clockwise fs-5"></i>
                         )}
+                        REFRESH STATUS
                     </button>
 
-                    {/* BUTTON 2: LOGOUT (Dark Retro with Effects) */}
-                    <button
-                        onClick={handleLogout}
-                        className="btn btn-retro px-4 py-2 font-monospace fw-bold"
-                        style={{
-                            backgroundColor: "#2d3436",
-                            color: "#fff",
-                            borderColor: "#000",
-                        }}
-                        disabled={isLoading}
-                    >
-                        LOGOUT
-                    </button>
+                    {hasToken && (
+                        <button
+                            onClick={handleLogout}
+                            className="btn btn-retro px-4 py-2 font-monospace fw-bold"
+                            style={{
+                                backgroundColor: "#2d3436",
+                                color: "#fff",
+                                borderColor: "#000",
+                            }}
+                            disabled={isLoading}
+                        >
+                            LOGOUT
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* FOOTER */}
             <p className="mt-4 font-monospace small text-dark fw-bold">
                 &copy; {new Date().getFullYear()} SmartEnroll System
             </p>
-
-            <style>
-                {`
-                    @keyframes blink { 50% { opacity: 0; } }
-                    .blink-animation { animation: blink 1s linear infinite; }
-                `}
-            </style>
+            <style>{`@keyframes blink { 50% { opacity: 0; } } .blink-animation { animation: blink 1s linear infinite; }`}</style>
         </div>
     );
 }

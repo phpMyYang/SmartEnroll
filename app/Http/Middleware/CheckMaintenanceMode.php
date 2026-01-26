@@ -18,8 +18,8 @@ class CheckMaintenanceMode
         if ($settings && $settings->maintenance_mode) {
             $user = Auth::guard('sanctum')->user(); // Check API user
 
-            // Kung hindi naka-login o hindi Admin/Super Admin
-            if (!$user || !in_array($user->role, ['admin', 'super_admin'])) {
+            // Kung hindi naka-login o hindi Admin
+            if (!$user || !in_array($user->role, ['admin'])) {
                 return response()->json([
                     'message' => 'System is under maintenance.',
                     'maintenance' => true,
