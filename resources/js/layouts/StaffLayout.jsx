@@ -3,6 +3,8 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Toast from "../utils/toast";
 import TermsModal from "../components/TermsModal";
+// 1. IMPORT MAINTENANCE COMPONENT
+import Maintenance from "../pages/Maintenance";
 
 export default function StaffLayout() {
     const navigate = useNavigate();
@@ -25,17 +27,30 @@ export default function StaffLayout() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showTerms, setShowTerms] = useState(false);
 
+    // 2. ADD MAINTENANCE STATE
+    const [isMaintenance, setIsMaintenance] = useState(false);
+
     // FETCH SETTINGS
     const fetchSettings = async () => {
         try {
             const res = await axios.get("/api/settings");
             if (res.data) {
                 setCurrentSem({
-                    school_year: res.data.school_year || "N/A",
-                    semester: res.data.semester || "",
+                    school_year: res.data.school_year || "TBA",
+                    semester: res.data.semester || "TBA",
                 });
             }
         } catch (error) {
+            // 3. CATCH 503 ERROR (MAINTENANCE MODE)
+            if (error.response && error.response.status === 503) {
+                setIsMaintenance(true);
+            }
+            // Handle Unauthorized (Session Expired)
+            else if (error.response && error.response.status === 401) {
+                localStorage.removeItem("token");
+                navigate("/login");
+            }
+
             console.error("Failed to load settings");
             setCurrentSem({ school_year: "N/A", semester: "Offline" });
         }
@@ -67,6 +82,12 @@ export default function StaffLayout() {
 
     // Helper para sa Active Link style
     const isActive = (path) => location.pathname === path;
+
+    // 4. BLOCK EVERYTHING IF MAINTENANCE IS ACTIVE
+    // Ito ang magtatago ng Sidebar, Navbar, at Footer. Full screen maintenance lang ang lalabas.
+    if (isMaintenance) {
+        return <Maintenance />;
+    }
 
     return (
         // 1. FIXED HEIGHT CONTAINER (No Page Scroll)

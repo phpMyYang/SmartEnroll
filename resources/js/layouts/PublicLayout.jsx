@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, Link } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import TermsModal from "../components/TermsModal";
 import StatusCheckModal from "../components/StatusCheckModal";
+import Maintenance from "../pages/Maintenance"; // IMPORT MAINTENANCE
 
 // FIX: Inilabas ko ang component dito para hindi mawala ang focus
 const SearchInputField = ({ value, onChange }) => (
@@ -27,6 +28,23 @@ export default function PublicLayout() {
     const [searchLrn, setSearchLrn] = useState("");
     const [showStatus, setShowStatus] = useState(false);
     const [statusResult, setStatusResult] = useState(null);
+
+    // NEW STATE FOR MAINTENANCE CHECK
+    const [isMaintenance, setIsMaintenance] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    // CHECK SETTINGS ON MOUNT
+    useEffect(() => {
+        axios
+            .get("/api/public/settings")
+            .then((res) => {
+                if (res.data && res.data.maintenance_mode == 1) {
+                    setIsMaintenance(true);
+                }
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
 
     const handleQuickSearch = async (e) => {
         e.preventDefault();
@@ -67,6 +85,11 @@ export default function PublicLayout() {
     const onSearchChange = (e) => {
         setSearchLrn(e.target.value.replace(/\D/g, "").slice(0, 12));
     };
+
+    // IF MAINTENANCE MODE IS ON, SHOW FULLSCREEN MAINTENANCE PAGE ONLY
+    if (!loading && isMaintenance) {
+        return <Maintenance />;
+    }
 
     return (
         <div

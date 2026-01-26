@@ -6,7 +6,6 @@ import moment from "moment";
 // Components
 import LRNCheckModal from "../components/LRNCheckModal";
 import EnrollmentWizard from "../components/EnrollmentWizard";
-import Maintenance from "./Maintenance";
 
 export default function Landing() {
     const [settings, setSettings] = useState(null);
@@ -25,8 +24,6 @@ export default function Landing() {
             })
             .catch(() => setLoading(false));
     }, []);
-
-    if (!loading && settings?.maintenance_mode == 1) return <Maintenance />;
 
     const isOpen =
         settings?.start_date &&
