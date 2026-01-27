@@ -55,7 +55,7 @@ export default function Subjects() {
 
     // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
-        // ✅ CONFIRMATION: Center Modal (Swal)
+        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SUBJECT?",
             text: "This action cannot be undone.",
@@ -274,7 +274,7 @@ export default function Subjects() {
                                             </td>
                                             <td className="py-3 font-monospace small">
                                                 G{subject.grade_level} -{" "}
-                                                {subject.semester} Sem
+                                                {subject.semester}
                                             </td>
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2">

@@ -271,7 +271,7 @@ export default function StaffSubjects() {
                                             </td>
                                             <td className="py-3 font-monospace small">
                                                 G{subject.grade_level} -{" "}
-                                                {subject.semester} Sem
+                                                {subject.semester}
                                             </td>
 
                                             {/* BUTTONS UPDATED TO MATCH ADMIN EXACTLY */}

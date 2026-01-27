@@ -16,7 +16,7 @@ export default function SubjectDrawer({
         description: "",
         strand_id: "",
         grade_level: "11",
-        semester: "1st",
+        semester: "1st Semester",
     };
 
     const [formData, setFormData] = useState(initialForm);
@@ -240,8 +240,12 @@ export default function SubjectDrawer({
                                         value={formData.semester}
                                         onChange={handleChange}
                                     >
-                                        <option value="1st">1st Sem</option>
-                                        <option value="2nd">2nd Sem</option>
+                                        <option value="1st Semester">
+                                            1st Semester
+                                        </option>
+                                        <option value="2nd Semester">
+                                            2nd Semester
+                                        </option>
                                     </select>
                                 </div>
                             </div>

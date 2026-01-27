@@ -46,7 +46,7 @@ export default function StudentDrawer({
         section_id: "",
         semester: "",
         school_year: "",
-        learning_modality: "Face-to-Face", // ✅ ADDED MODALITY
+        learning_modality: "Face-to-Face", // ADDED MODALITY
         // Family & Work
         employer_name: "",
         employer_contact: "",
