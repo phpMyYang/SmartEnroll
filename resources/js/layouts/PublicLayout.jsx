@@ -4,22 +4,34 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import TermsModal from "../components/TermsModal";
 import StatusCheckModal from "../components/StatusCheckModal";
-import Maintenance from "../pages/Maintenance"; // IMPORT MAINTENANCE
+import Maintenance from "../pages/Maintenance";
 
-// FIX: Inilabas ko ang component dito para hindi mawala ang focus
+// FIX: ADDED LABEL "CHECK STATUS"
 const SearchInputField = ({ value, onChange }) => (
-    <div className="input-group shadow-sm">
-        <span className="input-group-text bg-white border-dark border-2 border-end-0 rounded-start">
-            <i className="bi bi-search"></i>
-        </span>
-        <input
-            type="text"
-            className="form-control border-dark border-2 border-start-0 ps-2 font-monospace rounded-end"
-            placeholder="Search LRN..."
-            value={value}
-            onChange={onChange}
-            style={{ boxShadow: "none" }}
-        />
+    <div className="d-flex flex-column align-items-start w-100">
+        <label
+            className="fw-bold font-monospace small text-white mb-1"
+            style={{
+                textShadow: "1px 1px 0 #000",
+                letterSpacing: "1px",
+                fontSize: "0.7rem",
+            }}
+        >
+            CHECK YOUR STATUS:
+        </label>
+        <div className="input-group shadow-sm w-100">
+            <span className="input-group-text bg-white border-dark border-2 border-end-0 rounded-start">
+                <i className="bi bi-search"></i>
+            </span>
+            <input
+                type="text"
+                className="form-control border-dark border-2 border-start-0 ps-2 font-monospace rounded-end"
+                placeholder="Enter LRN..."
+                value={value}
+                onChange={onChange}
+                style={{ boxShadow: "none" }}
+            />
+        </div>
     </div>
 );
 
@@ -29,11 +41,9 @@ export default function PublicLayout() {
     const [showStatus, setShowStatus] = useState(false);
     const [statusResult, setStatusResult] = useState(null);
 
-    // NEW STATE FOR MAINTENANCE CHECK
     const [isMaintenance, setIsMaintenance] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // CHECK SETTINGS ON MOUNT
     useEffect(() => {
         axios
             .get("/api/public/settings")
@@ -81,12 +91,10 @@ export default function PublicLayout() {
         window.location.reload();
     };
 
-    // Helper function para sa input change
     const onSearchChange = (e) => {
         setSearchLrn(e.target.value.replace(/\D/g, "").slice(0, 12));
     };
 
-    // IF MAINTENANCE MODE IS ON, SHOW FULLSCREEN MAINTENANCE PAGE ONLY
     if (!loading && isMaintenance) {
         return <Maintenance />;
     }
@@ -123,7 +131,6 @@ export default function PublicLayout() {
                 `}
             </style>
 
-            {/* --- NAVBAR --- */}
             <nav
                 className="border-bottom border-2 border-dark sticky-top"
                 style={{
@@ -168,14 +175,14 @@ export default function PublicLayout() {
                                         textShadow: "1px 1px 0 #000",
                                     }}
                                 >
-                                    Official Portal
+                                    Enrollment Portal
                                 </span>
                             </div>
                         </Link>
 
                         {/* RIGHT: DESKTOP SEARCH & LOGIN BUTTON */}
-                        <div className="d-flex align-items-center gap-3 mt-2 mt-md-0">
-                            {/* Desktop Search (Hidden on Mobile) */}
+                        {/* Change: align-items-end para pantay ang bottom ng Input at Button */}
+                        <div className="d-flex align-items-end gap-3 mt-2 mt-md-0">
                             <form
                                 onSubmit={handleQuickSearch}
                                 className="d-none d-md-block"
