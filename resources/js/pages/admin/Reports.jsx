@@ -73,7 +73,7 @@ export default function Reports() {
     };
 
     const handleGenerate = async () => {
-        // VALIDATION: Toast Warning
+        // 1. VALIDATION: Check if Empty
         if (!schoolYear) {
             Toast.fire({
                 icon: "warning",
@@ -82,6 +82,23 @@ export default function Reports() {
             return;
         }
 
+        // 2. NEW VALIDATION: STRICT FORMAT CHECK (YYYY or YYYY-YYYY)
+        // ^       = Start of line
+        // \d{4}   = Exact 4 digits (e.g. 2025)
+        // |       = OR
+        // -       = Hyphen
+        // $       = End of line
+        const syFormatRegex = /^\d{4}-\d{4}$/;
+
+        if (!syFormatRegex.test(schoolYear.trim())) {
+            Toast.fire({
+                icon: "warning",
+                title: "Invalid Format! Use YYYY-YYYY (e.g., 2025-2026).",
+            });
+            return;
+        }
+
+        // 3. VALIDATION: Registrar Name (For PDF Only)
         if (selectedReport.format === "pdf" && !registrar) {
             Toast.fire({
                 icon: "warning",
@@ -98,10 +115,10 @@ export default function Reports() {
 
             // PASS PARAMETERS TO BACKEND
             if (selectedReport.format === "pdf") {
-                url = `/api/reports/summary?type=${selectedReport.type}&school_year=${schoolYear}&registrar=${encodeURIComponent(registrar)}`;
+                url = `/api/reports/summary?type=${selectedReport.type}&school_year=${schoolYear.trim()}&registrar=${encodeURIComponent(registrar)}`;
                 filename = `${selectedReport.title}_${schoolYear}.pdf`;
             } else {
-                url = `/api/reports/masterlist?school_year=${schoolYear}`;
+                url = `/api/reports/masterlist?school_year=${schoolYear.trim()}`;
                 filename = `Masterlist_${schoolYear}.csv`;
             }
 
