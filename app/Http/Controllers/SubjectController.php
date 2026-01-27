@@ -48,7 +48,7 @@ class SubjectController extends Controller
             'description' => 'required|string',
             'strand_id' => 'nullable|exists:strands,id',
             'grade_level' => 'required|in:11,12',
-            'semester' => 'required|in:1st,2nd',
+            'semester' => 'required|in:1st Semester,2nd Semester',
         ]);
 
         $subject->update($validated);
