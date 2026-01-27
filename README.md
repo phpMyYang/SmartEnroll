@@ -175,7 +175,3 @@ This project is open-source and available under the [MIT License](https://www.go
 ---
 
 **Developed with ❤️ by phpMyYang**
-
-```
-
-```
