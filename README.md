@@ -120,8 +120,6 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-````
-
 ### 2. Frontend Setup (React/Vite)
 
 ```bash
@@ -139,8 +137,8 @@ npm run dev
 
 Use these accounts to access the system after seeding:
 
-| Role            | Email            | Password   |
-| --------------- | ---------------- | ---------- |
+| Role            | Email                   | Password      |
+| --------------- | ----------------------- | ------------- |
 | **Super Admin** | `admin@smartenroll.com` | `password123` |
 | **Staff**       | `staff@smartenroll.com` | `password123` |
 
@@ -177,4 +175,3 @@ This project is open-source and available under the [MIT License](https://www.go
 ---
 
 **Developed with ❤️ by phpMyYang**
-````
