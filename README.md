@@ -64,7 +64,8 @@ The system streamlines the enrollment process from student application (Public P
 
 **Backend:**
 
-- ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=flat&logo=laravel&logoColor=white) **Laravel 10** (API, Eloquent ORM)
+- ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=flat&logo=laravel&logoColor=white) **Laravel 12** (API, Eloquent ORM)
+- ![PHP](https://img.shields.io/badge/PHP-777BB4?style=flat&logo=php&logoColor=white) **PHP 8.2**
 - ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white) **MySQL** (Database)
 
 **Frontend:**
@@ -86,7 +87,7 @@ The system streamlines the enrollment process from student application (Public P
 
 ### Prerequisites
 
-- PHP >= 8.1
+- PHP >= 8.2
 - Composer
 - Node.js & NPM
 - MySQL Server
@@ -117,8 +118,9 @@ php artisan migrate --seed
 
 # Start the Server
 php artisan serve
-
 ```
+
+````
 
 ### 2. Frontend Setup (React/Vite)
 
@@ -139,8 +141,8 @@ Use these accounts to access the system after seeding:
 
 | Role            | Email            | Password   |
 | --------------- | ---------------- | ---------- |
-| **Super Admin** | `admin@test.com` | `password` |
-| **Staff**       | `staff@test.com` | `password` |
+| **Super Admin** | `admin@smartenroll.com` | `password123` |
+| **Staff**       | `staff@smartenroll.com` | `password123` |
 
 ---
 
@@ -175,3 +177,4 @@ This project is open-source and available under the [MIT License](https://www.go
 ---
 
 **Developed with ❤️ by phpMyYang**
+````
