@@ -1007,7 +1007,10 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
 
                                 <div className="d-flex justify-content-center mb-4">
                                     <ReCAPTCHA
-                                        sitekey="6Ld9xggsAAAAAKc-VdNTazhg7n5N_12kqd0WDagJ"
+                                        sitekey={
+                                            import.meta.env
+                                                .VITE_RECAPTCHA_SITE_KEY
+                                        }
                                         onChange={(val) => setCaptchaVal(val)}
                                     />
                                 </div>
