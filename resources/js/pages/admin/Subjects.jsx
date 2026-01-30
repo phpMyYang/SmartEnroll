@@ -5,22 +5,27 @@ import Toast from "../../utils/toast";
 import SubjectDrawer from "../../components/SubjectDrawer";
 
 export default function Subjects() {
-    // DATA STATES
+    // --- DATA STATES ---
     const [subjects, setSubjects] = useState([]);
     const [strands, setStrands] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
 
-    // PAGINATION STATES
+    // --- FILTER STATES ---
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterStrand, setFilterStrand] = useState("");
+    const [filterGrade, setFilterGrade] = useState("");
+    const [filterSemester, setFilterSemester] = useState("");
+
+    // --- PAGINATION STATES ---
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    // DRAWER STATES
+    // --- DRAWER STATES ---
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSubject, setSelectedSubject] = useState(null);
 
-    // 1. FETCH DATA (Ito ang tatawagin para mag-auto refresh)
+    // 1. FETCH DATA
     const fetchData = async () => {
         try {
             const [subRes, strandRes] = await Promise.all([
@@ -53,9 +58,7 @@ export default function Subjects() {
         setShowDrawer(true);
     };
 
-    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
-        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SUBJECT?",
             text: "This action cannot be undone.",
@@ -75,11 +78,9 @@ export default function Subjects() {
             if (result.isConfirmed) {
                 try {
                     await axios.delete(`/api/subjects/${id}`);
-                    fetchData(); // Auto Refresh after delete
-                    // SUCCESS TOAST
+                    fetchData();
                     Toast.fire({ icon: "success", title: "Subject removed." });
                 } catch (error) {
-                    // ERROR TOAST
                     Toast.fire({
                         icon: "error",
                         title: "Failed to delete subject.",
@@ -89,13 +90,29 @@ export default function Subjects() {
         });
     };
 
-    // 3. FILTER & PAGINATION LOGIC
-    const filteredSubjects = subjects.filter(
-        (s) =>
+    // --- FILTERING LOGIC ---
+    const filteredSubjects = subjects.filter((s) => {
+        const matchesSearch =
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.description.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+            s.description.toLowerCase().includes(searchTerm.toLowerCase());
 
+        const matchesStrand =
+            filterStrand === "" ||
+            (filterStrand === "Core" && !s.strand) ||
+            (s.strand && s.strand.id.toString() === filterStrand);
+
+        const matchesGrade =
+            filterGrade === "" || s.grade_level.toString() === filterGrade;
+
+        const matchesSemester =
+            filterSemester === "" || s.semester === filterSemester;
+
+        return (
+            matchesSearch && matchesStrand && matchesGrade && matchesSemester
+        );
+    });
+
+    // --- PAGINATION CALCULATION ---
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredSubjects.slice(
@@ -132,40 +149,101 @@ export default function Subjects() {
                 </button>
             </div>
 
-            {/* MAIN CARD (RETRO TABLE) */}
+            {/* MAIN CARD */}
             <div className="card-retro">
-                {/* TOOLBAR */}
+                {/* TOOLBAR (SINGLE ROW FIX) */}
                 <div
-                    className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
-                    style={{ borderBottom: "2px solid black" }}
+                    className="card-header bg-white py-3 px-4 d-flex align-items-center justify-content-between gap-3"
+                    style={{
+                        borderBottom: "2px solid black",
+                        overflowX: "auto",
+                    }} // Added overflow just in case
                 >
+                    {/* LEFT SIDE: FILTERS (One Line) */}
                     <div className="d-flex align-items-center gap-2">
-                        <span className="small fw-bold font-monospace">
-                            SHOW:
-                        </span>
+                        {/* Show Entries */}
+                        <div className="d-flex align-items-center me-2 text-nowrap">
+                            <span className="small fw-bold font-monospace me-2">
+                                SHOW:
+                            </span>
+                            <select
+                                className="form-select form-select-sm border-dark border-2 fw-bold font-monospace"
+                                style={{ width: "80px", cursor: "pointer" }}
+                                value={itemsPerPage}
+                                onChange={(e) => {
+                                    setItemsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+
+                        {/* Strand Filter */}
                         <select
-                            className="form-select form-select-sm border-dark border-2 fw-bold font-monospace"
-                            style={{ width: "80px" }}
-                            value={itemsPerPage}
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "160px", cursor: "pointer" }}
+                            value={filterStrand}
                             onChange={(e) => {
-                                setItemsPerPage(Number(e.target.value));
+                                setFilterStrand(e.target.value);
                                 setCurrentPage(1);
                             }}
                         >
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="">ALL STRANDS</option>
+                            <option value="Core">CORE (No Strand)</option>
+                            {strands.map((st) => (
+                                <option key={st.id} value={st.id}>
+                                    {st.code}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Grade Filter */}
+                        <select
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "130px", cursor: "pointer" }}
+                            value={filterGrade}
+                            onChange={(e) => {
+                                setFilterGrade(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <option value="">ALL GRADES</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+
+                        {/* Semester Filter */}
+                        <select
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "150px", cursor: "pointer" }}
+                            value={filterSemester}
+                            onChange={(e) => {
+                                setFilterSemester(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <option value="">ALL SEMESTERS</option>
+                            <option value="1st Semester">1st Semester</option>
+                            <option value="2nd Semester">2nd Semester</option>
                         </select>
                     </div>
-                    <div className="input-group" style={{ maxWidth: "300px" }}>
+
+                    {/* RIGHT SIDE: SEARCH BAR */}
+                    <div
+                        className="input-group"
+                        style={{ maxWidth: "250px", minWidth: "200px" }}
+                    >
                         <span className="input-group-text bg-white border-dark border-2 border-end-0">
                             <i className="bi bi-search"></i>
                         </span>
                         <input
                             type="text"
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
-                            placeholder="Search subject..."
+                            placeholder="Search code/desc..."
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -175,10 +253,10 @@ export default function Subjects() {
                     </div>
                 </div>
 
-                {/* DATATABLE */}
+                {/* TABLE CONTENT */}
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover align-middle mb-0">
+                        <table className="table table-hover align-middle mb-0 text-nowrap">
                             <thead
                                 style={{
                                     backgroundColor: "var(--color-secondary)",
@@ -196,7 +274,7 @@ export default function Subjects() {
                                         className="py-3 font-monospace text-dark"
                                         width="15%"
                                     >
-                                        Subject Code
+                                        Code
                                     </th>
                                     <th
                                         className="py-3 font-monospace text-dark"
@@ -238,9 +316,10 @@ export default function Subjects() {
                                     <tr>
                                         <td
                                             colSpan="6"
-                                            className="text-center py-5 fw-bold font-monospace"
+                                            className="text-center py-5 fw-bold font-monospace text-muted"
                                         >
-                                            NO SUBJECTS FOUND.
+                                            <i className="bi bi-exclamation-circle me-2"></i>
+                                            NO SUBJECTS FOUND MATCHING FILTERS.
                                         </td>
                                     </tr>
                                 ) : (
@@ -258,9 +337,14 @@ export default function Subjects() {
                                             <td className="py-3 fw-bold font-monospace">
                                                 {subject.code}
                                             </td>
-                                            <td className="py-3">
+
+                                            <td
+                                                className="py-3"
+                                                style={{ whiteSpace: "normal" }}
+                                            >
                                                 {subject.description}
                                             </td>
+
                                             <td className="py-3">
                                                 {subject.strand ? (
                                                     <span className="badge rounded-0 border border-dark text-dark bg-white">
@@ -273,12 +357,20 @@ export default function Subjects() {
                                                 )}
                                             </td>
                                             <td className="py-3 font-monospace small">
-                                                G{subject.grade_level} -{" "}
-                                                {subject.semester}
+                                                <span className="fw-bold">
+                                                    G{subject.grade_level}
+                                                </span>
+                                                <span className="mx-1 text-muted">
+                                                    -
+                                                </span>
+                                                {subject.semester ===
+                                                "1st Semester"
+                                                    ? "1st Semester"
+                                                    : "2nd Semester"}
                                             </td>
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2">
-                                                    {/* EDIT BUTTON */}
+                                                    {/* RESTORED BUTTON EFFECTS HERE */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -304,11 +396,11 @@ export default function Subjects() {
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
                                                         }
+                                                        title="Edit"
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
 
-                                                    {/* DELETE BUTTON */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -334,6 +426,7 @@ export default function Subjects() {
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
                                                         }
+                                                        title="Delete"
                                                     >
                                                         <i className="bi bi-trash-fill text-white"></i>
                                                     </button>
@@ -347,9 +440,9 @@ export default function Subjects() {
                     </div>
                 </div>
 
-                {/* PAGINATION FOOTER */}
+                {/* PAGINATION */}
                 <div
-                    className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
+                    className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3"
                     style={{ borderTop: "2px solid black" }}
                 >
                     <small className="text-muted font-monospace">
@@ -367,9 +460,7 @@ export default function Subjects() {
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${
-                                    currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -390,12 +481,7 @@ export default function Subjects() {
                             </li>
 
                             <li
-                                className={`page-item ${
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                        ? "disabled"
-                                        : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
@@ -413,17 +499,15 @@ export default function Subjects() {
                 </div>
             </div>
 
-            {/* CALLING THE SMART DRAWER */}
-            {/* Tinanggal na ang onSubmit={handleSubmit} */}
-            {/* Pinalitan ng onSuccess={fetchData} para mag-auto refresh */}
+            {/* DRAWER */}
             <SubjectDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSubject={selectedSubject}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // Auto-refresh pagka-save
-                apiPrefix="/api" // Default is Admin
+                onSuccess={fetchData}
+                apiPrefix="/api"
             />
         </div>
     );
