@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Toast from "../../utils/toast"; // Using Toast
+import Toast from "../../utils/toast";
 import SubjectDrawer from "../../components/SubjectDrawer";
 
 export default function StaffSubjects() {
-    // STATES
+    // --- DATA STATES ---
     const [subjects, setSubjects] = useState([]);
     const [strands, setStrands] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
 
-    // PAGINATION
+    // --- FILTER STATES (NEW) ---
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterStrand, setFilterStrand] = useState(""); // "" = All
+    const [filterGrade, setFilterGrade] = useState(""); // "" = All
+    const [filterSemester, setFilterSemester] = useState(""); // "" = All
+
+    // --- PAGINATION STATES ---
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    // DRAWER STATES
+    // --- DRAWER STATES ---
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerType, setDrawerType] = useState("create");
     const [selectedSubject, setSelectedSubject] = useState(null);
@@ -53,9 +58,7 @@ export default function StaffSubjects() {
         setShowDrawer(true);
     };
 
-    // DELETE HANDLER (Swal Confirm + Toast Result)
     const handleDelete = (id) => {
-        // CONFIRMATION: Center Modal (Swal)
         Swal.fire({
             title: "DELETE SUBJECT?",
             text: "This action cannot be undone.",
@@ -74,14 +77,11 @@ export default function StaffSubjects() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // UPDATED: Staff Endpoint
+                    // Staff Endpoint for Delete
                     await axios.delete(`/api/staff/subjects/${id}`);
-                    fetchData(); // Auto Refresh
-
-                    // SUCCESS TOAST
+                    fetchData();
                     Toast.fire({ icon: "success", title: "Subject removed." });
                 } catch (error) {
-                    // ERROR TOAST
                     Toast.fire({
                         icon: "error",
                         title: "Failed to delete subject.",
@@ -91,13 +91,33 @@ export default function StaffSubjects() {
         });
     };
 
-    // 3. FILTER & PAGINATION
-    const filteredSubjects = subjects.filter(
-        (s) =>
+    // --- 3. FILTERING LOGIC (UPDATED) ---
+    const filteredSubjects = subjects.filter((s) => {
+        // A. Search Bar
+        const matchesSearch =
             s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.description.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+            s.description.toLowerCase().includes(searchTerm.toLowerCase());
 
+        // B. Strand Filter
+        const matchesStrand =
+            filterStrand === "" ||
+            (filterStrand === "Core" && !s.strand) ||
+            (s.strand && s.strand.id.toString() === filterStrand);
+
+        // C. Grade Filter
+        const matchesGrade =
+            filterGrade === "" || s.grade_level.toString() === filterGrade;
+
+        // D. Semester Filter
+        const matchesSemester =
+            filterSemester === "" || s.semester === filterSemester;
+
+        return (
+            matchesSearch && matchesStrand && matchesGrade && matchesSemester
+        );
+    });
+
+    // --- PAGINATION LOGIC ---
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredSubjects.slice(
@@ -105,7 +125,8 @@ export default function StaffSubjects() {
         indexOfLastItem,
     );
     const totalPages = Math.ceil(filteredSubjects.length / itemsPerPage);
-    const paginate = (n) => setCurrentPage(n);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div className="container-fluid fade-in mb-5">
@@ -122,7 +143,7 @@ export default function StaffSubjects() {
                         SUBJECT MANAGEMENT
                     </h2>
                     <p className="text-muted small mb-0 font-monospace">
-                        Curriculum & Subjects List
+                        Curriculum & Subjects List (Staff View)
                     </p>
                 </div>
                 <button
@@ -133,38 +154,101 @@ export default function StaffSubjects() {
                 </button>
             </div>
 
-            {/* TABLE CARD */}
+            {/* MAIN CARD */}
             <div className="card-retro">
+                {/* TOOLBAR (SINGLE ROW LAYOUT) */}
                 <div
-                    className="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2"
-                    style={{ borderBottom: "2px solid black" }}
+                    className="card-header bg-white py-3 px-4 d-flex align-items-center justify-content-between gap-3"
+                    style={{
+                        borderBottom: "2px solid black",
+                        overflowX: "auto",
+                    }}
                 >
+                    {/* LEFT SIDE: SHOW + FILTERS (One Line) */}
                     <div className="d-flex align-items-center gap-2">
-                        <span className="small fw-bold font-monospace">
-                            SHOW:
-                        </span>
+                        {/* Show Entries */}
+                        <div className="d-flex align-items-center me-2 text-nowrap">
+                            <span className="small fw-bold font-monospace me-2">
+                                SHOW:
+                            </span>
+                            <select
+                                className="form-select form-select-sm border-dark border-2 fw-bold font-monospace"
+                                style={{ width: "80px", cursor: "pointer" }}
+                                value={itemsPerPage}
+                                onChange={(e) => {
+                                    setItemsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+
+                        {/* Strand Filter */}
                         <select
-                            className="form-select form-select-sm border-dark border-2 fw-bold font-monospace"
-                            style={{ width: "80px" }}
-                            value={itemsPerPage}
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "160px", cursor: "pointer" }}
+                            value={filterStrand}
                             onChange={(e) => {
-                                setItemsPerPage(Number(e.target.value));
+                                setFilterStrand(e.target.value);
                                 setCurrentPage(1);
                             }}
                         >
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
+                            <option value="">ALL STRANDS</option>
+                            <option value="Core">CORE (No Strand)</option>
+                            {strands.map((st) => (
+                                <option key={st.id} value={st.id}>
+                                    {st.code}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Grade Filter */}
+                        <select
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "130px", cursor: "pointer" }}
+                            value={filterGrade}
+                            onChange={(e) => {
+                                setFilterGrade(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <option value="">ALL GRADES</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+
+                        {/* Semester Filter */}
+                        <select
+                            className="form-select form-select-sm border-dark border-2 font-monospace"
+                            style={{ maxWidth: "150px", cursor: "pointer" }}
+                            value={filterSemester}
+                            onChange={(e) => {
+                                setFilterSemester(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <option value="">ALL SEMESTERS</option>
+                            <option value="1st Semester">1st Semester</option>
+                            <option value="2nd Semester">2nd Semester</option>
                         </select>
                     </div>
-                    <div className="input-group" style={{ maxWidth: "300px" }}>
+
+                    {/* RIGHT SIDE: SEARCH BAR */}
+                    <div
+                        className="input-group"
+                        style={{ maxWidth: "250px", minWidth: "200px" }}
+                    >
                         <span className="input-group-text bg-white border-dark border-2 border-end-0">
                             <i className="bi bi-search"></i>
                         </span>
                         <input
                             type="text"
                             className="form-control border-dark border-2 border-start-0 ps-2 font-monospace"
-                            placeholder="Search subject..."
+                            placeholder="Search code/desc..."
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -174,9 +258,10 @@ export default function StaffSubjects() {
                     </div>
                 </div>
 
+                {/* TABLE CONTENT */}
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover align-middle mb-0">
+                        <table className="table table-hover align-middle mb-0 text-nowrap">
                             <thead
                                 style={{
                                     backgroundColor: "var(--color-secondary)",
@@ -236,9 +321,10 @@ export default function StaffSubjects() {
                                     <tr>
                                         <td
                                             colSpan="6"
-                                            className="text-center py-5 fw-bold font-monospace"
+                                            className="text-center py-5 fw-bold font-monospace text-muted"
                                         >
-                                            NO SUBJECTS FOUND.
+                                            <i className="bi bi-exclamation-circle me-2"></i>
+                                            NO SUBJECTS FOUND MATCHING FILTERS.
                                         </td>
                                     </tr>
                                 ) : (
@@ -252,12 +338,18 @@ export default function StaffSubjects() {
                                             <td className="ps-4 py-3 fw-bold font-monospace">
                                                 {indexOfFirstItem + index + 1}
                                             </td>
+
                                             <td className="py-3 fw-bold font-monospace">
                                                 {subject.code}
                                             </td>
-                                            <td className="py-3">
+
+                                            <td
+                                                className="py-3"
+                                                style={{ whiteSpace: "normal" }}
+                                            >
                                                 {subject.description}
                                             </td>
+
                                             <td className="py-3">
                                                 {subject.strand ? (
                                                     <span className="badge rounded-0 border border-dark text-dark bg-white">
@@ -270,14 +362,19 @@ export default function StaffSubjects() {
                                                 )}
                                             </td>
                                             <td className="py-3 font-monospace small">
-                                                G{subject.grade_level} -{" "}
-                                                {subject.semester}
+                                                <span className="fw-bold">
+                                                    G{subject.grade_level}
+                                                </span>
+                                                <span className="mx-1 text-muted">
+                                                    -
+                                                </span>
+                                                {subject.semester ===
+                                                "1st Semester"
+                                                    ? "1st Semester"
+                                                    : "2nd Semester"}
                                             </td>
-
-                                            {/* BUTTONS UPDATED TO MATCH ADMIN EXACTLY */}
                                             <td className="text-end pe-4 py-3">
                                                 <div className="d-flex justify-content-end gap-2">
-                                                    {/* EDIT BUTTON */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -303,11 +400,11 @@ export default function StaffSubjects() {
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
                                                         }
+                                                        title="Edit"
                                                     >
                                                         <i className="bi bi-pencil-fill text-dark"></i>
                                                     </button>
 
-                                                    {/* DELETE BUTTON */}
                                                     <button
                                                         className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
                                                         style={{
@@ -333,6 +430,7 @@ export default function StaffSubjects() {
                                                             (e.currentTarget.style.transform =
                                                                 "translate(0, 0)")
                                                         }
+                                                        title="Delete"
                                                     >
                                                         <i className="bi bi-trash-fill text-white"></i>
                                                     </button>
@@ -346,8 +444,9 @@ export default function StaffSubjects() {
                     </div>
                 </div>
 
+                {/* PAGINATION */}
                 <div
-                    className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center"
+                    className="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3"
                     style={{ borderTop: "2px solid black" }}
                 >
                     <small className="text-muted font-monospace">
@@ -361,12 +460,11 @@ export default function StaffSubjects() {
                         </strong>{" "}
                         of <strong>{filteredSubjects.length}</strong> entries
                     </small>
+
                     <nav>
                         <ul className="pagination pagination-sm mb-0">
                             <li
-                                className={`page-item ${
-                                    currentPage === 1 ? "disabled" : ""
-                                }`}
+                                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 me-1"
@@ -376,6 +474,7 @@ export default function StaffSubjects() {
                                     &laquo; PREV
                                 </button>
                             </li>
+
                             <li className="page-item disabled">
                                 <span
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 mx-1"
@@ -384,13 +483,9 @@ export default function StaffSubjects() {
                                     PAGE {currentPage}
                                 </span>
                             </li>
+
                             <li
-                                className={`page-item ${
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                        ? "disabled"
-                                        : ""
-                                }`}
+                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
@@ -408,15 +503,15 @@ export default function StaffSubjects() {
                 </div>
             </div>
 
-            {/* PASSING STAFF PREFIX */}
+            {/* DRAWER (With Staff Prefix) */}
             <SubjectDrawer
                 show={showDrawer}
                 type={drawerType}
                 selectedSubject={selectedSubject}
                 strands={strands}
                 onClose={() => setShowDrawer(false)}
-                onSuccess={fetchData} // Auto-refresh via Smart Drawer
-                apiPrefix="/api/staff" // IMPORTANT
+                onSuccess={fetchData}
+                apiPrefix="/api/staff" // IMPORTANT: Staff Prefix
             />
         </div>
     );

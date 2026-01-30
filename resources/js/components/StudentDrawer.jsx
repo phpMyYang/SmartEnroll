@@ -41,6 +41,7 @@ export default function StudentDrawer({
         contact_number: "",
         // Academic
         current_school_attended: "",
+        general_average: "",
         strand_id: "",
         grade_level: "11",
         section_id: "",
@@ -117,6 +118,7 @@ export default function StudentDrawer({
                 date_of_birth: selectedStudent.date_of_birth
                     ? selectedStudent.date_of_birth.split("T")[0]
                     : "",
+                general_average: selectedStudent.general_average || "",
                 section_id: selectedStudent.section_id || "",
                 // Ensure modality exists, default to F2F
                 learning_modality:
@@ -601,25 +603,42 @@ export default function StudentDrawer({
                                         <option value="12">Grade 12</option>
                                     </select>
                                 </div>
-                                {/* ADDED LEARNING MODALITY DROPDOWN */}
-                                <div className="col-12">
-                                    <label className={labelStyle}>
-                                        LEARNING MODALITY *
-                                    </label>
-                                    <select
-                                        name="learning_modality"
-                                        className={`${selectStyle} bg-info bg-opacity-10 fw-bold`}
-                                        value={form.learning_modality}
-                                        onChange={handleChange}
-                                        disabled={isReadOnly}
-                                    >
-                                        <option value="Face-to-Face">
-                                            Face-to-Face (Regular)
-                                        </option>
-                                        <option value="Modular">
-                                            Modular (Distance Learning)
-                                        </option>
-                                    </select>
+
+                                <div className="row g-2">
+                                    <div className="col-6">
+                                        <label className={labelStyle}>
+                                            GEN. AVERAGE (GRADE 10)
+                                        </label>
+                                        <input
+                                            type="number" // Number type para bawal letters
+                                            step="0.01" // Pwede decimal (e.g., 85.55)
+                                            name="general_average"
+                                            className={inputStyle}
+                                            value={form.general_average}
+                                            onChange={handleChange}
+                                            disabled={isReadOnly}
+                                            placeholder="e.g. 85.00"
+                                        />
+                                    </div>
+                                    <div className="col-6">
+                                        <label className={labelStyle}>
+                                            LEARNING MODALITY *
+                                        </label>
+                                        <select
+                                            name="learning_modality"
+                                            className={`${selectStyle} bg-info bg-opacity-10 fw-bold`}
+                                            value={form.learning_modality}
+                                            onChange={handleChange}
+                                            disabled={isReadOnly}
+                                        >
+                                            <option value="Face-to-Face">
+                                                Face-to-Face (Regular)
+                                            </option>
+                                            <option value="Modular">
+                                                Modular (Distance Learning)
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {type !== "create" && (
