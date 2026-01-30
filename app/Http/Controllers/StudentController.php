@@ -47,6 +47,7 @@ class StudentController extends Controller
             'strand_id' => 'required',
             'date_of_birth' => 'required|date',
             'age' => 'required|integer',
+            'general_average' => 'nullable|numeric|between:75,100',
         ]);
 
         $data = $request->all();
@@ -121,6 +122,7 @@ class StudentController extends Controller
                 'email' => 'required|email|unique:students,email,'.$id,
                 'date_of_birth' => 'nullable|date',
                 'age' => 'nullable|integer',
+                'general_average' => 'nullable|numeric|between:75,100',
             ]);
 
             $data = $request->all();
@@ -140,7 +142,7 @@ class StudentController extends Controller
             }
 
             // ---------------------------------------------------------
-            // 🔒 CRITICAL: RACE CONDITION & CAPACITY CHECK
+            // CRITICAL: RACE CONDITION & CAPACITY CHECK
             // ---------------------------------------------------------
             // Check kung nagbago ang Section ID o naging 'enrolled' ang status
             $isAssigningSection = !empty($data['section_id']) && $data['section_id'] != $student->section_id;

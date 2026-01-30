@@ -38,6 +38,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
         // Academic
         lrn: initialData.lrn || studentData.lrn || "",
         current_school_attended: "",
+        general_average: "",
         strand_id: "",
         grade_level: "",
         section_id: null,
@@ -137,6 +138,9 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
             if (!form.lrn) missingFields.push("LRN");
             if (!form.current_school_attended)
                 missingFields.push("Last School Attended");
+            if (!isOldStudent && !form.general_average) {
+                missingFields.push("Grade 10 General Average");
+            }
             if (!form.strand_id) missingFields.push("Strand");
             if (!form.learning_modality)
                 missingFields.push("Learning Modality"); // ✅ ADDED CHECK
@@ -623,6 +627,36 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                                         placeholder="Name of previous school"
                                     />
                                 </div>
+
+                                {!isOldStudent && (
+                                    <div className="col-md-12">
+                                        <div className="p-3 bg-warning bg-opacity-10 border border-dark border-dashed">
+                                            <Label
+                                                text="GENERAL AVERAGE (GRADE 10)"
+                                                required
+                                            />
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="form-control border-dark fw-bold"
+                                                placeholder="e.g. 85.00"
+                                                value={form.general_average}
+                                                onChange={(e) =>
+                                                    setForm({
+                                                        ...form,
+                                                        general_average:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                required
+                                            />
+                                            <small className="text-muted fst-italic">
+                                                Please enter the General Average
+                                                from your Grade 10 Report Card.
+                                            </small>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="col-md-6">
                                     <Label text="SCHOOL YEAR" required />
