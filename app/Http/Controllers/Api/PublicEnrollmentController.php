@@ -92,7 +92,7 @@ class PublicEnrollmentController extends Controller
             // --- ACADEMIC ---
             'lrn'                       => 'required|digits:12|unique:students,lrn',
             'current_school_attended'   => 'required|string',
-            'general_average'           => 'required|numeric|between:75,100',
+            'general_average'           => 'nullable|numeric|between:75,100',
             'strand_id'                 => 'required|string', // UUID String
             'learning_modality'         => 'required|string',
             

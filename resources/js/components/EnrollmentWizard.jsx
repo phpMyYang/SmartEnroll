@@ -138,12 +138,9 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
             if (!form.lrn) missingFields.push("LRN");
             if (!form.current_school_attended)
                 missingFields.push("Last School Attended");
-            if (!isOldStudent && !form.general_average) {
-                missingFields.push("Grade 10 General Average");
-            }
             if (!form.strand_id) missingFields.push("Strand");
             if (!form.learning_modality)
-                missingFields.push("Learning Modality"); // ✅ ADDED CHECK
+                missingFields.push("Learning Modality"); // ADDED CHECK
         } else if (step === 3) {
             if (!form.guardian_name) missingFields.push("Guardian's Name");
             if (!form.guardian_occupation)
@@ -631,10 +628,7 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                                 {!isOldStudent && (
                                     <div className="col-md-12">
                                         <div className="p-3 bg-warning bg-opacity-10 border border-dark border-dashed">
-                                            <Label
-                                                text="GENERAL AVERAGE (GRADE 10)"
-                                                required
-                                            />
+                                            <Label text="GENERAL AVERAGE (GRADE 10)" />
                                             <input
                                                 type="number"
                                                 step="0.01"
@@ -648,11 +642,11 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                                                             e.target.value,
                                                     })
                                                 }
-                                                required
                                             />
                                             <small className="text-muted fst-italic">
                                                 Please enter the General Average
-                                                from your Grade 10 Report Card.
+                                                from your Grade 10 Report Card
+                                                (If available).
                                             </small>
                                         </div>
                                     </div>
