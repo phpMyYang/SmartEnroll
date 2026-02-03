@@ -116,7 +116,7 @@ export default function StudentDrawer({
             setForm({
                 ...selectedStudent,
                 date_of_birth: selectedStudent.date_of_birth
-                    ? selectedStudent.date_of_birth.split("T")[0]
+                    ? moment(selectedStudent.date_of_birth).format("YYYY-MM-DD")
                     : "",
                 general_average: selectedStudent.general_average || "",
                 section_id: selectedStudent.section_id || "",
