@@ -142,13 +142,10 @@ export default function Students(props) {
                 title: `Status changed to: ${newStatus.toUpperCase()}`,
             });
         } catch (e) {
-            // FIX: Capture Backend Error Message (e.g. "Section is Full")
             let errorMsg = "Failed to update status.";
-
             if (e.response && e.response.data && e.response.data.message) {
                 errorMsg = e.response.data.message;
             }
-
             Toast.fire({ icon: "error", title: errorMsg });
         }
     };
@@ -331,184 +328,253 @@ export default function Students(props) {
                                         </td>
                                     </tr>
                                 ) : (
-                                    currentItems.map((s, index) => (
-                                        <tr
-                                            key={s.id}
-                                            style={{
-                                                borderBottom: "1px solid #000",
-                                            }}
-                                        >
-                                            <td className="ps-4 py-3 fw-bold font-monospace">
-                                                {indexOfFirstItem + index + 1}
-                                            </td>
-                                            <td className="py-3">
-                                                <div className="d-flex align-items-center">
-                                                    <img
-                                                        src={`https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name}&background=random&color=fff&size=40`}
-                                                        className="rounded-circle me-3 border border-2 border-dark"
-                                                        alt="Avatar"
-                                                    />
-                                                    <div>
-                                                        <div className="fw-bold text-dark text-uppercase">
-                                                            {s.last_name},{" "}
-                                                            {s.first_name}
-                                                        </div>
-                                                        <div className="small text-muted font-monospace">
-                                                            {s.email}
+                                    currentItems.map((s, index) => {
+                                        // --- CHECK PRIORITY REQUIREMENTS ---
+                                        let reqs = s.requirements;
+
+                                        // Parse JSON if needed
+                                        if (typeof reqs === "string") {
+                                            try {
+                                                reqs = JSON.parse(reqs);
+                                            } catch (e) {
+                                                reqs = {};
+                                            }
+                                        }
+                                        // Handle null/undefined
+                                        if (!reqs) reqs = {};
+
+                                        // Collect missing priority reqs
+                                        const missingReqs = [];
+                                        if (!reqs.psa) missingReqs.push("PSA");
+                                        if (!reqs.card)
+                                            missingReqs.push("Card");
+                                        if (!reqs.picture)
+                                            missingReqs.push("2x2");
+                                        if (!reqs.form137)
+                                            missingReqs.push("137");
+                                        if (!reqs.good_moral)
+                                            missingReqs.push("Moral");
+                                        if (!reqs.diploma)
+                                            missingReqs.push("Diploma");
+
+                                        return (
+                                            <tr
+                                                key={s.id}
+                                                style={{
+                                                    borderBottom:
+                                                        "1px solid #000",
+                                                }}
+                                            >
+                                                <td className="ps-4 py-3 fw-bold font-monospace">
+                                                    {indexOfFirstItem +
+                                                        index +
+                                                        1}
+                                                </td>
+                                                <td className="py-3">
+                                                    <div className="d-flex align-items-center">
+                                                        <img
+                                                            src={`https://ui-avatars.com/api/?name=${s.first_name}+${s.last_name}&background=random&color=fff&size=40`}
+                                                            className="rounded-circle me-3 border border-2 border-dark"
+                                                            alt="Avatar"
+                                                        />
+                                                        <div>
+                                                            <div className="fw-bold text-dark text-uppercase">
+                                                                {s.last_name},{" "}
+                                                                {s.first_name}
+                                                            </div>
+                                                            <div className="small text-muted font-monospace">
+                                                                {s.email}
+                                                            </div>
+
+                                                            {/* --- BADGE DISPLAY --- */}
+                                                            {missingReqs.length >
+                                                                0 && (
+                                                                <div className="mt-1 fade-in">
+                                                                    <span
+                                                                        className="badge bg-danger text-white border border-dark rounded-0 font-monospace"
+                                                                        style={{
+                                                                            fontSize:
+                                                                                "0.65rem",
+                                                                            letterSpacing:
+                                                                                "1px",
+                                                                        }}
+                                                                        title="Missing Priority Requirements"
+                                                                    >
+                                                                        <i className="bi bi-exclamation-circle-fill me-1"></i>{" "}
+                                                                        {missingReqs.join(
+                                                                            ", ",
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 font-monospace fw-bold">
-                                                {s.lrn}
-                                            </td>
-                                            <td className="py-3">
-                                                <span className="badge bg-white text-dark border border-dark rounded-0 px-2 py-1">
-                                                    {s.strand?.code}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 font-monospace fw-bold">
-                                                G{s.grade_level}{" "}
-                                                <span className="fw-normal text-muted">
-                                                    / {s.section?.name || "-"}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 font-monospace small">
-                                                {s.gender}
-                                            </td>
-                                            <td className="py-3 font-monospace small">
-                                                {s.contact_number}
-                                            </td>
-                                            <td className="py-3">
-                                                <span
-                                                    className={`badge rounded-0 border border-dark px-3 py-1 text-uppercase text-dark ${s.status === "enrolled" ? "bg-success text-white" : s.status === "pending" ? "bg-warning" : s.status === "released" ? "bg-secondary text-white" : "bg-light"}`}
-                                                >
-                                                    {s.status}
-                                                </span>
-                                            </td>
-                                            <td className="text-end pe-4 py-3">
-                                                <div className="d-flex justify-content-end gap-2 position-relative">
-                                                    <button
-                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                        style={{
-                                                            width: "32px",
-                                                            height: "32px",
-                                                            backgroundColor:
-                                                                "#ffffff",
-                                                            boxShadow:
-                                                                "2px 2px 0 #000",
-                                                            transition:
-                                                                "transform 0.1s",
-                                                        }}
-                                                        onClick={() =>
-                                                            handleOpenDrawer(
-                                                                "view",
-                                                                s,
-                                                            )
-                                                        }
-                                                        onMouseEnter={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(-1px, -1px)")
-                                                        }
-                                                        onMouseLeave={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(0, 0)")
-                                                        }
-                                                        title="View"
+                                                </td>
+                                                <td className="py-3 font-monospace fw-bold">
+                                                    {s.lrn}
+                                                </td>
+                                                <td className="py-3">
+                                                    <span className="badge bg-white text-dark border border-dark rounded-0 px-2 py-1">
+                                                        {s.strand?.code}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 font-monospace fw-bold">
+                                                    G{s.grade_level}{" "}
+                                                    <span className="fw-normal text-muted">
+                                                        /{" "}
+                                                        {s.section?.name || "-"}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 font-monospace small">
+                                                    {s.gender}
+                                                </td>
+                                                <td className="py-3 font-monospace small">
+                                                    {s.contact_number}
+                                                </td>
+                                                <td className="py-3">
+                                                    <span
+                                                        className={`badge rounded-0 border border-dark px-3 py-1 text-uppercase text-dark ${
+                                                            s.status ===
+                                                            "enrolled"
+                                                                ? "bg-success text-white"
+                                                                : s.status ===
+                                                                    "pending"
+                                                                  ? "bg-warning"
+                                                                  : s.status ===
+                                                                      "released"
+                                                                    ? "bg-secondary text-white"
+                                                                    : "bg-light"
+                                                        }`}
                                                     >
-                                                        <i className="bi bi-eye-fill text-dark"></i>
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                        style={{
-                                                            width: "32px",
-                                                            height: "32px",
-                                                            backgroundColor:
-                                                                "#F4D03F",
-                                                            boxShadow:
-                                                                "2px 2px 0 #000",
-                                                            transition:
-                                                                "transform 0.1s",
-                                                        }}
-                                                        onClick={() =>
-                                                            handleOpenDrawer(
-                                                                "edit",
-                                                                s,
-                                                            )
-                                                        }
-                                                        onMouseEnter={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(-1px, -1px)")
-                                                        }
-                                                        onMouseLeave={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(0, 0)")
-                                                        }
-                                                        title="Edit"
-                                                    >
-                                                        <i className="bi bi-pencil-fill text-dark"></i>
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center custom-dropdown-trigger"
-                                                        style={{
-                                                            width: "32px",
-                                                            height: "32px",
-                                                            backgroundColor:
-                                                                "#34495e",
-                                                            boxShadow:
-                                                                "2px 2px 0 #000",
-                                                            transition:
-                                                                "transform 0.1s",
-                                                        }}
-                                                        onClick={(e) =>
-                                                            toggleDropdown(
-                                                                s.id,
-                                                                e,
-                                                            )
-                                                        }
-                                                        onMouseEnter={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(-1px, -1px)")
-                                                        }
-                                                        onMouseLeave={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(0, 0)")
-                                                        }
-                                                        title="More Actions"
-                                                    >
-                                                        <i className="bi bi-three-dots text-white"></i>
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
-                                                        style={{
-                                                            width: "32px",
-                                                            height: "32px",
-                                                            backgroundColor:
-                                                                "#F96E5B",
-                                                            boxShadow:
-                                                                "2px 2px 0 #000",
-                                                            transition:
-                                                                "transform 0.1s",
-                                                        }}
-                                                        onClick={() =>
-                                                            handleDelete(s.id)
-                                                        }
-                                                        onMouseEnter={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(-1px, -1px)")
-                                                        }
-                                                        onMouseLeave={(e) =>
-                                                            (e.currentTarget.style.transform =
-                                                                "translate(0, 0)")
-                                                        }
-                                                        title="Delete"
-                                                    >
-                                                        <i className="bi bi-trash-fill text-white"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                        {s.status}
+                                                    </span>
+                                                </td>
+                                                <td className="text-end pe-4 py-3">
+                                                    <div className="d-flex justify-content-end gap-2 position-relative">
+                                                        <button
+                                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: "32px",
+                                                                height: "32px",
+                                                                backgroundColor:
+                                                                    "#ffffff",
+                                                                boxShadow:
+                                                                    "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s",
+                                                            }}
+                                                            onClick={() =>
+                                                                handleOpenDrawer(
+                                                                    "view",
+                                                                    s,
+                                                                )
+                                                            }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            }
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            }
+                                                            title="View"
+                                                        >
+                                                            <i className="bi bi-eye-fill text-dark"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: "32px",
+                                                                height: "32px",
+                                                                backgroundColor:
+                                                                    "#F4D03F",
+                                                                boxShadow:
+                                                                    "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s",
+                                                            }}
+                                                            onClick={() =>
+                                                                handleOpenDrawer(
+                                                                    "edit",
+                                                                    s,
+                                                                )
+                                                            }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            }
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            }
+                                                            title="Edit"
+                                                        >
+                                                            <i className="bi bi-pencil-fill text-dark"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center custom-dropdown-trigger"
+                                                            style={{
+                                                                width: "32px",
+                                                                height: "32px",
+                                                                backgroundColor:
+                                                                    "#34495e",
+                                                                boxShadow:
+                                                                    "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s",
+                                                            }}
+                                                            onClick={(e) =>
+                                                                toggleDropdown(
+                                                                    s.id,
+                                                                    e,
+                                                                )
+                                                            }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            }
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            }
+                                                            title="More Actions"
+                                                        >
+                                                            <i className="bi bi-three-dots text-white"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm rounded-0 border-2 border-dark fw-bold d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: "32px",
+                                                                height: "32px",
+                                                                backgroundColor:
+                                                                    "#F96E5B",
+                                                                boxShadow:
+                                                                    "2px 2px 0 #000",
+                                                                transition:
+                                                                    "transform 0.1s",
+                                                            }}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    s.id,
+                                                                )
+                                                            }
+                                                            onMouseEnter={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(-1px, -1px)")
+                                                            }
+                                                            onMouseLeave={(e) =>
+                                                                (e.currentTarget.style.transform =
+                                                                    "translate(0, 0)")
+                                                            }
+                                                            title="Delete"
+                                                        >
+                                                            <i className="bi bi-trash-fill text-white"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -549,7 +615,12 @@ export default function Students(props) {
                                 </span>
                             </li>
                             <li
-                                className={`page-item ${currentPage === totalPages || totalPages === 0 ? "disabled" : ""}`}
+                                className={`page-item ${
+                                    currentPage === totalPages ||
+                                    totalPages === 0
+                                        ? "disabled"
+                                        : ""
+                                }`}
                             >
                                 <button
                                     className="page-link border-2 border-dark text-dark fw-bold rounded-0 ms-1"
