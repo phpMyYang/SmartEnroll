@@ -16,6 +16,73 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
     const [isAgreed, setIsAgreed] = useState(false);
     const [captchaVal, setCaptchaVal] = useState(null);
 
+    // --- NEW: SAFETY LOCK FOR IPHONE/MOBILE ---
+    // Ito ang pipigil sa "Swipe Back" ng iOS na biglang nag-eexit
+    useEffect(() => {
+        // 1. Push a dummy state to history
+        window.history.pushState(null, document.title, window.location.href);
+
+        const handlePopState = (event) => {
+            // 2. Kapag pinindot ang Back button o nag-Swipe Back
+            // I-push ulit ang state para hindi umalis sa page
+            window.history.pushState(
+                null,
+                document.title,
+                window.location.href,
+            );
+
+            // 3. Magpakita ng Warning sa User
+            Swal.fire({
+                title: "EXIT ENROLLMENT?",
+                text: "Your progress will be lost if you leave.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "YES, EXIT",
+                cancelButtonText: "STAY HERE",
+                background: "#FFE2AF",
+                color: "#000",
+                customClass: {
+                    popup: "card-retro",
+                    confirmButton: "btn-retro bg-danger border-dark",
+                    cancelButton: "btn-retro bg-dark border-dark",
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    onClose(); // Official Close
+                }
+            });
+        };
+
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, [onClose]);
+
+    // --- NEW: SAFE CLOSE HANDLER (Para sa X button) ---
+    const handleSafeClose = () => {
+        Swal.fire({
+            title: "CANCEL APPLICATION?",
+            text: "Are you sure you want to close? All entered data will be lost.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "YES, CLOSE IT",
+            cancelButtonText: "CONTINUE FILLING UP",
+            background: "#fff",
+            color: "#000",
+            customClass: {
+                popup: "card-retro",
+                confirmButton: "btn-retro bg-danger border-dark",
+                cancelButton: "btn-retro bg-dark border-dark",
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                onClose();
+            }
+        });
+    };
+
     // FORM STATE
     const [form, setForm] = useState({
         // Personal
@@ -262,11 +329,16 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
     return (
         <Modal
             show={true}
-            onHide={onClose}
-            backdrop="static"
+            // UPDATE: USE SAFE CLOSE HANDLER
+            onHide={handleSafeClose}
+            backdrop="static" // Keep this to prevent outside clicks
             keyboard={false}
             size="xl"
             centered
+            // UPDATE: ADD SCROLLABLE
+            scrollable={true}
+            // UPDATE: FULLSCREEN ON MOBILE
+            fullscreen="sm-down"
         >
             <style>
                 {`
@@ -312,7 +384,11 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                         <i className="bi bi-person-lines-fill fs-4"></i>
                         <h5 className="fw-black m-0 ls-1">ENROLLMENT WIZARD</h5>
                     </div>
-                    <button className="btn-close" onClick={onClose}></button>
+                    {/* UPDATE: USE SAFE CLOSE HERE TOO */}
+                    <button
+                        className="btn-close"
+                        onClick={handleSafeClose}
+                    ></button>
                 </div>
 
                 {/* BODY */}
