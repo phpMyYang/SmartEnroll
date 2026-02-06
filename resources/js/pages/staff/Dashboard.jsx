@@ -93,8 +93,32 @@ export default function StaffDashboard() {
         fetchData();
     }, []);
 
+    // --- UPDATED FILTER LOGIC (Consistent with Admin) ---
     const handleFilterSubmit = (e) => {
-        if (e.key === "Enter") fetchData(searchFilter);
+        if (e.key === "Enter") {
+            // 1. Allow empty input (Reset)
+            if (searchFilter.trim() === "") {
+                fetchData("");
+                return;
+            }
+
+            // 2. Strict Regex Validation
+            const isValidFormat = /^(\d{4}|\d{4}-\d{4})$/.test(
+                searchFilter.trim(),
+            );
+
+            if (!isValidFormat) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Invalid Format!",
+                    text: "Please use 'YYYY' (e.g. 2025) or 'YYYY-YYYY' (e.g. 2025-2026)",
+                });
+                return;
+            }
+
+            // 3. Proceed
+            fetchData(searchFilter.trim());
+        }
     };
 
     if (loading)
@@ -269,22 +293,22 @@ export default function StaffDashboard() {
 
                 <div className="d-flex align-items-center mt-2 mt-md-0">
                     <div
-                        className="input-group"
+                        className="input-group shadow-sm"
                         style={{
                             maxWidth: "300px",
-                            boxShadow: "4px 4px 0 #000",
                         }}
                     >
-                        <span className="input-group-text bg-white border-end-0 fw-bold border-2 border-dark">
-                            FILTER:
+                        <span className="input-group-text bg-white border-end-0 border-2 border-dark">
+                            <i className="bi bi-funnel-fill"></i>
                         </span>
                         <input
                             type="text"
                             className="form-control ps-2 font-monospace fw-bold border-2 border-dark border-start-0"
-                            placeholder="e.g. 2025 or 2025-2026"
+                            placeholder="Filter Year (YYYY)..."
                             value={searchFilter}
                             onChange={(e) => setSearchFilter(e.target.value)}
                             onKeyDown={handleFilterSubmit}
+                            title="Format: 2024 or 2024-2025"
                         />
                     </div>
                 </div>

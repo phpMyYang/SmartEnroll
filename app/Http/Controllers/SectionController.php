@@ -133,7 +133,7 @@ class SectionController extends Controller
     public function store(Request $request) 
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:50|unique:sections,name',
             'strand_id' => 'required|exists:strands,id',
             'grade_level' => 'required|in:11,12',
             'capacity' => 'required|integer|min:1',
@@ -157,7 +157,14 @@ class SectionController extends Controller
         $section = Section::find($id);
 
         if(!$section) return response()->json(['message'=>'Not found'], 404);
-        $section->update($request->all());
+        // ADDED: Validation with Unique Check (Ignored ang sariling ID)
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:sections,name,' . $id, 
+            'strand_id' => 'required|exists:strands,id',
+            'grade_level' => 'required|in:11,12',
+            'capacity' => 'required|integer|min:1',
+        ]);
+        $section->update($validated);
 
         // LOG ACTIVITY: UPDATE
         ActivityLog::create([

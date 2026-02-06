@@ -73,7 +73,7 @@ export default function StaffReports() {
     };
 
     const handleGenerate = async () => {
-        // VALIDATION: Toast Warning
+        // 1. VALIDATION: Check if Empty
         if (!schoolYear) {
             Toast.fire({
                 icon: "warning",
@@ -82,6 +82,18 @@ export default function StaffReports() {
             return;
         }
 
+        // 2. STRICT FORMAT CHECK (YYYY-YYYY)
+        const syFormatRegex = /^\d{4}-\d{4}$/;
+
+        if (!syFormatRegex.test(schoolYear.trim())) {
+            Toast.fire({
+                icon: "warning",
+                title: "Invalid Format! Use YYYY-YYYY (e.g., 2025-2026).",
+            });
+            return;
+        }
+
+        // 3. REGISTRAR CHECK (Only for PDF)
         if (selectedReport.format === "pdf" && !registrar) {
             Toast.fire({
                 icon: "warning",
