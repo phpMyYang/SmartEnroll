@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Toast from "../utils/toast"; // Using Toast only
+import Toast from "../utils/toast";
 
 export default function CORModal({
     show,
     student,
     onClose,
-    apiPrefix = "/api", // DEFAULT: Admin (/api). Override sa Staff (/api/staff).
+    onSuccess, // ⭐ NEW PROP: Para mag-refresh ang table pagtapos
+    apiPrefix = "/api",
 }) {
     if (!show || !student) return null;
 
-    // --- STATES ---
-    const [loading, setLoading] = useState(true);
+    // STATES
+    const [fetchingData, setFetchingData] = useState(true); // Initial Load
+    const [submitting, setSubmitting] = useState(false); // Button Action
     const [availableSections, setAvailableSections] = useState([]);
+
+    // STATUS STATE
+    const [targetStatus, setTargetStatus] = useState("");
 
     // FORM DATA
     const [formData, setFormData] = useState({
@@ -30,8 +35,8 @@ export default function CORModal({
         fees: { tuition: 0, miscellaneous: 0, books: 0, total: 0 },
         signatories: {
             adviser: "",
-            registrar: "MARIA ELENA S. REYES",
-            finance: "FINANCE OFFICER",
+            registrar: "",
+            finance: "",
         },
         or_number: "",
     });
@@ -39,8 +44,9 @@ export default function CORModal({
     // --- INITIAL FETCH ---
     useEffect(() => {
         if (student) {
-            setLoading(true);
-            // DYNAMIC FETCH URL: Uses apiPrefix
+            setFetchingData(true);
+            setTargetStatus(student.status || "enrolled");
+
             axios
                 .get(`${apiPrefix}/students/${student.id}/cor-data`)
                 .then((res) => {
@@ -58,7 +64,6 @@ export default function CORModal({
                             school_year: student.school_year || "2025-2026",
                             semester: student.semester || "1st Semester",
                         },
-                        // LOAD INITIAL SUBJECTS
                         subjects: suggested_subjects.map((s) => ({
                             code: s.code,
                             desc: s.description,
@@ -73,8 +78,8 @@ export default function CORModal({
                         },
                         signatories: {
                             adviser: student.section?.adviser_name || "",
-                            registrar: "MARIA ELENA S. REYES",
-                            finance: "FINANCE OFFICER",
+                            registrar: "",
+                            finance: "",
                         },
                         or_number:
                             "OR-" + Math.floor(100000 + Math.random() * 900000),
@@ -87,17 +92,14 @@ export default function CORModal({
                         title: "Failed to load data.",
                     });
                 })
-                .finally(() => setLoading(false));
+                .finally(() => setFetchingData(false));
         }
     }, [student, apiPrefix]);
 
     // --- HANDLERS ---
-
-    // 1. SECTION CHANGE
     const handleSectionChange = (e) => {
         const secId = e.target.value;
         const selectedSec = availableSections.find((s) => s.id == secId);
-
         setFormData((prev) => ({
             ...prev,
             info: {
@@ -112,7 +114,6 @@ export default function CORModal({
         }));
     };
 
-    // 2. FEE CHANGE
     const handleFeeChange = (e) => {
         const { name, value } = e.target;
         const val = parseFloat(value) || 0;
@@ -121,7 +122,6 @@ export default function CORModal({
         setFormData((prev) => ({ ...prev, fees: newFees }));
     };
 
-    // 3. SIGNATORY CHANGE
     const handleSigChange = (e) => {
         setFormData((prev) => ({
             ...prev,
@@ -132,16 +132,12 @@ export default function CORModal({
         }));
     };
 
-    // --- SUBJECT HANDLERS (ADD / EDIT / REMOVE) ---
-
-    // A. EDIT CELL (Code, Desc, Sched, Teacher)
     const handleSubjectChange = (index, field, value) => {
         const updatedSubjects = [...formData.subjects];
         updatedSubjects[index][field] = value;
         setFormData((prev) => ({ ...prev, subjects: updatedSubjects }));
     };
 
-    // B. ADD NEW ROW
     const addRow = () => {
         const newSubject = { code: "", desc: "", sched: "", teacher: "" };
         setFormData((prev) => ({
@@ -150,34 +146,48 @@ export default function CORModal({
         }));
     };
 
-    // C. REMOVE ROW
     const removeRow = (index) => {
         const updatedSubjects = [...formData.subjects];
         updatedSubjects.splice(index, 1);
         setFormData((prev) => ({ ...prev, subjects: updatedSubjects }));
     };
 
-    // 5. DOWNLOAD PDF
+    // --- DOWNLOAD & UPDATE ---
     const handleDownloadPDF = async () => {
-        // LOADING STATE (TOAST)
-        Toast.fire({
-            icon: "info",
-            title: "Generating Document...",
-        });
+        if (!formData.info.section_id) {
+            Toast.fire({
+                icon: "warning",
+                title: "Please select a section first.",
+            });
+            return;
+        }
+
+        setSubmitting(true); // ⭐ BUTTON SPINNER ONLY
 
         try {
-            // DYNAMIC GENERATE URL
+            // STEP 1: UPDATE STATUS
+            await axios.put(`${apiPrefix}/students/${student.id}/status`, {
+                status: targetStatus,
+            });
+
+            // STEP 2: GENERATE PDF
             const response = await axios.post(`${apiPrefix}/cor/generate-url`, {
                 ...formData,
                 printed_by: "Admin",
             });
 
-            // OPEN PDF
             window.open(response.data.url, "_blank");
-        } catch (error) {
-            // UPDATED: SHOW SPECIFIC BACKEND ERROR (E.g. Section Full)
-            let msg = "Failed to generate PDF.";
 
+            Toast.fire({
+                icon: "success",
+                title: `Status Updated to ${targetStatus.toUpperCase()} & COR Generated!`,
+            });
+
+            // ⭐ REFRESH TABLE & CLOSE
+            if (onSuccess) onSuccess();
+            onClose();
+        } catch (error) {
+            let msg = "Action Failed.";
             if (
                 error.response &&
                 error.response.data &&
@@ -185,13 +195,26 @@ export default function CORModal({
             ) {
                 msg = error.response.data.message;
             }
-
             Toast.fire({ icon: "error", title: msg });
+        } finally {
+            setSubmitting(false);
         }
     };
 
     return (
         <>
+            {/* CSS FOR TOGA SPINNER */}
+            <style>{`
+                @keyframes spin-toga { 
+                    0% { transform: rotate(0deg); } 
+                    100% { transform: rotate(360deg); } 
+                }
+                .spinner-toga { 
+                    animation: spin-toga 2s linear infinite; 
+                    display: inline-block; 
+                }
+            `}</style>
+
             <div
                 className="modal-backdrop fade show"
                 style={{ backgroundColor: "rgba(0,0,0,0.7)", zIndex: 1050 }}
@@ -217,15 +240,52 @@ export default function CORModal({
 
                         {/* BODY */}
                         <div className="modal-body bg-light">
-                            {loading ? (
+                            {fetchingData ? (
                                 <div className="text-center py-5">
                                     <div className="spinner-border"></div>
+                                    <p className="mt-2 font-monospace small">
+                                        Fetching Student Data...
+                                    </p>
                                 </div>
                             ) : (
                                 <div className="container-fluid font-monospace small">
-                                    {/* TOP: SECTION & OR */}
-                                    <div className="row mb-3 g-2">
-                                        <div className="col-md-7">
+                                    {/* TOP ROW */}
+                                    <div className="row mb-3 g-2 align-items-end">
+                                        <div className="col-md-3">
+                                            <label className="fw-bold mb-1 text-primary">
+                                                CHANGE STATUS TO:
+                                            </label>
+                                            <select
+                                                className="form-select form-select-sm border-dark rounded-0 fw-bold bg-warning bg-opacity-25"
+                                                value={targetStatus}
+                                                onChange={(e) =>
+                                                    setTargetStatus(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            >
+                                                <option value="enrolled">
+                                                    ENROLLED
+                                                </option>
+                                                <option value="pending">
+                                                    PENDING
+                                                </option>
+                                                <option value="passed">
+                                                    PASSED
+                                                </option>
+                                                <option value="graduate">
+                                                    GRADUATE
+                                                </option>
+                                                <option value="dropped">
+                                                    DROPPED
+                                                </option>
+                                                <option value="released">
+                                                    RELEASED
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-md-5">
                                             <label className="fw-bold mb-1">
                                                 SELECT SECTION:
                                             </label>
@@ -237,8 +297,6 @@ export default function CORModal({
                                                 <option value="" disabled>
                                                     -- Select Section --
                                                 </option>
-
-                                                {/* UPDATED MAPPING WITH FULL LOGIC */}
                                                 {availableSections.map(
                                                     (sec) => {
                                                         const enrolled =
@@ -246,22 +304,18 @@ export default function CORModal({
                                                             0;
                                                         const capacity =
                                                             sec.capacity || 40;
-
-                                                        // PUNO NA KUNG: Enrolled >= Capacity
-                                                        // PERO: Kung ito ang CURRENT section ng student, wag i-disable (para maprint niya)
                                                         const isFull =
                                                             enrolled >=
                                                                 capacity &&
                                                             sec.id !==
                                                                 student.section_id;
-
                                                         return (
                                                             <option
                                                                 key={sec.id}
                                                                 value={sec.id}
                                                                 disabled={
                                                                     isFull
-                                                                } // 👈 DISABLE IF FULL
+                                                                }
                                                                 style={
                                                                     isFull
                                                                         ? {
@@ -284,13 +338,15 @@ export default function CORModal({
                                                 )}
                                             </select>
                                         </div>
-                                        <div className="col-md-5">
+                                        <div className="col-md-4">
                                             <label className="fw-bold mb-1">
                                                 OFFICIAL RECEIPT NO:
                                             </label>
+                                            {/* ⭐ PLACEHOLDER RESTORED */}
                                             <input
                                                 type="text"
                                                 className="form-control form-control-sm border-dark rounded-0 text-danger fw-bold"
+                                                placeholder="OR NUMBER"
                                                 value={formData.or_number}
                                                 onChange={(e) =>
                                                     setFormData({
@@ -303,7 +359,7 @@ export default function CORModal({
                                         </div>
                                     </div>
 
-                                    {/* SUBJECTS TABLE - WITH ADD/REMOVE */}
+                                    {/* SUBJECTS TABLE */}
                                     <div className="d-flex justify-content-between align-items-end mb-1">
                                         <label className="fw-bold">
                                             SUBJECTS (Editable):
@@ -340,9 +396,11 @@ export default function CORModal({
                                                     (sub, idx) => (
                                                         <tr key={idx}>
                                                             <td className="p-0">
+                                                                {/* ⭐ PLACEHOLDER RESTORED */}
                                                                 <input
                                                                     type="text"
                                                                     className="form-control form-control-sm border-0 rounded-0 text-center fw-bold"
+                                                                    placeholder="SUBJ CODE"
                                                                     value={
                                                                         sub.code
                                                                     }
@@ -363,6 +421,7 @@ export default function CORModal({
                                                                 <input
                                                                     type="text"
                                                                     className="form-control form-control-sm border-0 rounded-0"
+                                                                    placeholder="DESCRIPTION"
                                                                     value={
                                                                         sub.desc
                                                                     }
@@ -436,24 +495,11 @@ export default function CORModal({
                                                         </tr>
                                                     ),
                                                 )}
-                                                {formData.subjects.length ===
-                                                    0 && (
-                                                    <tr>
-                                                        <td
-                                                            colSpan="5"
-                                                            className="text-center text-muted"
-                                                        >
-                                                            No subjects
-                                                            enlisted. Click "Add
-                                                            Subject".
-                                                        </td>
-                                                    </tr>
-                                                )}
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    {/* BOTTOM: FEES & SIGNATORIES */}
+                                    {/* FEES & SIGNATORIES */}
                                     <div className="row g-2">
                                         <div className="col-md-6">
                                             <div className="card rounded-0 border-dark h-100">
@@ -461,6 +507,7 @@ export default function CORModal({
                                                     FEES
                                                 </div>
                                                 <div className="card-body p-2">
+                                                    {/* ⭐ PLACEHOLDER RESTORED */}
                                                     <div className="input-group input-group-sm mb-1">
                                                         <span className="input-group-text bg-white border-dark rounded-0 w-50">
                                                             Tuition:
@@ -469,6 +516,7 @@ export default function CORModal({
                                                             type="number"
                                                             name="tuition"
                                                             className="form-control border-dark rounded-0 text-end"
+                                                            placeholder="0.00"
                                                             value={
                                                                 formData.fees
                                                                     .tuition
@@ -486,6 +534,7 @@ export default function CORModal({
                                                             type="number"
                                                             name="miscellaneous"
                                                             className="form-control border-dark rounded-0 text-end"
+                                                            placeholder="0.00"
                                                             value={
                                                                 formData.fees
                                                                     .miscellaneous
@@ -503,6 +552,7 @@ export default function CORModal({
                                                             type="number"
                                                             name="books"
                                                             className="form-control border-dark rounded-0 text-end"
+                                                            placeholder="0.00"
                                                             value={
                                                                 formData.fees
                                                                     .books
@@ -533,6 +583,7 @@ export default function CORModal({
                                                     SIGNATORIES
                                                 </div>
                                                 <div className="card-body p-2">
+                                                    {/* ⭐ PLACEHOLDER RESTORED */}
                                                     <label
                                                         className="fw-bold mb-0 text-muted"
                                                         style={{
@@ -544,6 +595,7 @@ export default function CORModal({
                                                     <input
                                                         name="adviser"
                                                         className="form-control form-control-sm border-dark rounded-0 mb-1 fw-bold text-uppercase"
+                                                        placeholder="ADVISER NAME"
                                                         value={
                                                             formData.signatories
                                                                 .adviser
@@ -552,7 +604,6 @@ export default function CORModal({
                                                             handleSigChange
                                                         }
                                                     />
-
                                                     <label
                                                         className="fw-bold mb-0 text-muted"
                                                         style={{
@@ -564,6 +615,7 @@ export default function CORModal({
                                                     <input
                                                         name="registrar"
                                                         className="form-control form-control-sm border-dark rounded-0 mb-1 fw-bold text-uppercase"
+                                                        placeholder="REGISTRAR NAME"
                                                         value={
                                                             formData.signatories
                                                                 .registrar
@@ -572,7 +624,6 @@ export default function CORModal({
                                                             handleSigChange
                                                         }
                                                     />
-
                                                     <label
                                                         className="fw-bold mb-0 text-muted"
                                                         style={{
@@ -584,6 +635,7 @@ export default function CORModal({
                                                     <input
                                                         name="finance"
                                                         className="form-control form-control-sm border-dark rounded-0 fw-bold text-uppercase"
+                                                        placeholder="FINANCE OFFICER"
                                                         value={
                                                             formData.signatories
                                                                 .finance
@@ -600,15 +652,24 @@ export default function CORModal({
                             )}
                         </div>
 
-                        {/* FOOTER */}
+                        {/* FOOTER - BUTTON WITH TOGA SPINNER */}
                         <div className="modal-footer bg-light border-top border-dark d-flex justify-content-between py-3">
                             <button
                                 className="btn btn-success rounded-0 fw-bold px-4 btn-retro-effect"
                                 onClick={handleDownloadPDF}
-                                disabled={loading}
+                                disabled={submitting} // Disabled while submitting
                             >
-                                <i className="bi bi-file-earmark-pdf-fill me-2"></i>{" "}
-                                DOWNLOAD COR
+                                {submitting ? (
+                                    <>
+                                        <i className="bi bi-mortarboard-fill spinner-toga me-2"></i>
+                                        PROCESSING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-file-earmark-pdf-fill me-2"></i>
+                                        DOWNLOAD COR
+                                    </>
+                                )}
                             </button>
                             <button
                                 className="btn btn-secondary rounded-0 fw-bold px-4 btn-retro-effect"

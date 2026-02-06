@@ -747,6 +747,7 @@ export default function Students(props) {
                 show={corState.show}
                 student={corState.data}
                 onClose={() => setCorState({ ...corState, show: false })}
+                onSuccess={fetchData}
                 currentUser={auth?.user}
                 apiPrefix="/api"
             />
