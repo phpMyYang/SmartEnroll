@@ -299,7 +299,7 @@ export default function StaffDashboard() {
                         }}
                     >
                         <span className="input-group-text bg-white border-end-0 border-2 border-dark">
-                            <i className="bi bi-search"></i>
+                            <i className="bi bi-funnel-fill"></i>
                         </span>
                         <input
                             type="text"

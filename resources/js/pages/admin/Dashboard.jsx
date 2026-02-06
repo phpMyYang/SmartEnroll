@@ -303,7 +303,7 @@ export default function Dashboard() {
                         style={{ maxWidth: "300px" }}
                     >
                         <span className="input-group-text bg-white border-dark border-2 border-end-0">
-                            <i className="bi bi-search"></i>
+                            <i className="bi bi-funnel-fill"></i>
                         </span>
                         <input
                             type="text"

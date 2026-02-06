@@ -21,7 +21,7 @@ const SearchInputField = ({ value, onChange }) => (
         </label>
         <div className="input-group shadow-sm w-100">
             <span className="input-group-text bg-white border-dark border-2 border-end-0 rounded-start">
-                <i className="bi bi-search"></i>
+                <i className="bi bi-patch-check-fill"></i>
             </span>
             <input
                 type="text"
