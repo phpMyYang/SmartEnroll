@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Toast from "../utils/toast";
 import TermsModal from "../components/TermsModal";
+import AdminHelpModal from "../components/AdminHelpModal";
 
 export default function AdminLayout() {
     const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function AdminLayout() {
     // UI States
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showTerms, setShowTerms] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     // User State
@@ -232,7 +234,7 @@ export default function AdminLayout() {
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         style={{
                             cursor: "pointer",
-                            border: "2px solid white", // ✅ WHITE BORDER (Same as Staff)
+                            border: "2px solid white", // WHITE BORDER (Same as Staff)
                             backgroundColor: isDropdownOpen
                                 ? "rgba(255,255,255,0.1)"
                                 : "transparent",
@@ -265,7 +267,7 @@ export default function AdminLayout() {
                                         fontSize: "0.7rem",
                                         letterSpacing: "1px",
                                         fontWeight: "800",
-                                        color: "rgba(255,255,255,0.7)", // ✅ MUTED WHITE ROLE
+                                        color: "rgba(255,255,255,0.7)", // MUTED WHITE ROLE
                                     }}
                                 >
                                     {user.role}
@@ -370,21 +372,34 @@ export default function AdminLayout() {
                     <Outlet />
                 </main>
 
-                {/* FOOTER */}
+                {/* FOOTER WITH HELP BUTTON */}
                 <footer
                     className="py-3 bg-white text-center small mt-auto"
                     style={{ borderTop: "2px solid black" }}
                 >
-                    <div className="container font-monospace">
+                    <div className="container font-monospace d-flex justify-content-center align-items-center flex-wrap gap-2">
                         <span>
                             © {new Date().getFullYear()} SmartEnroll System
                         </span>
                         <span className="mx-2">|</span>
+
+                        {/* TERMS BUTTON */}
                         <button
                             className="btn btn-link text-dark text-decoration-none fw-bold p-0"
                             onClick={() => setShowTerms(true)}
                         >
                             Terms & Policy
+                        </button>
+
+                        <span className="mx-2">|</span>
+
+                        {/* HELP BUTTON */}
+                        <button
+                            className="btn btn-link text-primary text-decoration-none fw-black p-0 d-flex align-items-center gap-1"
+                            onClick={() => setShowHelp(true)}
+                        >
+                            <i className="bi bi-question-circle-fill fs-6"></i>
+                            HELP & GUIDE
                         </button>
                     </div>
                 </footer>
@@ -393,6 +408,11 @@ export default function AdminLayout() {
             <TermsModal
                 show={showTerms}
                 handleClose={() => setShowTerms(false)}
+            />
+
+            <AdminHelpModal
+                show={showHelp}
+                onClose={() => setShowHelp(false)}
             />
         </div>
     );

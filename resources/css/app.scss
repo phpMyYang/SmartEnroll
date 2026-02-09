@@ -338,3 +338,55 @@ div:where(.swal2-container) button.swal2-confirm {
     scrollbar-width: thin;
     scrollbar-color: var(--color-dark) transparent;
 }
+
+/* =========================================
+   11. ACCORDION STYLES (Help Guides)
+   ========================================= */
+
+.accordion-item {
+    border: 2px solid #000 !important;
+    margin-bottom: 10px;
+}
+
+.accordion-button:not(.collapsed) {
+    font-weight: bold;
+    box-shadow: none !important;
+    color: #000;
+}
+
+.accordion-button:focus {
+    box-shadow: none !important;
+    border-color: #000;
+}
+
+/* Accordion Color Variants */
+.accordion-public .accordion-button:not(.collapsed) {
+    background-color: #F4D03F; /* Yellow */
+    color: #000;
+}
+
+.accordion-auth .accordion-button:not(.collapsed) {
+    background-color: var(--color-primary); /* Teal */
+    color: #fff;
+}
+
+.accordion-admin .accordion-button:not(.collapsed) {
+    background-color: var(--color-dark); /* Dark */
+    color: #fff;
+}
+
+/* Step Badge (Circle Numbers) */
+.step-badge {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.step-badge-dark { background-color: #000; color: #fff; }
+.step-badge-yellow { background-color: #F4D03F; color: #000; }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import TermsModal from "../components/TermsModal";
+import AuthHelpModal from "../components/AuthHelpModal";
 import Toast from "../utils/toast";
 
 export default function Login() {
@@ -13,6 +14,7 @@ export default function Login() {
     // UI STATES
     const [showPassword, setShowPassword] = useState(false);
     const [showTerms, setShowTerms] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     // VERIFICATION STATES
@@ -71,7 +73,7 @@ export default function Login() {
                 localStorage.setItem("token", response.data.access_token);
                 localStorage.setItem(
                     "user",
-                    JSON.stringify(response.data.user)
+                    JSON.stringify(response.data.user),
                 );
 
                 Toast.fire({ icon: "success", title: "Login successful!" });
@@ -336,17 +338,29 @@ export default function Login() {
                         </div>
                     )}
 
-                    <div className="text-center mt-3">
+                    {/* UPDATE FOOTER SECTION */}
+                    <div className="text-center mt-3 d-flex flex-column align-items-center gap-2">
                         {!needsVerification && (
-                            <button
-                                className="btn btn-link text-dark text-decoration-none small fw-bold"
-                                onClick={() => setShowTerms(true)}
-                                disabled={isLoading}
-                            >
-                                Terms & Policy
-                            </button>
+                            <div className="d-flex gap-3">
+                                <button
+                                    className="btn btn-link text-dark text-decoration-none small fw-bold p-0"
+                                    onClick={() => setShowTerms(true)}
+                                    disabled={isLoading}
+                                >
+                                    Terms & Policy
+                                </button>
+                                <span className="text-muted small">|</span>
+                                <button
+                                    className="btn btn-link text-primary text-decoration-none small fw-black p-0 d-flex align-items-center gap-1"
+                                    onClick={() => setShowHelp(true)}
+                                    disabled={isLoading}
+                                >
+                                    <i className="bi bi-question-circle-fill"></i>{" "}
+                                    Help
+                                </button>
+                            </div>
                         )}
-                        <p className="small text-muted mt-2 mb-0">
+                        <p className="small text-muted mt-1 mb-0">
                             © {new Date().getFullYear()} SmartEnroll System
                         </p>
                     </div>
@@ -356,6 +370,8 @@ export default function Login() {
                 show={showTerms}
                 handleClose={() => setShowTerms(false)}
             />
+
+            <AuthHelpModal show={showHelp} onClose={() => setShowHelp(false)} />
         </div>
     );
 }

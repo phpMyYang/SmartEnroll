@@ -3,7 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Toast from "../utils/toast";
 import TermsModal from "../components/TermsModal";
-// 1. IMPORT MAINTENANCE COMPONENT
+import StaffHelpModal from "../components/StaffHelpModal";
 import Maintenance from "../pages/Maintenance";
 
 export default function StaffLayout() {
@@ -26,6 +26,7 @@ export default function StaffLayout() {
     // UI States
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showTerms, setShowTerms] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     // 2. ADD MAINTENANCE STATE
     const [isMaintenance, setIsMaintenance] = useState(false);
@@ -390,16 +391,29 @@ export default function StaffLayout() {
                     className="py-3 bg-white text-center small mt-auto"
                     style={{ borderTop: "2px solid black" }}
                 >
-                    <div className="container font-monospace">
+                    <div className="container font-monospace d-flex justify-content-center align-items-center flex-wrap gap-2">
                         <span>
                             © {new Date().getFullYear()} SmartEnroll System
                         </span>
                         <span className="mx-2">|</span>
+
+                        {/* TERMS BUTTON */}
                         <button
                             className="btn btn-link text-dark text-decoration-none fw-bold p-0"
                             onClick={() => setShowTerms(true)}
                         >
                             Terms & Policy
+                        </button>
+
+                        <span className="mx-2">|</span>
+
+                        {/* HELP BUTTON FOR STAFF */}
+                        <button
+                            className="btn btn-link text-primary text-decoration-none fw-black p-0 d-flex align-items-center gap-1"
+                            onClick={() => setShowHelp(true)}
+                        >
+                            <i className="bi bi-question-circle-fill fs-6"></i>
+                            HELP & GUIDE
                         </button>
                     </div>
                 </footer>
@@ -408,6 +422,11 @@ export default function StaffLayout() {
             <TermsModal
                 show={showTerms}
                 handleClose={() => setShowTerms(false)}
+            />
+
+            <StaffHelpModal
+                show={showHelp}
+                onClose={() => setShowHelp(false)}
             />
         </div>
     );
