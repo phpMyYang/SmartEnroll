@@ -338,3 +338,127 @@ div:where(.swal2-container) button.swal2-confirm {
     scrollbar-width: thin;
     scrollbar-color: var(--color-dark) transparent;
 }
+
+/* =========================================
+   ACCORDION STYLES (Help Guides)
+   ========================================= */
+
+.accordion-item {
+    border: 2px solid #000 !important;
+    margin-bottom: 10px;
+}
+
+.accordion-button:not(.collapsed) {
+    font-weight: bold;
+    box-shadow: none !important;
+    color: #000;
+}
+
+.accordion-button:focus {
+    box-shadow: none !important;
+    border-color: #000;
+}
+
+/* Accordion Color Variants */
+.accordion-public .accordion-button:not(.collapsed) {
+    background-color: #F4D03F; /* Yellow */
+    color: #000;
+}
+
+.accordion-auth .accordion-button:not(.collapsed) {
+    background-color: var(--color-primary); /* Teal */
+    color: #fff;
+}
+
+.accordion-admin .accordion-button:not(.collapsed) {
+    background-color: var(--color-dark); /* Dark */
+    color: #fff;
+}
+
+/* Step Badge (Circle Numbers) */
+.step-badge {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.step-badge-dark { background-color: #000; color: #fff; }
+.step-badge-yellow { background-color: #F4D03F; color: #000; }
+
+/* =========================================
+   ENROLLMENT WIZARD SPECIFIC STYLES
+   ========================================= */
+
+.modal-retro-content {
+    border: 3px solid #000;
+    border-radius: 0px;
+    box-shadow: 10px 10px 0 #000;
+    background-color: #fff;
+
+    .modal-header-retro {
+        background-color: #F4D03F; // Yellow from your palette
+        border-bottom: 3px solid #000;
+        color: #000;
+        padding: 15px 20px;
+    }
+
+    // Custom overrides para sa wizard inputs para mas "tight" ang look
+    .form-control, .form-select {
+        border-color: #000 !important;
+        border-radius: 0 !important; // Sharp edges for specific wizard feel
+        padding: 10px;
+        font-size: 0.9rem;
+
+        &:focus {
+            box-shadow: none !important;
+            background-color: #fdfbf7;
+        }
+    }
+}
+
+/* --- SPINNING TOGA ANIMATION --- */
+/* Note: Meron ka nang toga-spin sa Section 7, 
+   pero ito ang version na ginamit sa JSX */
+@keyframes spin-toga { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+}
+
+.spinner-toga { 
+    animation: spin-toga 2s linear infinite; 
+    display: inline-block; 
+}
+
+/* Dagdag Utilities */
+// .border-dashed { border-style: dashed !important; }
+.fw-900 { font-weight: 900; }
+
+.btn-staff {
+    background-color: #F4D03F !important; 
+    color: #000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-staff:hover {
+    background-color: #FFFFFF !important;
+    transform: translate(4px, 4px) !important;
+    box-shadow: 0px 0px 0 #000 !important;
+}
+
+@keyframes blink { 
+    50% { opacity: 0; } 
+}
+ 
+.blink-animation { 
+    animation: blink 1s linear infinite; 
+}

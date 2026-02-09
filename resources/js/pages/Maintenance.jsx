@@ -184,7 +184,6 @@ export default function Maintenance() {
             <p className="mt-4 font-monospace small text-dark fw-bold">
                 &copy; {new Date().getFullYear()} SmartEnroll System
             </p>
-            <style>{`@keyframes blink { 50% { opacity: 0; } } .blink-animation { animation: blink 1s linear infinite; }`}</style>
         </div>
     );
 }

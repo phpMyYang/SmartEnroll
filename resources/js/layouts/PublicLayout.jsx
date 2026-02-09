@@ -4,6 +4,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import TermsModal from "../components/TermsModal";
 import StatusCheckModal from "../components/StatusCheckModal";
+import HelpModal from "../components/HelpModal";
 import Maintenance from "../pages/Maintenance";
 
 // FIX: ADDED LABEL "CHECK STATUS"
@@ -37,6 +38,7 @@ const SearchInputField = ({ value, onChange }) => (
 
 export default function PublicLayout() {
     const [showTerms, setShowTerms] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const [searchLrn, setSearchLrn] = useState("");
     const [showStatus, setShowStatus] = useState(false);
     const [statusResult, setStatusResult] = useState(null);
@@ -112,25 +114,6 @@ export default function PublicLayout() {
                 backgroundSize: "20px 20px",
             }}
         >
-            <style>
-                {`
-                    .btn-staff {
-                        background-color: #F4D03F !important; 
-                        color: #000 !important;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        transition: all 0.2s ease;
-                    }
-                    .btn-staff:hover {
-                        background-color: #FFFFFF !important;
-                        transform: translate(4px, 4px) !important;
-                        box-shadow: 0px 0px 0 #000 !important;
-                    }
-                `}
-            </style>
-
             <nav
                 className="border-bottom border-2 border-dark sticky-top"
                 style={{
@@ -225,18 +208,32 @@ export default function PublicLayout() {
                 <Outlet />
             </main>
 
+            {/* --- UPDATED FOOTER --- */}
             <footer
                 className="py-3 bg-white text-center small mt-auto"
                 style={{ borderTop: "2px solid black" }}
             >
-                <div className="container font-monospace">
+                <div className="container font-monospace d-flex justify-content-center align-items-center flex-wrap gap-2">
                     <span>© {new Date().getFullYear()} SmartEnroll System</span>
-                    <span className="mx-2">|</span>
+                    <span className="mx-2 d-none d-sm-inline">|</span>
+
+                    {/* TERMS BUTTON */}
                     <button
                         className="btn btn-link text-dark text-decoration-none fw-bold p-0"
                         onClick={() => setShowTerms(true)}
                     >
                         Terms & Policy
+                    </button>
+
+                    <span className="mx-2">|</span>
+
+                    {/* HELP BUTTON (WITH ICON) */}
+                    <button
+                        className="btn btn-link text-primary text-decoration-none fw-black p-0 d-flex align-items-center gap-1"
+                        onClick={() => setShowHelp(true)}
+                    >
+                        <i className="bi bi-question-circle-fill fs-6"></i>
+                        HELP & GUIDE
                     </button>
                 </div>
             </footer>
@@ -251,6 +248,8 @@ export default function PublicLayout() {
                 student={statusResult}
                 onClose={handleCloseStatus}
             />
+
+            <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
         </div>
     );
 }

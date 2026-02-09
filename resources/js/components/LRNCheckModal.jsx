@@ -51,35 +51,6 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
             backdrop="static"
             keyboard={false}
         >
-            {/* --- CUSTOM CSS TO MATCH STATUS MODAL & SPINNER --- */}
-            <style>
-                {`
-                    /* Retro Card Modal Style */
-                    .modal-retro-content {
-                        border: 3px solid #000;
-                        border-radius: 0px;
-                        box-shadow: 10px 10px 0 #000;
-                        background-color: #fff;
-                    }
-                    .modal-header-retro {
-                        background-color: #F4D03F; /* Yellow Header */
-                        border-bottom: 3px solid #000;
-                        color: #000;
-                        padding: 15px 20px;
-                    }
-
-                    /* --- SPINNING TOGA ANIMATION --- */
-                    @keyframes spin-toga { 
-                        0% { transform: rotate(0deg); } 
-                        100% { transform: rotate(360deg); } 
-                    }
-                    .spinner-toga { 
-                        animation: spin-toga 2s linear infinite; 
-                        display: inline-block; 
-                    }
-                `}
-            </style>
-
             <div className="modal-content modal-retro-content font-monospace">
                 {/* --- HEADER --- */}
                 <div className="modal-header-retro d-flex justify-content-between align-items-center">

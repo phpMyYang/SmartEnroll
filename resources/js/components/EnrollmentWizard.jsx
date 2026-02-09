@@ -138,17 +138,19 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
 
     // OLD STUDENT LOGIC
     useEffect(() => {
-        if (isOldStudent && studentData) {
+        // 1. Check muna kung 'Old Student' at kung 'initialData' ay nandyan na.
+        // 2. IMPORTANTE: Mag-run lang ang setForm kung blangko pa ang 'first_name'.
+        //    Ito ang pipigil sa infinite loop.
+        if (isOldStudent && studentData && form.first_name === "") {
             let newGrade = studentData.grade_level;
             let newSectionId = studentData.section_id;
             let newSectionName = studentData.section?.name || "";
 
-            if (studentData.semester === "1st Semester") {
-                // Retain
-            } else if (studentData.semester === "2nd Semester") {
-                if (studentData.grade_level == "11") {
-                    newGrade = "12";
-                }
+            if (
+                studentData.semester === "2nd Semester" &&
+                studentData.grade_level == "11"
+            ) {
+                newGrade = "12";
                 newSectionId = null;
                 newSectionName = "";
             }
@@ -163,9 +165,10 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                 semester: settings?.semester,
                 strand_id: studentData.strand_id,
                 learning_modality:
-                    studentData.learning_modality || "Face-to-Face", // Load if exists
+                    studentData.learning_modality || "Face-to-Face",
             }));
-        } else {
+        } else if (!isOldStudent && form.grade_level === "" && settings) {
+            // Para naman sa New Students, i-set ang default school year/sem minsan lang.
             setForm((prev) => ({
                 ...prev,
                 grade_level: "11",
@@ -174,7 +177,13 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
                 section_id: null,
             }));
         }
-    }, [isOldStudent, studentData, settings]);
+    }, [
+        isOldStudent,
+        studentData,
+        settings,
+        form.first_name,
+        form.school_year,
+    ]);
 
     // AUTO AGE
     const handleDobChange = (e) => {
@@ -340,43 +349,6 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
             // UPDATE: FULLSCREEN ON MOBILE
             fullscreen="sm-down"
         >
-            <style>
-                {`
-                    .modal-retro-content {
-                        border: 3px solid #000;
-                        border-radius: 0px;
-                        box-shadow: 10px 10px 0 #000;
-                        background-color: #fff;
-                    }
-                    .modal-header-retro {
-                        background-color: #F4D03F;
-                        border-bottom: 3px solid #000;
-                        color: #000;
-                        padding: 15px 20px;
-                    }
-                    .form-control, .form-select {
-                        border-color: #000 !important;
-                        border-radius: 0 !important;
-                        padding: 10px;
-                        font-size: 0.9rem;
-                    }
-                    .form-control:focus, .form-select:focus {
-                        box-shadow: none;
-                        background-color: #fdfbf7;
-                    }
-                    
-                    /* --- SPINNING TOGA ANIMATION --- */
-                    @keyframes spin-toga { 
-                        0% { transform: rotate(0deg); } 
-                        100% { transform: rotate(360deg); } 
-                    }
-                    .spinner-toga { 
-                        animation: spin-toga 2s linear infinite; 
-                        display: inline-block; 
-                    }
-                `}
-            </style>
-
             <div className="modal-content modal-retro-content font-monospace">
                 {/* HEADER */}
                 <div className="modal-header-retro d-flex justify-content-between align-items-center">
