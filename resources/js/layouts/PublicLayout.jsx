@@ -114,25 +114,6 @@ export default function PublicLayout() {
                 backgroundSize: "20px 20px",
             }}
         >
-            <style>
-                {`
-                    .btn-staff {
-                        background-color: #F4D03F !important; 
-                        color: #000 !important;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        transition: all 0.2s ease;
-                    }
-                    .btn-staff:hover {
-                        background-color: #FFFFFF !important;
-                        transform: translate(4px, 4px) !important;
-                        box-shadow: 0px 0px 0 #000 !important;
-                    }
-                `}
-            </style>
-
             <nav
                 className="border-bottom border-2 border-dark sticky-top"
                 style={{

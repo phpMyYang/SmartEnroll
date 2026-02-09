@@ -20,48 +20,8 @@ export default function StatusCheckModal({ show, student, onClose }) {
             centered
             backdrop="static"
             keyboard={false}
+            dialogClassName="modal-retro-wrapper"
         >
-            {/* --- CUSTOM CSS FOR MODAL --- */}
-            <style>
-                {`
-                    /* Retro Card Modal Style */
-                    .modal-retro-content {
-                        border: 3px solid #000;
-                        border-radius: 0px;
-                        box-shadow: 10px 10px 0 #000;
-                        background-color: #fff;
-                    }
-                    .modal-header-retro {
-                        background-color: #F4D03F; /* Yellow Header */
-                        border-bottom: 3px solid #000;
-                        color: #000;
-                        padding: 15px 20px;
-                    }
-                    .info-row {
-                        border-bottom: 1px dashed #000;
-                        padding: 8px 0;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-                    .info-row:last-child {
-                        border-bottom: none;
-                    }
-                    .label-retro {
-                        font-weight: bold;
-                        color: #555;
-                        text-transform: uppercase;
-                        font-size: 0.85rem;
-                    }
-                    .value-retro {
-                        font-weight: 900;
-                        color: #000;
-                        text-transform: uppercase;
-                        font-size: 1rem;
-                    }
-                `}
-            </style>
-
             <div className="modal-content modal-retro-content font-monospace">
                 {/* --- HEADER --- */}
                 <div className="modal-header-retro d-flex justify-content-between align-items-center">
@@ -69,21 +29,16 @@ export default function StatusCheckModal({ show, student, onClose }) {
                         <i className="bi bi-file-earmark-person-fill fs-4"></i>
                         <h5 className="fw-black m-0 ls-1">STUDENT RECORD</h5>
                     </div>
-                    {/* Close "X" Button */}
                     <button
                         type="button"
                         className="btn-close"
                         onClick={onClose}
-                        style={{ filter: "opacity(1)" }}
                     ></button>
                 </div>
 
                 {/* --- BODY --- */}
-                <div
-                    className="modal-body p-4"
-                    style={{ backgroundColor: "#fcfbf4" }}
-                >
-                    {/* Status Badge (Centered) */}
+                <div className="modal-body p-4 bg-retro-bg">
+                    {/* Status Badge */}
                     <div className="text-center mb-4">
                         <div
                             className={`d-inline-block px-4 py-2 border border-2 border-dark ${getStatusColor(student.status)}`}
@@ -104,67 +59,55 @@ export default function StatusCheckModal({ show, student, onClose }) {
 
                     {/* Academic Information Details */}
                     <div className="border border-2 border-dark bg-white p-3">
-                        {/* LRN */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-upc-scan me-2"></i>LRN
-                            </span>
-                            <span className="value-retro text-primary">
-                                {student.lrn || "N/A"}
-                            </span>
-                        </div>
-
-                        {/* NAME */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-person-circle me-2"></i>Name
-                            </span>
-                            <span className="value-retro">
-                                {student.last_name}, {student.first_name}
-                            </span>
-                        </div>
-
-                        {/* GRADE LEVEL */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-ladder me-2"></i>Level
-                            </span>
-                            <span className="value-retro">
-                                Grade {student.grade_level}
-                            </span>
-                        </div>
-
-                        {/* STRAND */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-book-half me-2"></i>Strand
-                            </span>
-                            <span className="value-retro">
-                                {student.strand?.code || "N/A"}
-                            </span>
-                        </div>
-
-                        {/* SECTION (Fixed Error: added .name) */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-people-fill me-2"></i>
-                                Section
-                            </span>
-                            <span className="value-retro">
-                                {student.section?.name || "TBA"}
-                            </span>
-                        </div>
-
-                        {/* SEMESTER */}
-                        <div className="info-row">
-                            <span className="label-retro">
-                                <i className="bi bi-calendar-event me-2"></i>
-                                Semester
-                            </span>
-                            <span className="value-retro">
-                                {student.semester ? student.semester : "N/A"}
-                            </span>
-                        </div>
+                        {/* Info Rows - Gagamit tayo ng utility classes na idadagdag natin sa SCSS mamaya o inline para sa layout */}
+                        {[
+                            {
+                                label: "LRN",
+                                icon: "bi-upc-scan",
+                                value: student.lrn,
+                                color: "text-primary",
+                            },
+                            {
+                                label: "Name",
+                                icon: "bi-person-circle",
+                                value: `${student.last_name}, ${student.first_name}`,
+                            },
+                            {
+                                label: "Level",
+                                icon: "bi-ladder",
+                                value: `Grade ${student.grade_level}`,
+                            },
+                            {
+                                label: "Strand",
+                                icon: "bi-book-half",
+                                value: student.strand?.code || "N/A",
+                            },
+                            {
+                                label: "Section",
+                                icon: "bi-people-fill",
+                                value: student.section?.name || "TBA",
+                            },
+                            {
+                                label: "Semester",
+                                icon: "bi-calendar-event",
+                                value: student.semester || "N/A",
+                            },
+                        ].map((row, idx, arr) => (
+                            <div
+                                key={row.label}
+                                className={`d-flex justify-content-between align-items-center py-2 ${idx !== arr.length - 1 ? "border-bottom border-dark border-1 border-dashed" : ""}`}
+                            >
+                                <span className="fw-bold text-muted small text-uppercase">
+                                    <i className={`bi ${row.icon} me-2`}></i>
+                                    {row.label}
+                                </span>
+                                <span
+                                    className={`fw-bolder text-uppercase ${row.color || "text-dark"}`}
+                                >
+                                    {row.value}
+                                </span>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Footer Note */}
@@ -173,9 +116,8 @@ export default function StatusCheckModal({ show, student, onClose }) {
                             * This is a system generated status report.
                         </p>
 
-                        {/* UPDATED BUTTON: MATCHING LRNCHECKMODAL STYLE */}
                         <button
-                            className="btn btn-dark w-100 rounded-0 fw-bold btn-retro-effect"
+                            className="btn btn-dark w-100 btn-retro-effect py-2"
                             onClick={onClose}
                         >
                             CLOSE

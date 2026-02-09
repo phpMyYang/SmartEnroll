@@ -6,7 +6,7 @@ export default function CORModal({
     show,
     student,
     onClose,
-    onSuccess, // ⭐ NEW PROP: Para mag-refresh ang table pagtapos
+    onSuccess, // NEW PROP: Para mag-refresh ang table pagtapos
     apiPrefix = "/api",
 }) {
     if (!show || !student) return null;
@@ -162,7 +162,12 @@ export default function CORModal({
             return;
         }
 
-        setSubmitting(true); // ⭐ BUTTON SPINNER ONLY
+        setSubmitting(true); // BUTTON SPINNER ONLY
+
+        Toast.fire({
+            icon: "info",
+            title: "Updating Status & Generating Document...",
+        });
 
         try {
             // STEP 1: UPDATE STATUS
@@ -183,7 +188,7 @@ export default function CORModal({
                 title: `Status Updated to ${targetStatus.toUpperCase()} & COR Generated!`,
             });
 
-            // ⭐ REFRESH TABLE & CLOSE
+            // REFRESH TABLE & CLOSE
             if (onSuccess) onSuccess();
             onClose();
         } catch (error) {
@@ -203,18 +208,6 @@ export default function CORModal({
 
     return (
         <>
-            {/* CSS FOR TOGA SPINNER */}
-            <style>{`
-                @keyframes spin-toga { 
-                    0% { transform: rotate(0deg); } 
-                    100% { transform: rotate(360deg); } 
-                }
-                .spinner-toga { 
-                    animation: spin-toga 2s linear infinite; 
-                    display: inline-block; 
-                }
-            `}</style>
-
             <div
                 className="modal-backdrop fade show"
                 style={{ backgroundColor: "rgba(0,0,0,0.7)", zIndex: 1050 }}
@@ -583,7 +576,7 @@ export default function CORModal({
                                                     SIGNATORIES
                                                 </div>
                                                 <div className="card-body p-2">
-                                                    {/* ⭐ PLACEHOLDER RESTORED */}
+                                                    {/* PLACEHOLDER RESTORED */}
                                                     <label
                                                         className="fw-bold mb-0 text-muted"
                                                         style={{
@@ -661,7 +654,7 @@ export default function CORModal({
                             >
                                 {submitting ? (
                                     <>
-                                        <i className="bi bi-mortarboard-fill spinner-toga me-2"></i>
+                                        <i className="bi bi-mortarboard-fill toga-spin me-2"></i>
                                         PROCESSING...
                                     </>
                                 ) : (
