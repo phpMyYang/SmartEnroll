@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Strand;
-use App\Models\EnrollmentSetting; // Gamitin ang tamang Model name base sa migration mo
+use App\Models\EnrollmentSetting;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EnrollmentSubmitted;
 use Illuminate\Support\Facades\Validator;
@@ -37,11 +37,25 @@ class PublicEnrollmentController extends Controller
 
         $student = Student::where('lrn', $request->lrn)->first();
 
+        // SCENARIO 1: NEW STUDENT (404)
         if (!$student) {
-            return response()->json(['message' => 'LRN not found'], 404); // 404 = New Student
+            return response()->json(['message' => 'LRN not found'], 404);
         }
 
-        return response()->json($student); // 200 = Old Student
+        // SCENARIO 2: ALREADY GRADUATED (Grade 12 + 2nd Sem + Passed)
+        // Ito yung logic na gusto mo Partner!
+        if ($student->grade_level == '12' && 
+            $student->semester == '2nd Semester' && 
+            $student->status == 'passed') {
+            
+            return response()->json([
+                'message' => 'CONGRATULATIONS! You have already graduated.',
+                'status' => 'graduated' // Custom status flag for frontend
+            ], 403); // 403 Forbidden
+        }
+
+        // SCENARIO 3: OLD STUDENT (Valid for Re-enrollment)
+        return response()->json($student); 
     }
 
     // 4. CHECK STATUS (Search Bar)
