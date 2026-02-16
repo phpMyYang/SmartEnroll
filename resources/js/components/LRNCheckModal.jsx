@@ -19,9 +19,25 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
 
             // EXISTING STUDENT LOGIC
             if (student) {
-                if (student.status === "passed") {
-                    onProceed({ type: "old", student }); // Go to Wizard (Edit)
-                } else {
+                // If enrolled already, block
+                if (student.status === "enrolled") {
+                    Swal.fire({
+                        title: "ALREADY ENROLLED",
+                        text: "You are already officially enrolled for this term.",
+                        icon: "info",
+                        confirmButtonColor: "#2d3436",
+                        customClass: { popup: "card-retro" },
+                    });
+                }
+                // If Pending/Passed -> Proceed to update
+                else if (
+                    student.status === "passed" ||
+                    student.status === "pending"
+                ) {
+                    onProceed({ type: "old", student });
+                }
+                // Any other status
+                else {
                     Swal.fire({
                         title: "Cannot Proceed",
                         html: `Status is <b>${student.status.toUpperCase()}</b>. <br>Please visit the Registrar.`,
@@ -34,9 +50,35 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
         } catch (error) {
             // NEW STUDENT LOGIC (404)
             if (error.response && error.response.status === 404) {
-                onProceed({ type: "new", lrn }); // Go to Wizard (New)
-            } else {
-                Swal.fire("Error", "Server Error", "error");
+                onProceed({ type: "new", lrn });
+            }
+            // GRADUATED LOGIC (403)
+            else if (
+                error.response &&
+                error.response.status === 403 &&
+                error.response.data.status === "graduated"
+            ) {
+                Swal.fire({
+                    title: "CONGRATULATIONS!",
+                    html: `
+                        <div class="text-center">
+                            <i class="bi bi-mortarboard-fill display-1 text-success mb-3"></i>
+                            <h4 class="fw-bold">YOU HAVE GRADUATED!</h4>
+                            <p class="small text-muted">Based on our records, you have completed Grade 12 (2nd Semester).</p>
+                            <div class="alert alert-warning border-dark rounded-0 small fw-bold">
+                                You cannot enroll again. Good luck on your next journey! 🚀
+                            </div>
+                        </div>
+                    `,
+                    icon: null, // Custom HTML icon above
+                    confirmButtonText: "THANK YOU!",
+                    confirmButtonColor: "#2d3436",
+                    customClass: { popup: "card-retro" },
+                });
+            }
+            // GENERAL SERVER ERROR
+            else {
+                Swal.fire("Error", "Server Error. Please try again.", "error");
             }
         } finally {
             setLoading(false);
@@ -52,7 +94,7 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
             keyboard={false}
         >
             <div className="modal-content modal-retro-content font-monospace">
-                {/* --- HEADER --- */}
+                {/* HEADER */}
                 <div className="modal-header-retro d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2">
                         <i className="bi bi-shield-lock-fill fs-4"></i>
@@ -65,7 +107,7 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
                     ></button>
                 </div>
 
-                {/* --- BODY --- */}
+                {/* BODY */}
                 <div
                     className="modal-body p-4"
                     style={{ backgroundColor: "#fcfbf4" }}
@@ -101,7 +143,7 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
                         >
                             {loading ? (
                                 <span>
-                                    {/* TOGA SPINNER HERE */}
+                                    {/* TOGA SPINNER */}
                                     <i className="bi bi-mortarboard-fill spinner-toga me-2"></i>
                                     CHECKING...
                                 </span>
