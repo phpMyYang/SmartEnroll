@@ -158,6 +158,9 @@ export default function EnrollmentWizard({ initialData, settings, onClose }) {
             setForm((prev) => ({
                 ...prev,
                 ...studentData,
+                date_of_birth: studentData.date_of_birth
+                    ? moment(studentData.date_of_birth).format("YYYY-MM-DD")
+                    : "",
                 grade_level: newGrade,
                 section_id: newSectionId,
                 section_name: newSectionName,
