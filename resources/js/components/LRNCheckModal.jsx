@@ -30,10 +30,7 @@ export default function LRNCheckModal({ show, onClose, onProceed }) {
                     });
                 }
                 // If Pending/Passed -> Proceed to update
-                else if (
-                    student.status === "passed" ||
-                    student.status === "pending"
-                ) {
+                else if (student.status === "passed") {
                     onProceed({ type: "old", student });
                 }
                 // Any other status
